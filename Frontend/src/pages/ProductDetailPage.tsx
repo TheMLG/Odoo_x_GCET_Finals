@@ -1,0 +1,211 @@
+import { useParams, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { ArrowLeft, Check, Star, Package, Shield, Clock } from 'lucide-react';
+import { MainLayout } from '@/components/layout/MainLayout';
+import { RentalConfigurator } from '@/components/products/RentalConfigurator';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useRentalStore } from '@/stores/rentalStore';
+
+export default function ProductDetailPage() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const { products } = useRentalStore();
+  const product = products.find((p) => p.id === id);
+
+  if (!product) {
+    return (
+      <MainLayout>
+        <div className="container flex min-h-[50vh] flex-col items-center justify-center px-4 py-12">
+          <h1 className="mb-4 text-2xl font-bold">Product Not Found</h1>
+          <p className="mb-6 text-muted-foreground">
+            The product you're looking for doesn't exist or has been removed.
+          </p>
+          <Button onClick={() => navigate('/products')} className="rounded-xl">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Products
+          </Button>
+        </div>
+      </MainLayout>
+    );
+  }
+
+  const features = [
+    { icon: Package, label: 'Free delivery on orders above ₹5,000' },
+    { icon: Shield, label: 'Fully insured equipment' },
+    { icon: Clock, label: 'Flexible rental periods' },
+  ];
+
+  return (
+    <MainLayout>
+      <div className="container px-4 py-8 md:px-6 md:py-12">
+        {/* Back Button */}
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          className="mb-6"
+        >
+          <Button
+            variant="ghost"
+            onClick={() => navigate(-1)}
+            className="gap-2 rounded-xl"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back
+          </Button>
+        </motion.div>
+
+        <div className="grid gap-8 lg:grid-cols-2">
+          {/* Product Images */}
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.4 }}
+            className="space-y-4"
+          >
+            <div className="overflow-hidden rounded-2xl bg-muted">
+              <img
+                src={product.images[0]}
+                alt={product.name}
+                className="aspect-square w-full object-cover"
+              />
+            </div>
+
+            {/* Features */}
+            <div className="grid gap-3 sm:grid-cols-3">
+              {features.map((feature) => (
+                <div
+                  key={feature.label}
+                  className="flex items-center gap-3 rounded-xl bg-muted/50 p-3"
+                >
+                  <feature.icon className="h-5 w-5 text-primary" />
+                  <span className="text-sm">{feature.label}</span>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+
+          {/* Rental Configurator */}
+          <div>
+            <RentalConfigurator product={product} />
+          </div>
+        </div>
+
+        {/* Product Details Tabs */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="mt-12"
+        >
+          <Tabs defaultValue="description" className="w-full">
+            <TabsList className="mb-6 w-full justify-start rounded-xl bg-muted/50 p-1">
+              <TabsTrigger value="description" className="rounded-lg">
+                Description
+              </TabsTrigger>
+              <TabsTrigger value="specifications" className="rounded-lg">
+                Specifications
+              </TabsTrigger>
+              <TabsTrigger value="reviews" className="rounded-lg">
+                Reviews
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="description" className="space-y-4">
+              <div className="rounded-2xl border border-border bg-card p-6">
+                <h3 className="mb-4 text-lg font-semibold">About This Product</h3>
+                <p className="text-muted-foreground">{product.description}</p>
+
+                <div className="mt-6">
+                  <h4 className="mb-3 font-medium">What's Included:</h4>
+                  <ul className="space-y-2">
+                    <li className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Check className="h-4 w-4 text-success" />
+                      Main equipment unit
+                    </li>
+                    <li className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Check className="h-4 w-4 text-success" />
+                      Carrying case/bag
+                    </li>
+                    <li className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Check className="h-4 w-4 text-success" />
+                      Charger and cables
+                    </li>
+                    <li className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Check className="h-4 w-4 text-success" />
+                      User manual
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="specifications">
+              <div className="rounded-2xl border border-border bg-card p-6">
+                <h3 className="mb-4 text-lg font-semibold">Product Specifications</h3>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {Object.entries(product.attributes).map(([key, value]) => (
+                    <div key={key} className="flex justify-between border-b border-border pb-2">
+                      <span className="text-muted-foreground capitalize">{key}</span>
+                      <span className="font-medium">{value}</span>
+                    </div>
+                  ))}
+                  <div className="flex justify-between border-b border-border pb-2">
+                    <span className="text-muted-foreground">Category</span>
+                    <Badge variant="secondary">{product.category}</Badge>
+                  </div>
+                  <div className="flex justify-between border-b border-border pb-2">
+                    <span className="text-muted-foreground">Available Units</span>
+                    <span className="font-medium">{product.quantityOnHand}</span>
+                  </div>
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="reviews">
+              <div className="rounded-2xl border border-border bg-card p-6">
+                <div className="mb-6 flex items-center gap-4">
+                  <div className="text-4xl font-bold">4.8</div>
+                  <div>
+                    <div className="flex gap-1">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <Star
+                          key={i}
+                          className={`h-5 w-5 ${
+                            i < 4 ? 'fill-warning text-warning' : 'text-muted'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                    <p className="text-sm text-muted-foreground">Based on 24 reviews</p>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="border-b border-border pb-4 last:border-0">
+                      <div className="mb-2 flex items-center gap-2">
+                        <div className="flex gap-0.5">
+                          {Array.from({ length: 5 }).map((_, j) => (
+                            <Star key={j} className="h-3 w-3 fill-warning text-warning" />
+                          ))}
+                        </div>
+                        <span className="text-sm font-medium">John D.</span>
+                        <span className="text-xs text-muted-foreground">2 weeks ago</span>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Excellent equipment, arrived in perfect condition. The rental process was
+                        smooth and the team was very helpful. Will definitely rent again!
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
+        </motion.div>
+      </div>
+    </MainLayout>
+  );
+}
