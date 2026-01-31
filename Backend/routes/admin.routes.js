@@ -9,6 +9,9 @@ import {
   getAllProducts,
   getAllOrders,
   getDashboardStats,
+  getAdminProfile,
+  updateAdminProfile,
+  changeAdminPassword,
 } from "../controllers/admin.controller.js";
 import { verifyJWT } from "../middleware/auth.middleware.js";
 import { isAdmin } from "../middleware/role.middleware.js";
@@ -20,6 +23,10 @@ router.use(verifyJWT, isAdmin);
 
 // Dashboard stats
 router.route("/stats").get(getDashboardStats);
+
+// Admin profile routes
+router.route("/profile").get(getAdminProfile).put(updateAdminProfile);
+router.route("/profile/change-password").post(changeAdminPassword);
 
 // User management routes
 router.route("/users").get(getAllUsers).post(createUser);

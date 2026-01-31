@@ -2,6 +2,7 @@ import prisma from "../config/prisma.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import ApiError from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
+import bcrypt from "bcryptjs";
 
 // Get vendor profile
 export const getVendorProfile = asyncHandler(async (req, res) => {
@@ -232,4 +233,101 @@ export const getVendorStats = asyncHandler(async (req, res) => {
   res
     .status(200)
     .json(new ApiResponse(200, stats, "Vendor stats fetched successfully"));
+});
+
+// Update vendor user info (firstName, lastName, email)
+export const updateVendorUserInfo = asyncHandler(async (req, res) => {
+  const userId = req.user.id;
+  const { email, firstName, lastName } = req.body;
+
+  // Check if email is being changed and if it's already taken
+  if (email) {
+    const existingUser = await prisma.user.findFirst({
+      where: {
+        email,
+        NOT: {
+          id: userId,
+        },
+      },
+    });
+
+    if (existingUser) {
+      throw new ApiError(409, "Email is already in use");
+    }
+  }
+
+  const user = await prisma.user.update({
+    where: { id: userId },
+    data: {
+      ...(email && { email }),
+      ...(firstName && { firstName }),
+      ...(lastName && { lastName }),
+    },
+    select: {
+      id: true,
+      email: true,
+      firstName: true,
+      lastName: true,
+      createdAt: true,
+      roles: {
+        include: {
+          role: true,
+        },
+      },
+      vendor: {
+        select: {
+          id: true,
+          companyName: true,
+          gstNo: true,
+          product_category: true,
+        },
+      },
+    },
+  });
+
+  res
+    .status(200)
+    .json(new ApiResponse(200, user, "User info updated successfully"));
+});
+
+// Change vendor password
+export const changeVendorPassword = asyncHandler(async (req, res) => {
+  const userId = req.user.id;
+  const { currentPassword, newPassword } = req.body;
+
+  if (!currentPassword || !newPassword) {
+    throw new ApiError(400, "Current password and new password are required");
+  }
+
+  if (newPassword.length < 6) {
+    throw new ApiError(400, "New password must be at least 6 characters long");
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+  });
+
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+
+  // Verify current password
+  const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+
+  if (!isPasswordValid) {
+    throw new ApiError(401, "Current password is incorrect");
+  }
+
+  // Hash new password
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+  // Update password
+  await prisma.user.update({
+    where: { id: userId },
+    data: { password: hashedPassword },
+  });
+
+  res
+    .status(200)
+    .json(new ApiResponse(200, {}, "Password changed successfully"));
 });

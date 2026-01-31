@@ -148,12 +148,12 @@ export const useAuthStore = create<AuthState>()(
         const role = getUserRole();
         switch (role) {
           case 'ADMIN':
-            return '/admin';
+            return '/admin/dashboard';
           case 'VENDOR':
-            return '/vendor';
+            return '/vendor/dashboard';
           case 'CUSTOMER':
           default:
-            return '/';
+            return '/dashboard';
         }
       },
     }),

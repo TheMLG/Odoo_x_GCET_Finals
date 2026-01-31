@@ -380,3 +380,121 @@ export const getDashboardStats = asyncHandler(async (req, res) => {
     .status(200)
     .json(new ApiResponse(200, stats, "Dashboard stats fetched successfully"));
 });
+
+// Get admin profile
+export const getAdminProfile = asyncHandler(async (req, res) => {
+  const userId = req.user.id;
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      email: true,
+      firstName: true,
+      lastName: true,
+      createdAt: true,
+      roles: {
+        include: {
+          role: true,
+        },
+      },
+    },
+  });
+
+  if (!user) {
+    throw new ApiError(404, "Admin profile not found");
+  }
+
+  res
+    .status(200)
+    .json(new ApiResponse(200, user, "Admin profile fetched successfully"));
+});
+
+// Update admin profile
+export const updateAdminProfile = asyncHandler(async (req, res) => {
+  const userId = req.user.id;
+  const { email, firstName, lastName } = req.body;
+
+  // Check if email is being changed and if it's already taken
+  if (email) {
+    const existingUser = await prisma.user.findFirst({
+      where: {
+        email,
+        NOT: {
+          id: userId,
+        },
+      },
+    });
+
+    if (existingUser) {
+      throw new ApiError(409, "Email is already in use");
+    }
+  }
+
+  const user = await prisma.user.update({
+    where: { id: userId },
+    data: {
+      ...(email && { email }),
+      ...(firstName && { firstName }),
+      ...(lastName && { lastName }),
+    },
+    select: {
+      id: true,
+      email: true,
+      firstName: true,
+      lastName: true,
+      createdAt: true,
+      roles: {
+        include: {
+          role: true,
+        },
+      },
+    },
+  });
+
+  res
+    .status(200)
+    .json(new ApiResponse(200, user, "Profile updated successfully"));
+});
+
+// Change admin password
+export const changeAdminPassword = asyncHandler(async (req, res) => {
+  const userId = req.user.id;
+  const { currentPassword, newPassword } = req.body;
+
+  if (!currentPassword || !newPassword) {
+    throw new ApiError(400, "Current password and new password are required");
+  }
+
+  if (newPassword.length < 6) {
+    throw new ApiError(400, "New password must be at least 6 characters long");
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+  });
+
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+
+  // Verify current password
+  const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+
+  if (!isPasswordValid) {
+    throw new ApiError(401, "Current password is incorrect");
+  }
+
+  // Hash new password
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+  // Update password
+  await prisma.user.update({
+    where: { id: userId },
+    data: { password: hashedPassword },
+  });
+
+  res
+    .status(200)
+    .json(new ApiResponse(200, {}, "Password changed successfully"));
+});

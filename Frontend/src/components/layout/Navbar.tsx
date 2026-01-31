@@ -148,7 +148,7 @@ export function Navbar() {
                 <Link to="/login">Login</Link>
               </Button>
               <Button asChild className="rounded-xl">
-                <Link to="/signup">Sign Up</Link>
+                <Link to="/signup/user">Sign Up</Link>
               </Button>
             </div>
           )}
@@ -199,7 +199,7 @@ export function Navbar() {
                   Login
                 </Link>
                 <Link
-                  to="/signup"
+                  to="/signup/user"
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="rounded-xl bg-primary px-4 py-2 text-center text-sm font-medium text-primary-foreground"
                 >

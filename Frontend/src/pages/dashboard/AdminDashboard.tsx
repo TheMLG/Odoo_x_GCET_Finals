@@ -97,7 +97,7 @@ export default function AdminDashboard() {
   ];
 
   return (
-    <MainLayout>
+    <MainLayout showFooter={false}>
       <div className="container px-4 py-8 md:px-6 md:py-12">
         {/* Header */}
         <motion.div

@@ -8,7 +8,8 @@ import {
   TrendingUp,
   AlertTriangle,
   Plus,
-  ArrowUpRight
+  ArrowUpRight,
+  Settings
 } from 'lucide-react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -91,7 +92,7 @@ export default function VendorDashboard() {
   ];
 
   return (
-    <MainLayout>
+    <MainLayout showFooter={false}>
       <div className="container px-4 py-8 md:px-6 md:py-12">
         {/* Header */}
         <motion.div
@@ -105,12 +106,20 @@ export default function VendorDashboard() {
               Manage your products and track orders
             </p>
           </div>
-          <Button asChild className="rounded-xl">
-            <Link to="/vendor/products/new">
-              <Plus className="mr-2 h-4 w-4" />
-              Add Product
-            </Link>
-          </Button>
+          <div className="flex gap-2">
+            <Button asChild variant="outline" className="rounded-xl">
+              <Link to="/vendor/settings">
+                <Settings className="mr-2 h-4 w-4" />
+                Settings
+              </Link>
+            </Button>
+            <Button asChild className="rounded-xl">
+              <Link to="/vendor/products/new">
+                <Plus className="mr-2 h-4 w-4" />
+                Add Product
+              </Link>
+            </Button>
+          </div>
         </motion.div>
 
         {/* Stats Grid */}
