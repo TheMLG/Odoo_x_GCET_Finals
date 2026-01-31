@@ -19,7 +19,6 @@ import DeliveryTimePage from "./pages/checkout/DeliveryTimePage";
 import PaymentPage from "./pages/checkout/PaymentPage";
 import AdminDashboard from "./pages/dashboard/AdminDashboard";
 import AdminSettings from "./pages/dashboard/AdminSettings";
-import CustomerDashboard from "./pages/dashboard/CustomerDashboard";
 import ManageOrders from "./pages/dashboard/ManageOrders";
 import ManageProducts from "./pages/dashboard/ManageProducts";
 import ManageUsers from "./pages/dashboard/ManageUsers";
@@ -68,7 +67,7 @@ function ProtectedRoute({
     const redirectPath =
       userRole === "ADMIN" ? "/admin/dashboard"
         : userRole === "VENDOR" ? "/vendor/dashboard"
-          : "/dashboard";
+          : "/orders";
     return <Navigate to={redirectPath} replace />;
   }
 
@@ -86,19 +85,7 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-// Dashboard Router - redirects based on role
-function DashboardRouter() {
-  const { getUserRole } = useAuthStore();
-  const role = getUserRole();
 
-  if (role === "ADMIN") {
-    return <Navigate to="/admin/dashboard" replace />;
-  }
-  if (role === "VENDOR") {
-    return <Navigate to="/vendor/dashboard" replace />;
-  }
-  return <CustomerDashboard />;
-}
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -192,16 +179,6 @@ const App = () => (
             element={
               <ProtectedRoute>
                 <PaymentPage />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* Protected Routes */}
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <DashboardRouter />
               </ProtectedRoute>
             }
           />

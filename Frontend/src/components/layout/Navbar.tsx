@@ -177,24 +177,24 @@ export function Navbar() {
                   <p className="text-xs text-muted-foreground">{user?.email}</p>
                 </div>
                 <DropdownMenuSeparator />
+                {userRole === "VENDOR" && (
+                  <DropdownMenuItem asChild>
+                    <Link
+                      to={dashboardLink}
+                      className="flex items-center gap-2"
+                    >
+                      <LayoutDashboard className="h-4 w-4" />
+                      Dashboard
+                    </Link>
+                  </DropdownMenuItem>
+                )}
                 {userRole !== "ADMIN" && (
-                  <>
-                    <DropdownMenuItem asChild>
-                      <Link
-                        to={dashboardLink}
-                        className="flex items-center gap-2"
-                      >
-                        <LayoutDashboard className="h-4 w-4" />
-                        Dashboard
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link to={ordersLink} className="flex items-center gap-2">
-                        <FileText className="h-4 w-4" />
-                        My Orders
-                      </Link>
-                    </DropdownMenuItem>
-                  </>
+                  <DropdownMenuItem asChild>
+                    <Link to={ordersLink} className="flex items-center gap-2">
+                      <FileText className="h-4 w-4" />
+                      My Orders
+                    </Link>
+                  </DropdownMenuItem>
                 )}
                 <DropdownMenuItem asChild>
                   <Link to={settingsLink} className="flex items-center gap-2">
