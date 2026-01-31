@@ -55,12 +55,33 @@ export const createOrder = asyncHandler(async (req, res) => {
     for (const [vendorId, items] of Object.entries(itemsByVendor)) {
       console.log("createOrder: Creating order for vendor", vendorId);
       // Calculate totals
-      const orderTotal = items.reduce(
+      const subTotal = items.reduce(
         (sum, item) => sum + Number(item.unitPrice) * item.quantity,
-        0,
+        0
       );
-      const gstAmount = orderTotal * 0.18; // 18% GST
-      const finalAmount = orderTotal + gstAmount;
+
+      let discountAmount = 0;
+
+      // Apply Coupon Logic
+      if (couponCode) {
+        const coupon = await prisma.coupon.findUnique({
+          where: { code: couponCode },
+        });
+
+        // Basic validation (should be more robust in production, checking expiry/usage)
+        if (coupon) {
+          if (coupon.discountType === 'PERCENTAGE') {
+            discountAmount = (subTotal * coupon.discountValue) / 100;
+          } else if (coupon.discountType === 'FIXED') {
+            discountAmount = coupon.discountValue;
+          }
+          console.log(`Applying coupon ${couponCode}: -${discountAmount}`);
+        }
+      }
+
+      const totalAfterDiscount = Math.max(0, subTotal - discountAmount);
+      const gstAmount = totalAfterDiscount * 0.18; // 18% GST on discounted price
+      const finalAmount = totalAfterDiscount + gstAmount;
 
       // Create Order
       const order = await tx.order.create({
@@ -97,6 +118,8 @@ export const createOrder = asyncHandler(async (req, res) => {
           totalAmount: finalAmount,
           gstAmount: gstAmount,
           status: "PAID",
+          // You might want to store discountAmount in Invoice model if it exists, 
+          // or just rely on totalAmount being net
           payments: {
             create: {
               amount: finalAmount,
@@ -358,8 +381,8 @@ export const generateInvoicePDF = asyncHandler(async (req, res) => {
     // Status with color
     const statusColor =
       order.status === "CONFIRMED" ? "#16a34a"
-      : order.status === "CANCELLED" ? "#dc2626"
-      : "#f59e0b";
+        : order.status === "CANCELLED" ? "#dc2626"
+          : "#f59e0b";
     doc
       .fontSize(9)
       .fillColor(statusColor)

@@ -23,13 +23,13 @@ const steps = [
 
 export default function CheckoutPage() {
   const navigate = useNavigate();
-  const { items, getTotalAmount, fetchCart } = useCartStore();
+  const { items, getTotalAmount, fetchCart, appliedCoupon, clearCart, applyCoupon, removeCoupon } = useCartStore();
   const [currentStep, setCurrentStep] = useState(1);
   const [showCoupons, setShowCoupons] = useState(false);
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
-  const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number } | null>(null);
 
   // Form state
+  // ... (rest of the state)
   const [formData, setFormData] = useState({
     firstName: 'Ronit',
     lastName: 'Dhimmar',
@@ -63,9 +63,9 @@ export default function CheckoutPage() {
 
   const handleCouponApplied = (code: string, discount: number) => {
     if (code && discount > 0) {
-      setAppliedCoupon({ code, discount });
+      applyCoupon({ code, discount });
     } else {
-      setAppliedCoupon(null);
+      removeCoupon();
     }
   };
 
@@ -88,10 +88,22 @@ export default function CheckoutPage() {
   const handlePlaceOrder = async () => {
     try {
       setIsPlacingOrder(true);
-      await createOrder();
-      toast.success('Order placed successfully!');
-      // Refresh cart to reflect empty state
-      fetchCart();
+
+      const orderData = {
+        addressId: 'temp-address-id', // TODO: Use selected address ID
+        paymentMethod: 'ONLINE',
+        couponCode: appliedCoupon?.code
+      };
+
+      await createOrder(orderData);
+
+      toast.success('Order placed successfully!', {
+        description: 'Thank you for your order. You will receive a confirmation shortly.',
+      });
+
+      // Clear cart including coupon
+      await clearCart();
+
       navigate('/orders');
     } catch (error: any) {
       console.error('Failed to place order:', error);
