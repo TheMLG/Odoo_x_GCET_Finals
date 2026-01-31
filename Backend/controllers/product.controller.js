@@ -63,6 +63,7 @@ export const getAllProducts = asyncHandler(async (req, res) => {
     const transformedProducts = products.map((product) => {
         // Transform pricing array to object
         const pricingObj = {
+            pricePerHour: 0,
             pricePerDay: 0,
             pricePerWeek: 0,
             pricePerMonth: 0
@@ -70,9 +71,11 @@ export const getAllProducts = asyncHandler(async (req, res) => {
 
         if (product.pricing && Array.isArray(product.pricing)) {
             product.pricing.forEach((p) => {
-                if (p.type === "DAY") pricingObj.pricePerDay = Number(p.price);
-                if (p.type === "WEEK") pricingObj.pricePerWeek = Number(p.price);
-                if (p.type === "MONTH") pricingObj.pricePerMonth = Number(p.price);
+                const price = Number(p.price);
+                if (p.type === "HOUR") pricingObj.pricePerHour = price;
+                if (p.type === "DAY") pricingObj.pricePerDay = price;
+                if (p.type === "WEEK") pricingObj.pricePerWeek = price;
+                if (p.type === "MONTH") pricingObj.pricePerMonth = price;
             });
         }
 
@@ -83,19 +86,27 @@ export const getAllProducts = asyncHandler(async (req, res) => {
 
         // Transform attributes to key-value object
         const attributesObj = {};
-        if (product.attributes) {
+        if (Array.isArray(product.attributes)) {
             product.attributes.forEach(attr => {
-                if (attr.attribute?.name && attr.attributeValue?.value) {
-                    attributesObj[attr.attribute.name.toLowerCase()] = attr.attributeValue.value;
+                if (attr.attributeValue?.attribute?.name && attr.attributeValue?.value) {
+                    attributesObj[attr.attributeValue.attribute.name] = attr.attributeValue.value;
                 }
             });
         }
 
         return {
-            ...product,
+            id: product.id,
+            vendorId: product.vendorId,
+            name: product.name,
+            description: product.description,
+            category: product.category,
+            product_image_url: product.product_image_url,
+            isPublished: product.isPublished,
+            createdAt: product.createdAt,
             pricing: pricingObj,
             inventory: inventoryObj,
-            attributes: attributesObj
+            attributes: attributesObj,
+            vendor: product.vendor
         };
     });
 
@@ -168,6 +179,7 @@ export const getProductById = asyncHandler(async (req, res) => {
 
     // Transform pricing array to object
     const pricingObj = {
+        pricePerHour: 0,
         pricePerDay: 0,
         pricePerWeek: 0,
         pricePerMonth: 0
@@ -175,9 +187,11 @@ export const getProductById = asyncHandler(async (req, res) => {
 
     if (product.pricing && Array.isArray(product.pricing)) {
         product.pricing.forEach((p) => {
-            if (p.type === "DAY") pricingObj.pricePerDay = Number(p.price);
-            if (p.type === "WEEK") pricingObj.pricePerWeek = Number(p.price);
-            if (p.type === "MONTH") pricingObj.pricePerMonth = Number(p.price);
+            const price = Number(p.price);
+            if (p.type === "HOUR") pricingObj.pricePerHour = price;
+            if (p.type === "DAY") pricingObj.pricePerDay = price;
+            if (p.type === "WEEK") pricingObj.pricePerWeek = price;
+            if (p.type === "MONTH") pricingObj.pricePerMonth = price;
         });
     }
 
@@ -188,19 +202,27 @@ export const getProductById = asyncHandler(async (req, res) => {
 
     // Transform attributes to key-value object
     const attributesObj = {};
-    if (product.attributes) {
+    if (Array.isArray(product.attributes)) {
         product.attributes.forEach(attr => {
-            if (attr.attribute?.name && attr.attributeValue?.value) {
-                attributesObj[attr.attribute.name.toLowerCase()] = attr.attributeValue.value;
+            if (attr.attributeValue?.attribute?.name && attr.attributeValue?.value) {
+                attributesObj[attr.attributeValue.attribute.name] = attr.attributeValue.value;
             }
         });
     }
 
     const transformedProduct = {
-        ...product,
+        id: product.id,
+        vendorId: product.vendorId,
+        name: product.name,
+        description: product.description,
+        category: product.category,
+        product_image_url: product.product_image_url,
+        isPublished: product.isPublished,
+        createdAt: product.createdAt,
         pricing: pricingObj,
         inventory: inventoryObj,
-        attributes: attributesObj
+        attributes: attributesObj,
+        vendor: product.vendor
     };
 
     return res

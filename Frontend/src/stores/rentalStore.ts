@@ -1,7 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Product, RentalOrder, Quotation, Invoice } from '@/types/rental';
-import { mockProducts, mockOrders, mockQuotations, mockInvoices } from '@/data/mockData';
 import api from '@/lib/api';
 
 interface RentalState {
@@ -46,10 +45,10 @@ interface RentalState {
 export const useRentalStore = create<RentalState>()(
   persist(
     (set) => ({
-      products: mockProducts,
-      orders: mockOrders,
-      quotations: mockQuotations,
-      invoices: mockInvoices,
+      products: [],
+      orders: [],
+      quotations: [],
+      invoices: [],
       isLoadingProducts: false,
       productsError: null,
       location: 'Delhi',
@@ -71,36 +70,38 @@ export const useRentalStore = create<RentalState>()(
           const fetchedProducts = response.data.data || [];
           
           // Transform backend data to match frontend Product type
-          const transformedProducts: Product[] = fetchedProducts.map((p: any) => ({
-            id: p.id,
-            name: p.name,
-            description: p.description || '',
-            category: p.category || 'General',
-            images: p.images || [],
-            isRentable: p.isRentable ?? true,
-            isPublished: p.isPublished,
-            costPrice: p.costPrice || 0,
-            pricePerHour: p.pricing?.find((pr: any) => pr.type === 'HOUR')?.price || 0,
-            pricePerDay: p.pricing?.find((pr: any) => pr.type === 'DAY')?.price || 0,
-            pricePerWeek: p.pricing?.find((pr: any) => pr.type === 'WEEK')?.price || 0,
-            quantityOnHand: p.inventory?.totalQty || 0,
-            vendorId: p.vendorId,
-            attributes: p.attributes?.reduce((acc: any, attr: any) => {
-              acc[attr.attributeValue.attribute.name] = attr.attributeValue.value;
-              return acc;
-            }, {}) || {},
-            createdAt: p.createdAt,
-          }));
+          const transformedProducts: Product[] = fetchedProducts.map((p: any) => {
+            // Backend returns pricing as an object: { pricePerDay, pricePerWeek, pricePerMonth }
+            const pricing = p.pricing || {};
+            
+            return {
+              id: p.id,
+              name: p.name,
+              description: p.description || '',
+              category: p.category || 'General',
+              images: p.product_image_url ? [p.product_image_url] : [],
+              isRentable: true,
+              isPublished: p.isPublished ?? false,
+              costPrice: 0,
+              pricePerHour: 0, // Backend doesn't have hourly pricing yet
+              pricePerDay: Number(pricing.pricePerDay) || 0,
+              pricePerWeek: Number(pricing.pricePerWeek) || 0,
+              quantityOnHand: p.inventory?.quantityOnHand || 0,
+              vendorId: p.vendorId,
+              attributes: typeof p.attributes === 'object' && !Array.isArray(p.attributes) ? p.attributes : {},
+              createdAt: p.createdAt,
+            };
+          });
           
-          set({ products: transformedProducts, isLoadingProducts: false });
+          set({ products: transformedProducts, isLoadingProducts: false, productsError: null });
         } catch (error: any) {
           console.error('Failed to fetch products:', error);
           const errorMessage = error.response?.data?.message || error.message || 'Failed to fetch products';
           set({ 
+            products: [],
             productsError: errorMessage,
             isLoadingProducts: false 
           });
-          // Keep using mock data on error
         }
       },
       
@@ -172,6 +173,12 @@ export const useRentalStore = create<RentalState>()(
     }),
     {
       name: 'rental-data',
+      partialize: (state) => ({ 
+        location: state.location,
+        deliveryDate: state.deliveryDate,
+        pickupDate: state.pickupDate,
+        // Don't persist products, orders, quotations, invoices - fetch from API
+      }),
     }
   )
 );

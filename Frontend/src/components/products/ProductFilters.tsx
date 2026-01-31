@@ -19,7 +19,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { categories } from '@/data/mockData';
+
+// Categories list
+const categories = [
+  'Photography',
+  'Videography',
+  'Lighting',
+  'Audio',
+  'Gaming',
+  'Electronics',
+  'Tools',
+  'Sports',
+  'Events',
+  'Other'
+];
 
 interface ProductFiltersProps {
   searchQuery: string;

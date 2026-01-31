@@ -19,6 +19,7 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
   const inWishlist = isInWishlist(product.id);
 
   const formatPrice = (price: number) => {
+    if (!price || price === 0) return '-';
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
       currency: 'INR',

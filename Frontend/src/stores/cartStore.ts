@@ -62,38 +62,50 @@ export const useCartStore = create<CartState>()(
           const response = await api.get('/cart');
           const cartData = response.data.data;
           
+          if (!cartData || !cartData.items) {
+            set({ items: [], isLoading: false });
+            return;
+          }
+          
           // Transform backend cart items to frontend format
-          const transformedItems: CartItem[] = (cartData.items || []).map((item: any) => ({
-            id: item.id,
-            productId: item.productId,
-            product: {
-              id: item.product.id,
-              name: item.product.name,
-              description: item.product.description || '',
-              category: item.product.category || 'General',
-              images: item.product.images || [],
-              isRentable: true,
-              isPublished: item.product.isPublished,
-              costPrice: 0,
-              pricePerHour: item.product.pricing?.find((pr: any) => pr.type === 'HOUR')?.price || 0,
-              pricePerDay: item.product.pricing?.find((pr: any) => pr.type === 'DAY')?.price || 0,
-              pricePerWeek: item.product.pricing?.find((pr: any) => pr.type === 'WEEK')?.price || 0,
-              quantityOnHand: item.product.inventory?.totalQty || 0,
-              vendorId: item.product.vendorId,
-              attributes: {},
-              createdAt: item.product.createdAt,
-            },
-            quantity: item.quantity,
-            rentalDuration: 'daily', // Default, can be enhanced
-            startDate: item.rentalStart,
-            endDate: item.rentalEnd,
-            totalPrice: parseFloat(item.unitPrice) * item.quantity,
-          }));
+          const transformedItems: CartItem[] = cartData.items.map((item: any) => {
+            const pricing = item.product?.pricing || {};
+            const inventory = item.product?.inventory || {};
+            
+            return {
+              id: item.id,
+              productId: item.productId,
+              product: {
+                id: item.product.id,
+                name: item.product.name,
+                description: item.product.description || '',
+                category: item.product.category || 'General',
+                images: item.product.product_image_url ? [item.product.product_image_url] : [],
+                isRentable: true,
+                isPublished: item.product.isPublished ?? false,
+                costPrice: 0,
+                pricePerHour: Number(pricing.pricePerHour) || 0,
+                pricePerDay: Number(pricing.pricePerDay) || 0,
+                pricePerWeek: Number(pricing.pricePerWeek) || 0,
+                quantityOnHand: inventory.quantityOnHand || 0,
+                vendorId: item.product.vendorId,
+                attributes: typeof item.product.attributes === 'object' && !Array.isArray(item.product.attributes) 
+                  ? item.product.attributes 
+                  : {},
+                createdAt: item.product.createdAt,
+              },
+              quantity: item.quantity,
+              rentalDuration: 'daily', // Default, can be enhanced
+              startDate: item.rentalStart,
+              endDate: item.rentalEnd,
+              totalPrice: parseFloat(item.unitPrice) * item.quantity,
+            };
+          });
           
           set({ items: transformedItems, isLoading: false });
         } catch (error: any) {
           console.error('Failed to fetch cart:', error);
-          set({ isLoading: false });
+          set({ items: [], isLoading: false });
         }
       },
       
@@ -175,6 +187,10 @@ export const useCartStore = create<CartState>()(
     }),
     {
       name: 'rental-cart',
+      partialize: (state) => ({ 
+        // Don't persist cart items - always fetch from API
+        // Only persist non-critical state if needed
+      }),
     }
   )
 );

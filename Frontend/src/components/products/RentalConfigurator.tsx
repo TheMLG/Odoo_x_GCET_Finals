@@ -36,6 +36,7 @@ export function RentalConfigurator({ product }: RentalConfiguratorProps) {
   const { isAuthenticated } = useAuthStore();
 
   const formatPrice = (price: number) => {
+    if (!price || price === 0) return '-';
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
       currency: 'INR',
@@ -79,6 +80,12 @@ export function RentalConfigurator({ product }: RentalConfiguratorProps) {
       return;
     }
 
+    const currentPrice = getPriceForDuration();
+    if (!currentPrice || currentPrice === 0) {
+      toast.error(`${duration} rental is not available for this product`);
+      return;
+    }
+
     try {
       setIsAddingToCart(true);
       await addItem(product, quantity, duration, deliveryDate);
@@ -96,7 +103,7 @@ export function RentalConfigurator({ product }: RentalConfiguratorProps) {
     { value: 'hourly', label: 'Hourly', price: product.pricePerHour, icon: Clock },
     { value: 'daily', label: 'Daily', price: product.pricePerDay, icon: CalendarIcon },
     { value: 'weekly', label: 'Weekly', price: product.pricePerWeek, icon: CalendarIcon },
-  ];
+  ].filter(option => option.price && option.price > 0); // Only show available pricing options
 
   return (
     <motion.div
