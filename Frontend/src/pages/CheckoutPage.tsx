@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCartStore } from '@/stores/cartStore';
+import { createOrder } from '@/lib/orderApi';
 import { addDays, format } from 'date-fns';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
@@ -21,9 +22,10 @@ const steps = [
 
 export default function CheckoutPage() {
   const navigate = useNavigate();
-  const { items, getTotalAmount } = useCartStore();
+  const { items, getTotalAmount, fetchCart } = useCartStore();
   const [currentStep, setCurrentStep] = useState(1);
   const [showCoupons, setShowCoupons] = useState(false);
+  const [isPlacingOrder, setIsPlacingOrder] = useState(false);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -71,9 +73,20 @@ export default function CheckoutPage() {
     setCurrentStep(2);
   };
 
-  const handlePlaceOrder = () => {
-    toast.success('Order placed successfully!');
-    navigate('/orders');
+  const handlePlaceOrder = async () => {
+    try {
+      setIsPlacingOrder(true);
+      await createOrder();
+      toast.success('Order placed successfully!');
+      // Refresh cart to reflect empty state
+      fetchCart();
+      navigate('/orders');
+    } catch (error: any) {
+      console.error('Failed to place order:', error);
+      toast.error(error.response?.data?.message || 'Failed to place order. Please try again.');
+    } finally {
+      setIsPlacingOrder(false);
+    }
   };
 
   if (items.length === 0) {
@@ -544,11 +557,18 @@ export default function CheckoutPage() {
               {/* Place Order Button */}
               <Button
                 onClick={handlePlaceOrder}
-                disabled={currentStep < 4}
+                disabled={currentStep < 4 || isPlacingOrder}
                 className="w-full rounded-lg bg-blue-600 py-5 text-base font-bold hover:bg-blue-700 shadow-md hover:shadow-lg transition-all"
                 size="lg"
               >
-                Place Your Order & Pay
+                {isPlacingOrder ? (
+                  <span className="flex items-center gap-2">
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                    Placing Order...
+                  </span>
+                ) : (
+                  'Place Your Order & Pay'
+                )}
               </Button>
 
               <p className="mt-4 text-center text-xs text-muted-foreground">

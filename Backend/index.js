@@ -12,6 +12,7 @@ import productRoutes from "./routes/product.routes.js";
 import vendorRoutes from "./routes/vendor.routes.js";
 import wishlistRoutes from "./routes/wishlist.routes.js";
 
+// Restart trigger
 dotenv.config();
 
 const app = express();

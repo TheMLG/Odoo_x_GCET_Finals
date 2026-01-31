@@ -8,6 +8,13 @@ export interface DeliverySlot {
   cost: number;
 }
 
+export interface ContactDetails {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+}
+
 interface CheckoutState {
   // Selected address for delivery
   selectedAddress: Address | null;
@@ -16,7 +23,10 @@ interface CheckoutState {
   deliveryType: "pickup" | "shipping" | null;
   deliverySlot: DeliverySlot | null;
 
+  contactDetails: ContactDetails | null;
+
   // Actions
+  setContactDetails: (details: ContactDetails | null) => void;
   setSelectedAddress: (address: Address | null) => void;
   setDeliveryType: (type: "pickup" | "shipping") => void;
   setDeliverySlot: (slot: DeliverySlot | null) => void;
@@ -30,9 +40,11 @@ interface CheckoutState {
 
 export const useCheckoutStore = create<CheckoutState>((set, get) => ({
   selectedAddress: null,
+  contactDetails: null, // Initial state
   deliveryType: null,
   deliverySlot: null,
 
+  setContactDetails: (details) => set({ contactDetails: details }),
   setSelectedAddress: (address) => set({ selectedAddress: address }),
 
   setDeliveryType: (type) => set({ deliveryType: type }),
@@ -42,6 +54,7 @@ export const useCheckoutStore = create<CheckoutState>((set, get) => ({
   clearCheckout: () =>
     set({
       selectedAddress: null,
+      contactDetails: null,
       deliveryType: null,
       deliverySlot: null,
     }),
