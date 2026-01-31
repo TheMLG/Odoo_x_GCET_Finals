@@ -71,6 +71,8 @@ model Product {
   vendorId    String
   name        String
   description String?
+  category    String @default("Uncategorized")
+  product_image_url String @default("https://static.vecteezy.com/system/resources/thumbnails/051/739/975/small_2x/cosmetic-products-mock-up-photo.jpg")
   isPublished Boolean  @default(false)
   createdAt  DateTime @default(now())
 

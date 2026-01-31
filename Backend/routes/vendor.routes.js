@@ -1,15 +1,19 @@
 import { Router } from "express";
 import {
-  getVendorProfile,
-  updateVendorProfile,
-  getVendorProducts,
+  createProduct,
+  deleteProduct,
+  getVendorInvoices,
   getVendorOrders,
-  updateOrderStatus,
+  getVendorProduct,
+  getVendorProducts,
+  getVendorProfile,
   getVendorStats,
-  updateVendorUserInfo,
-  changeVendorPassword,
+  updateOrderStatus,
+  updateProduct,
+  updateVendorProfile,
 } from "../controllers/vendor.controller.js";
 import { verifyJWT } from "../middleware/auth.middleware.js";
+import { upload } from "../middleware/multer.middleware.js";
 import { isVendor } from "../middleware/role.middleware.js";
 
 const router = Router();
@@ -19,15 +23,25 @@ router.use(verifyJWT, isVendor);
 
 // Vendor profile routes
 router.route("/profile").get(getVendorProfile).put(updateVendorProfile);
-router.route("/profile/user").put(updateVendorUserInfo);
-router.route("/profile/change-password").post(changeVendorPassword);
 
 // Vendor products routes
-router.route("/products").get(getVendorProducts);
+router
+  .route("/products")
+  .get(getVendorProducts)
+  .post(upload.single("productImage"), createProduct);
+
+router
+  .route("/products/:productId")
+  .get(getVendorProduct)
+  .put(upload.single("productImage"), updateProduct)
+  .delete(deleteProduct);
 
 // Vendor orders routes
 router.route("/orders").get(getVendorOrders);
 router.route("/orders/:orderId/status").patch(updateOrderStatus);
+
+// Vendor invoices routes
+router.route("/invoices").get(getVendorInvoices);
 
 // Vendor dashboard stats
 router.route("/stats").get(getVendorStats);

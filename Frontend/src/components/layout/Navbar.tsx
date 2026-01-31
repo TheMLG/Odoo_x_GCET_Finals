@@ -33,7 +33,7 @@ import { cn } from '@/lib/utils';
 
 export function Navbar() {
   const location = useLocation();
-  const { user, isAuthenticated, logout } = useAuthStore();
+  const { user, isAuthenticated, logout, getUserRole } = useAuthStore();
   const { items } = useCartStore();
   const { items: wishlistItems } = useWishlistStore();
   const { location: rentalLocation } = useRentalStore();
@@ -47,11 +47,25 @@ export function Navbar() {
     { href: '/contact', label: 'Contact' },
   ];
 
-  const dashboardLink = user?.roles.some(r => r.role.name === 'ADMIN')
-    ? '/admin' 
-    : user?.roles.some(r => r.role.name === 'VENDOR')
-    ? '/vendor' 
+  const userRole = getUserRole();
+  
+  const dashboardLink = userRole === 'ADMIN'
+    ? '/admin/dashboard' 
+    : userRole === 'VENDOR'
+    ? '/vendor/dashboard' 
     : '/dashboard';
+
+  const settingsLink = userRole === 'ADMIN'
+    ? '/admin/settings' 
+    : userRole === 'VENDOR'
+    ? '/vendor/settings' 
+    : '/settings';
+
+  const ordersLink = userRole === 'ADMIN'
+    ? '/admin/orders' 
+    : userRole === 'VENDOR'
+    ? '/vendor/orders' 
+    : '/orders';
 
   return (
     <motion.header
@@ -108,8 +122,13 @@ export function Navbar() {
           </Link>
 
           {/* Cart */}
-          <button onClick={() => setIsCartOpen(true)} className="relative">
-            <Button variant="ghost" size="icon" className="rounded-xl">
+          <div className="relative">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="rounded-xl"
+              onClick={() => setIsCartOpen(true)}
+            >
               <ShoppingCart className="h-5 w-5" />
               {items.length > 0 && (
                 <Badge 
@@ -119,7 +138,7 @@ export function Navbar() {
                 </Badge>
               )}
             </Button>
-          </button>
+          </div>
 
           {/* User Menu */}
           {isAuthenticated ? (
@@ -143,13 +162,13 @@ export function Navbar() {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link to="/orders" className="flex items-center gap-2">
+                  <Link to={ordersLink} className="flex items-center gap-2">
                     <FileText className="h-4 w-4" />
                     My Orders
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link to="/settings" className="flex items-center gap-2">
+                  <Link to={settingsLink} className="flex items-center gap-2">
                     <Settings className="h-4 w-4" />
                     Settings
                   </Link>
