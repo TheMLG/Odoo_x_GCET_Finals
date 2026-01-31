@@ -31,11 +31,10 @@ import {
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import api from '@/lib/api';
-import { 
-  ShoppingCart, 
-  Search, 
+import {
+  ShoppingCart,
+  Search,
   Eye,
-  DollarSign,
   Calendar,
   User,
   Package,
@@ -118,15 +117,15 @@ export default function ManageOrders() {
 
     try {
       await api.put(`/admin/orders/${editingOrder.id}`, { status: newStatus });
-      
-      setOrders(prevOrders => 
-        prevOrders.map(o => 
-          o.id === editingOrder.id 
-            ? { ...o, status: newStatus } 
+
+      setOrders(prevOrders =>
+        prevOrders.map(o =>
+          o.id === editingOrder.id
+            ? { ...o, status: newStatus }
             : o
         )
       );
-      
+
       toast({
         title: 'Success',
         description: 'Order status updated successfully',
@@ -290,7 +289,7 @@ export default function ManageOrders() {
                     Revenue
                   </p>
                   <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white shadow-sm">
-                    <DollarSign className="h-4 w-4 text-green-600" />
+                    <IndianRupee className="h-4 w-4 text-green-600" />
                   </div>
                 </div>
                 <p className="text-3xl font-bold text-green-700">₹{stats.totalRevenue.toLocaleString()}</p>
@@ -399,7 +398,6 @@ export default function ManageOrders() {
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-2">
-                              <DollarSign className="h-4 w-4 text-muted-foreground" />
                               <div className="flex items-center gap-1">
                                 <IndianRupee className="h-3.5 w-3.5" />
                                 {(order.paidAmount || 0).toLocaleString()}
@@ -414,17 +412,17 @@ export default function ManageOrders() {
                           </TableCell>
                           <TableCell className="text-right">
                             <div className="flex justify-end gap-2">
-                              <Button 
-                                variant="ghost" 
-                                size="icon" 
+                              <Button
+                                variant="ghost"
+                                size="icon"
                                 className="h-8 w-8"
                                 onClick={() => handleViewOrder(order)}
                               >
                                 <Eye className="h-4 w-4" />
                               </Button>
-                              <Button 
-                                variant="ghost" 
-                                size="icon" 
+                              <Button
+                                variant="ghost"
+                                size="icon"
                                 className="h-8 w-8"
                                 onClick={() => handleEditOrder(order)}
                               >

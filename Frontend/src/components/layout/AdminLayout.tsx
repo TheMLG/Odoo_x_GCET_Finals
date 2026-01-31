@@ -12,7 +12,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
       <Navbar />
       <div className="flex flex-1">
         <AdminSidebar />
-        <main className="flex-1 pl-64 pt-16">
+        <main className="flex-1 pl-64 pt-16 bg-slate-100/50">
           {children}
         </main>
       </div>

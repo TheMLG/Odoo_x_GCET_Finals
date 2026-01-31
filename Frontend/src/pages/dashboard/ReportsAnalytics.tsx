@@ -9,13 +9,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { 
-  BarChart3, 
+import {
+  BarChart3,
   TrendingUp,
   Users,
   Package,
   ShoppingCart,
-  DollarSign,
   Calendar,
   Download,
   ArrowUpRight,
@@ -92,7 +91,7 @@ export default function ReportsAnalytics() {
       value: analyticsData.stats.totalRevenue,
       change: '+15.3%',
       trend: 'up',
-      icon: DollarSign,
+      icon: IndianRupee,
       color: 'text-emerald-600',
       bgColor: 'bg-emerald-100',
     },
@@ -185,16 +184,6 @@ export default function ReportsAnalytics() {
                   </div>
                   <div className="space-y-0.5">
                     <p className={`text-4xl font-bold ${stat.color}`}>{stat.value}</p>
-                    <div className="flex items-center gap-1">
-                      {stat.trend === 'up' ? (
-                        <ArrowUpRight className="h-4 w-4 text-green-600" />
-                      ) : (
-                        <ArrowDownRight className="h-4 w-4 text-red-600" />
-                      )}
-                      <span className={`text-sm font-medium ${stat.trend === 'up' ? 'text-green-600' : 'text-red-600'}`}>
-                        {stat.change}
-                      </span>
-                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -224,19 +213,19 @@ export default function ReportsAnalytics() {
                     <AreaChart data={analyticsData.revenueData}>
                       <defs>
                         <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
-                          <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                          <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
+                          <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
                         </linearGradient>
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                       <XAxis dataKey="month" stroke="#6b7280" />
                       <YAxis stroke="#6b7280" />
                       <Tooltip />
-                      <Area 
-                        type="monotone" 
-                        dataKey="revenue" 
-                        stroke="#3b82f6" 
-                        fill="url(#colorRevenue)" 
+                      <Area
+                        type="monotone"
+                        dataKey="revenue"
+                        stroke="#3b82f6"
+                        fill="url(#colorRevenue)"
                       />
                     </AreaChart>
                   </ResponsiveContainer>

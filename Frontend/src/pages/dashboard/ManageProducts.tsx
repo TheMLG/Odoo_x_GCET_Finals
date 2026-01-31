@@ -40,13 +40,12 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import api from '@/lib/api';
-import { 
-  Package, 
-  Search, 
+import {
+  Package,
+  Search,
   Eye,
   CheckCircle,
   XCircle,
-  DollarSign,
   Store,
   Edit,
   Trash2,
@@ -134,9 +133,9 @@ export default function ManageProducts() {
     setIsDeleting(true);
     try {
       await api.delete(`/admin/products/${deletingProduct.id}`);
-      
+
       setProducts(prevProducts => prevProducts.filter(p => p.id !== deletingProduct.id));
-      
+
       toast({
         title: 'Success',
         description: 'Product deleted successfully',
@@ -274,7 +273,7 @@ export default function ManageProducts() {
                     Total Stock
                   </p>
                   <div className="flex h-11 w-11 items-center justify-center rounded-full bg-white shadow-sm">
-                    <DollarSign className="h-5 w-5 text-purple-600" />
+                    <Package className="h-5 w-5 text-purple-600" />
                   </div>
                 </div>
                 <div className="space-y-0.5">
@@ -397,24 +396,24 @@ export default function ManageProducts() {
                           </TableCell>
                           <TableCell className="text-right">
                             <div className="flex justify-end gap-2">
-                              <Button 
-                                variant="ghost" 
-                                size="icon" 
+                              <Button
+                                variant="ghost"
+                                size="icon"
                                 className="h-8 w-8"
                                 onClick={() => handleViewProduct(product)}
                               >
                                 <Eye className="h-4 w-4" />
                               </Button>
-                              <Button 
-                                variant="ghost" 
-                                size="icon" 
+                              <Button
+                                variant="ghost"
+                                size="icon"
                                 className="h-8 w-8"
                               >
                                 <Edit className="h-4 w-4" />
                               </Button>
-                              <Button 
-                                variant="ghost" 
-                                size="icon" 
+                              <Button
+                                variant="ghost"
+                                size="icon"
                                 className="h-8 w-8 text-destructive"
                                 onClick={() => openDeleteDialog(product)}
                               >

@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { 
-  Users, 
-  Package, 
-  ShoppingCart, 
-  DollarSign,
+import {
+  Users,
+  Package,
+  ShoppingCart,
+  ShoppingCart,
   TrendingUp,
   Settings,
   BarChart3,
@@ -115,12 +115,11 @@ export default function AdminDashboard() {
           {totalRevenue.toLocaleString()}
         </div>
       ),
-      icon: DollarSign,
+      icon: IndianRupee,
       textColor: 'text-emerald-700',
       bgColor: 'bg-emerald-100',
       iconColor: 'text-emerald-600',
       subtitle: 'Total earnings',
-      change: '+15%',
     },
     {
       title: 'Total Orders',
@@ -130,7 +129,6 @@ export default function AdminDashboard() {
       bgColor: 'bg-blue-100',
       iconColor: 'text-blue-600',
       subtitle: 'All time orders',
-      change: '+12%',
     },
     {
       title: 'Active Products',
@@ -140,7 +138,6 @@ export default function AdminDashboard() {
       bgColor: 'bg-purple-100',
       iconColor: 'text-purple-600',
       subtitle: 'Published products',
-      change: '+5',
     },
     {
       title: 'Active Rentals',
@@ -150,7 +147,6 @@ export default function AdminDashboard() {
       bgColor: 'bg-red-100',
       iconColor: 'text-red-600',
       subtitle: 'Currently rented',
-      change: null,
     },
   ];
 

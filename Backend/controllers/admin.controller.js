@@ -613,6 +613,11 @@ export const getAnalytics = asyncHandler(async (req, res) => {
           companyName: true,
         },
       },
+      invoice: {
+        select: {
+          totalAmount: true,
+        },
+      },
     },
   });
 
@@ -625,7 +630,7 @@ export const getAnalytics = asyncHandler(async (req, res) => {
     if (!monthlyData[month]) {
       monthlyData[month] = { month, revenue: 0, orders: 0 };
     }
-    monthlyData[month].revenue += order.totalAmount;
+    monthlyData[month].revenue += Number(order.invoice?.totalAmount || 0);
     monthlyData[month].orders += 1;
   });
 
@@ -680,7 +685,7 @@ export const getAnalytics = asyncHandler(async (req, res) => {
     order.items.forEach((item) => {
       const productName = item.product?.name || "Unknown";
       productRentals[productName] = (productRentals[productName] || 0) + 1;
-      productRevenue[productName] = (productRevenue[productName] || 0) + item.price;
+      productRevenue[productName] = (productRevenue[productName] || 0) + Number(item.unitPrice || 0);
     });
   });
 
@@ -706,7 +711,7 @@ export const getAnalytics = asyncHandler(async (req, res) => {
       };
     }
     vendorStats[vendorId].orders += 1;
-    vendorStats[vendorId].revenue += order.totalAmount;
+    vendorStats[vendorId].revenue += Number(order.invoice?.totalAmount || 0);
   });
 
   const vendorPerformance = Object.values(vendorStats)
@@ -714,7 +719,7 @@ export const getAnalytics = asyncHandler(async (req, res) => {
     .slice(0, 5);
 
   // Calculate summary stats
-  const totalRevenue = orders.reduce((sum, order) => sum + order.totalAmount, 0);
+  const totalRevenue = orders.reduce((sum, order) => sum + Number(order.invoice?.totalAmount || 0), 0);
   const totalOrders = orders.length;
   const activeUsers = await prisma.user.count();
   const totalProducts = await prisma.product.count();
