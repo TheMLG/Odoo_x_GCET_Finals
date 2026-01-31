@@ -13,6 +13,8 @@ import {
   getAdminProfile,
   updateAdminProfile,
   changeAdminPassword,
+  updateProduct,
+  deleteProduct,
 } from "../controllers/admin.controller.js";
 import { verifyJWT } from "../middleware/auth.middleware.js";
 import { isAdmin } from "../middleware/role.middleware.js";
@@ -41,6 +43,7 @@ router.route("/vendors").get(getAllVendors);
 
 // Product management routes
 router.route("/products").get(getAllProducts);
+router.route("/products/:productId").put(updateProduct).delete(deleteProduct);
 
 // Order management routes
 router.route("/orders").get(getAllOrders);

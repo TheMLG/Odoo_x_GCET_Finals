@@ -92,7 +92,7 @@ export default function VendorDashboard() {
           subtitle: "Requires attention",
         },
       ]
-    : [];
+      : [];
 
   if (isLoading) {
     return (
@@ -251,7 +251,7 @@ export default function VendorDashboard() {
                         type="monotone"
                         dataKey="revenue"
                         stroke="hsl(221, 83%, 53%)"
-                        fillOpacity={1}
+                        strokeWidth={2}
                         fill="url(#colorRevenue)"
                       />
                     </AreaChart>
@@ -335,7 +335,7 @@ export default function VendorDashboard() {
                         </Badge>
                       </div>
                     ))
-                  : <p className="text-sm text-muted-foreground text-center py-4">
+                    : <p className="text-sm text-muted-foreground text-center py-4">
                       No products yet. Add your first product!
                     </p>
                   }

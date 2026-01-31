@@ -19,6 +19,7 @@ export const getAllProducts = asyncHandler(async (req, res) => {
                 select: {
                     id: true,
                     companyName: true,
+                    product_category: true,
                     user: {
                         select: {
                             firstName: true,
@@ -58,13 +59,157 @@ export const getAllProducts = asyncHandler(async (req, res) => {
         }
     });
 
+    // Transformation logic to match frontend expectations
+    const transformedProducts = products.map((product) => {
+        // Transform pricing array to object
+        const pricingObj = {
+            pricePerDay: 0,
+            pricePerWeek: 0,
+            pricePerMonth: 0
+        };
+
+        if (product.pricing && Array.isArray(product.pricing)) {
+            product.pricing.forEach((p) => {
+                if (p.type === "DAY") pricingObj.pricePerDay = Number(p.price);
+                if (p.type === "WEEK") pricingObj.pricePerWeek = Number(p.price);
+                if (p.type === "MONTH") pricingObj.pricePerMonth = Number(p.price);
+            });
+        }
+
+        // Transform inventory
+        const inventoryObj = {
+            quantityOnHand: product.inventory?.totalQty || 0
+        };
+
+        // Transform attributes to key-value object
+        const attributesObj = {};
+        if (product.attributes) {
+            product.attributes.forEach(attr => {
+                if (attr.attribute?.name && attr.attributeValue?.value) {
+                    attributesObj[attr.attribute.name.toLowerCase()] = attr.attributeValue.value;
+                }
+            });
+        }
+
+        return {
+            ...product,
+            pricing: pricingObj,
+            inventory: inventoryObj,
+            attributes: attributesObj
+        };
+    });
+
     return res
         .status(200)
         .json(
             new ApiResponse(
                 200,
-                products,
+                transformedProducts,
                 "Products fetched successfully"
+            )
+        );
+});
+
+/**
+ * Get product by ID
+ * @route GET /api/products/:productId
+ * @access Public
+ */
+export const getProductById = asyncHandler(async (req, res) => {
+    const { productId } = req.params;
+
+    const product = await prisma.product.findUnique({
+        where: { id: productId },
+        include: {
+            vendor: {
+                select: {
+                    id: true,
+                    companyName: true,
+                    product_category: true,
+                    user: {
+                        select: {
+                            firstName: true,
+                            lastName: true
+                        }
+                    }
+                }
+            },
+            inventory: {
+                select: {
+                    totalQty: true
+                }
+            },
+            pricing: {
+                select: {
+                    type: true,
+                    price: true
+                }
+            },
+            attributes: {
+                include: {
+                    attribute: {
+                        select: {
+                            name: true
+                        }
+                    },
+                    attributeValue: {
+                        select: {
+                            value: true
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    if (!product) {
+        throw new ApiError(404, "Product not found");
+    }
+
+    // Transform pricing array to object
+    const pricingObj = {
+        pricePerDay: 0,
+        pricePerWeek: 0,
+        pricePerMonth: 0
+    };
+
+    if (product.pricing && Array.isArray(product.pricing)) {
+        product.pricing.forEach((p) => {
+            if (p.type === "DAY") pricingObj.pricePerDay = Number(p.price);
+            if (p.type === "WEEK") pricingObj.pricePerWeek = Number(p.price);
+            if (p.type === "MONTH") pricingObj.pricePerMonth = Number(p.price);
+        });
+    }
+
+    // Transform inventory
+    const inventoryObj = {
+        quantityOnHand: product.inventory?.totalQty || 0
+    };
+
+    // Transform attributes to key-value object
+    const attributesObj = {};
+    if (product.attributes) {
+        product.attributes.forEach(attr => {
+            if (attr.attribute?.name && attr.attributeValue?.value) {
+                attributesObj[attr.attribute.name.toLowerCase()] = attr.attributeValue.value;
+            }
+        });
+    }
+
+    const transformedProduct = {
+        ...product,
+        pricing: pricingObj,
+        inventory: inventoryObj,
+        attributes: attributesObj
+    };
+
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                transformedProduct,
+                "Product fetched successfully"
             )
         );
 });
@@ -90,7 +235,7 @@ export const createRentalProduct = asyncHandler(async (req, res) => {
     }
 
     // Validate pricing types
-    const validPricingTypes = ["HOUR", "DAY", "WEEK"];
+    const validPricingTypes = ["HOUR", "DAY", "WEEK", "MONTH"];
     const invalidPricing = pricing.some(p => !validPricingTypes.includes(p.type));
     if (invalidPricing) {
         throw new ApiError(400, "Invalid pricing type. Must be HOUR, DAY, or WEEK");
@@ -125,8 +270,26 @@ export const createRentalProduct = asyncHandler(async (req, res) => {
             }
         });
 
+        // Auto-calculate pricing if missing
+        let pricingDataInput = [...pricing];
+        const dayPriceObj = pricingDataInput.find(p => p.type === 'DAY');
+
+        if (dayPriceObj) {
+            const dayPrice = Number(dayPriceObj.price);
+
+            // Auto-calc Week
+            if (!pricingDataInput.some(p => p.type === 'WEEK')) {
+                pricingDataInput.push({ type: 'WEEK', price: dayPrice * 7 });
+            }
+
+            // Auto-calc Month
+            if (!pricingDataInput.some(p => p.type === 'MONTH')) {
+                pricingDataInput.push({ type: 'MONTH', price: dayPrice * 30 });
+            }
+        }
+
         // Create pricing
-        const pricingData = pricing.map(p => ({
+        const pricingData = pricingDataInput.map(p => ({
             productId: newProduct.id,
             type: p.type,
             price: p.price

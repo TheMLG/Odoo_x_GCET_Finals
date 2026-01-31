@@ -493,57 +493,6 @@ export default function VendorSettings() {
               </CardContent>
             </Card>
           </motion.div>
-
-          {/* Account Information */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-          >
-            <Card className="rounded-2xl">
-              <CardHeader>
-                <CardTitle>Account Information</CardTitle>
-                <CardDescription>View your account details</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div>
-                    <Label className="text-muted-foreground">User ID</Label>
-                    <p className="mt-1 font-medium">{user?.id}</p>
-                  </div>
-                  <div>
-                    <Label className="text-muted-foreground">Vendor ID</Label>
-                    <p className="mt-1 font-medium">
-                      {user?.vendor?.id || "N/A"}
-                    </p>
-                  </div>
-                  <div>
-                    <Label className="text-muted-foreground">Role</Label>
-                    <div className="mt-1 flex items-center gap-2">
-                      <Building2 className="h-4 w-4 text-primary" />
-                      <span className="font-medium">
-                        {user?.roles?.[0]?.role?.name || "VENDOR"}
-                      </span>
-                    </div>
-                  </div>
-                  <div>
-                    <Label className="text-muted-foreground">
-                      Member Since
-                    </Label>
-                    <p className="mt-1 font-medium">
-                      {user?.createdAt ?
-                        new Date(user.createdAt).toLocaleDateString("en-US", {
-                          year: "numeric",
-                          month: "long",
-                          day: "numeric",
-                        })
-                      : "N/A"}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
         </div>
       </div>
     </VendorLayout>

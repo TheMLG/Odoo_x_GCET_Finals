@@ -38,11 +38,36 @@ import {
   Area,
   AreaChart,
 } from 'recharts';
+import {
+  ChartConfig,
+  ChartContainer,
+  ChartLegend,
+  ChartLegendContent,
+  ChartTooltip,
+  ChartTooltipContent,
+} from '@/components/ui/chart';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import api from '@/lib/api';
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#6b7280'];
+
+const chartConfig = {
+  revenue: {
+    label: "Revenue",
+    color: "#3b82f6",
+  },
+  orders: {
+    label: "Orders",
+    color: "#3b82f6",
+  },
+  users: {
+    label: "New Users",
+    color: "#10b981",
+  },
+} satisfies ChartConfig;
 
 export default function ReportsAnalytics() {
   const { toast } = useToast();
@@ -70,6 +95,142 @@ export default function ReportsAnalytics() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const formatCurrencyValue = (value: any) => {
+    if (typeof value === 'number') return value.toLocaleString();
+    if (typeof value === 'string') {
+      // Remove ₹ symbol, commas and whitespace
+      const clean = value.replace(/[₹,]/g, '').trim();
+      const lower = clean.toLowerCase();
+
+      if (lower.endsWith('k')) {
+        const num = parseFloat(lower.replace('k', ''));
+        return (num * 1000).toLocaleString();
+      }
+      if (lower.endsWith('m')) {
+        const num = parseFloat(lower.replace('m', ''));
+        return (num * 1000000).toLocaleString();
+      }
+
+      const num = parseFloat(clean);
+      return !isNaN(num) ? num.toLocaleString() : clean;
+    }
+    return value;
+  };
+
+  const handleExport = () => {
+    if (!analyticsData) return;
+
+    const doc = new jsPDF();
+    const date = new Date().toLocaleDateString();
+
+    // Title
+    doc.setFontSize(20);
+    doc.text('SharePal Analytics Report', 14, 22);
+
+    doc.setFontSize(10);
+    doc.text(`Generated on: ${date}`, 14, 30);
+    doc.text(`Time Range: ${timeRange.charAt(0).toUpperCase() + timeRange.slice(1)}`, 14, 35);
+
+    // Summary Stats
+    doc.setFontSize(14);
+    doc.text('Summary Statistics', 14, 45);
+
+    const summaryData = [
+      ['Total Revenue', `Rs. ${formatCurrencyValue(analyticsData.stats.totalRevenue)}`],
+      ['Total Orders', analyticsData.stats.totalOrders.toString()],
+      ['Active Users', analyticsData.stats.activeUsers.toString()],
+      ['Products Listed', analyticsData.stats.productsListed.toString()],
+    ];
+
+    autoTable(doc, {
+      startY: 50,
+      head: [['Metric', 'Value']],
+      body: summaryData,
+      theme: 'grid',
+      headStyles: { fillColor: [59, 130, 246] }, // Blue color
+    });
+
+    // Revenue Trends
+    let lastY = (doc as any).lastAutoTable.finalY + 15;
+    doc.setFontSize(14);
+    doc.text('Revenue & Order Trends', 14, lastY);
+
+    const revenueTableData = analyticsData.revenueData.map((item: any) => [
+      item.month,
+      `Rs. ${formatCurrencyValue(item.revenue)}`,
+      item.orders,
+      item.users
+    ]);
+
+    autoTable(doc, {
+      startY: lastY + 5,
+      head: [['Month/Period', 'Revenue', 'Orders', 'New Users']],
+      body: revenueTableData,
+      theme: 'striped',
+      headStyles: { fillColor: [16, 185, 129] }, // Emerald color
+    });
+
+    // Top Products
+    lastY = (doc as any).lastAutoTable.finalY + 15;
+
+    // Check if we need a new page
+    if (lastY > 250) {
+      doc.addPage();
+      lastY = 20;
+    }
+
+    doc.setFontSize(14);
+    doc.text('Top Performing Products', 14, lastY);
+
+    const productTableData = analyticsData.topProducts.map((item: any) => [
+      item.name,
+      item.rentals,
+      `Rs. ${formatCurrencyValue(item.revenue)}`
+    ]);
+
+    autoTable(doc, {
+      startY: lastY + 5,
+      head: [['Product Name', 'Rentals', 'Revenue']],
+      body: productTableData,
+      theme: 'striped',
+      headStyles: { fillColor: [249, 115, 22] }, // Orange color
+    });
+
+    // Vendor Performance
+    lastY = (doc as any).lastAutoTable.finalY + 15;
+
+    // Check if we need a new page
+    if (lastY > 250) {
+      doc.addPage();
+      lastY = 20;
+    }
+
+    doc.setFontSize(14);
+    doc.text('Vendor Performance', 14, lastY);
+
+    const vendorTableData = analyticsData.vendorPerformance.map((item: any) => [
+      item.name,
+      item.orders,
+      `Rs. ${formatCurrencyValue(item.revenue)}`
+    ]);
+
+    autoTable(doc, {
+      startY: lastY + 5,
+      head: [['Vendor Name', 'Orders', 'Revenue']],
+      body: vendorTableData,
+      theme: 'striped',
+      headStyles: { fillColor: [139, 92, 246] }, // Purple color
+    });
+
+    // Save PDF
+    doc.save(`sharepal_analytics_${timeRange}_${new Date().toISOString().split('T')[0]}.pdf`);
+
+    toast({
+      title: 'Success',
+      description: 'Report downloaded successfully',
+    });
   };
 
   if (isLoading || !analyticsData) {
@@ -155,9 +316,9 @@ export default function ReportsAnalytics() {
                   <SelectItem value="year">Last Year</SelectItem>
                 </SelectContent>
               </Select>
-              <Button className="rounded-xl">
+              <Button className="rounded-xl" onClick={handleExport}>
                 <Download className="mr-2 h-4 w-4" />
-                Export
+                Export PDF
               </Button>
             </div>
           </div>
@@ -209,26 +370,38 @@ export default function ReportsAnalytics() {
               </CardHeader>
               <CardContent>
                 <div className="h-[300px]">
-                  <ResponsiveContainer width="100%" height="100%">
+                  <ChartContainer config={chartConfig} className="h-full w-full">
                     <AreaChart data={analyticsData.revenueData}>
-                      <defs>
-                        <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
-                          <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                      <XAxis dataKey="month" stroke="#6b7280" />
-                      <YAxis stroke="#6b7280" />
-                      <Tooltip />
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                      <XAxis
+                        dataKey="month"
+                        stroke="hsl(var(--muted-foreground))"
+                        fontSize={12}
+                        tickLine={false}
+                        axisLine={false}
+                      />
+                      <YAxis
+                        stroke="hsl(var(--muted-foreground))"
+                        fontSize={12}
+                        tickLine={false}
+                        axisLine={false}
+                        tickFormatter={(value) => `\u20B9${value}`}
+                      />
+                      <ChartTooltip
+                        content={<ChartTooltipContent indicator="line" />}
+                        cursor={false}
+                      />
                       <Area
                         type="monotone"
                         dataKey="revenue"
-                        stroke="#3b82f6"
-                        fill="url(#colorRevenue)"
+                        stroke="var(--color-revenue)"
+                        strokeWidth={2}
+                        fill="var(--color-revenue)"
+                        fillOpacity={0.1}
+                        activeDot={{ r: 6, strokeWidth: 0 }}
                       />
                     </AreaChart>
-                  </ResponsiveContainer>
+                  </ChartContainer>
                 </div>
               </CardContent>
             </Card>
@@ -247,25 +420,32 @@ export default function ReportsAnalytics() {
               </CardHeader>
               <CardContent>
                 <div className="h-[300px]">
-                  <ResponsiveContainer width="100%" height="100%">
+                  <ChartContainer config={chartConfig} className="h-full w-full">
                     <PieChart>
                       <Pie
                         data={analyticsData.categoryData}
                         cx="50%"
                         cy="50%"
                         innerRadius={60}
-                        outerRadius={100}
-                        paddingAngle={5}
+                        outerRadius={90}
+                        paddingAngle={2}
                         dataKey="value"
+                        stroke="hsl(var(--card))"
+                        strokeWidth={2}
                       >
                         {analyticsData.categoryData.map((entry: any, index: number) => (
                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                         ))}
                       </Pie>
-                      <Tooltip />
-                      <Legend />
+                      <ChartTooltip
+                        content={<ChartTooltipContent hideLabel />}
+                      />
+                      <Legend
+                        content={<ChartLegendContent />}
+                        wrapperStyle={{ paddingTop: '20px' }}
+                      />
                     </PieChart>
-                  </ResponsiveContainer>
+                  </ChartContainer>
                 </div>
               </CardContent>
             </Card>
@@ -286,17 +466,41 @@ export default function ReportsAnalytics() {
             </CardHeader>
             <CardContent>
               <div className="h-[350px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={analyticsData.revenueData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                    <XAxis dataKey="month" stroke="#6b7280" />
-                    <YAxis stroke="#6b7280" />
-                    <Tooltip />
-                    <Legend />
-                    <Bar dataKey="orders" fill="#3b82f6" name="Orders" radius={[8, 8, 0, 0]} />
-                    <Bar dataKey="users" fill="#10b981" name="New Users" radius={[8, 8, 0, 0]} />
+                <ChartContainer config={chartConfig} className="h-full w-full">
+                  <BarChart data={analyticsData.revenueData} barGap={8}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                    <XAxis
+                      dataKey="month"
+                      stroke="hsl(var(--muted-foreground))"
+                      fontSize={12}
+                      tickLine={false}
+                      axisLine={false}
+                    />
+                    <YAxis
+                      stroke="hsl(var(--muted-foreground))"
+                      fontSize={12}
+                      tickLine={false}
+                      axisLine={false}
+                    />
+                    <ChartTooltip
+                      content={<ChartTooltipContent indicator="dashed" />}
+                      cursor={false}
+                    />
+                    <Legend content={<ChartLegendContent />} />
+                    <Bar
+                      dataKey="orders"
+                      fill="var(--color-orders)"
+                      radius={[4, 4, 0, 0]}
+                      maxBarSize={50}
+                    />
+                    <Bar
+                      dataKey="users"
+                      fill="var(--color-users)"
+                      radius={[4, 4, 0, 0]}
+                      maxBarSize={50}
+                    />
                   </BarChart>
-                </ResponsiveContainer>
+                </ChartContainer>
               </div>
             </CardContent>
           </Card>

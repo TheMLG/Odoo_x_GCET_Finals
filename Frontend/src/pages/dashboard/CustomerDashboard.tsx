@@ -1,10 +1,10 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { 
-  Package, 
-  ShoppingCart, 
-  FileText, 
-  Clock, 
+import {
+  Package,
+  ShoppingCart,
+  FileText,
+  Clock,
   ArrowUpRight,
   Calendar
 } from 'lucide-react';
@@ -185,15 +185,15 @@ export default function CustomerDashboard() {
                               order.status === 'completed'
                                 ? 'default'
                                 : order.status === 'picked_up'
-                                ? 'secondary'
-                                : 'outline'
+                                  ? 'secondary'
+                                  : 'outline'
                             }
                             className="rounded-lg capitalize"
                           >
                             {order.status.replace('_', ' ')}
                           </Badge>
                           <p className="mt-1 text-sm font-medium">
-                            ₹{order.totalAmount.toLocaleString()}
+                            {'\u20B9'}{order.totalAmount.toLocaleString()}
                           </p>
                         </div>
                       </div>

@@ -1,6 +1,6 @@
-import { useParams, useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Check, Star, Package, Shield, Clock, Share2, Heart, TrendingUp } from 'lucide-react';
+import { ArrowLeft, Check, Star, Package, Shield, Clock, Share2, Heart } from 'lucide-react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { RentalConfigurator } from '@/components/products/RentalConfigurator';
 import { Button } from '@/components/ui/button';
@@ -10,27 +10,45 @@ import { useRentalStore } from '@/stores/rentalStore';
 import { useWishlistStore } from '@/stores/wishlistStore';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { useEffect } from 'react';
 
 export default function ProductDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { products } = useRentalStore();
+  const { products, fetchProducts, isLoadingProducts } = useRentalStore();
   const { addItem, removeItem, isInWishlist } = useWishlistStore();
+
   const product = products.find((p) => p.id === id);
-  
+
+  useEffect(() => {
+    if (!product && products.length === 0) {
+      fetchProducts();
+    }
+  }, [product, products, fetchProducts]);
+
   const inWishlist = product ? isInWishlist(product.id) : false;
 
   const handleWishlistToggle = async () => {
     if (!product) return;
-    
+
     if (inWishlist) {
       await removeItem(product.id);
-      toast.success('Removed from wishlist');
+      toast.success("Removed from wishlist");
     } else {
       await addItem(product);
-      toast.success('Added to wishlist');
+      toast.success("Added to wishlist");
     }
   };
+
+  if (isLoadingProducts) {
+    return (
+      <MainLayout>
+        <div className="container flex min-h-[50vh] flex-col items-center justify-center px-4 py-12">
+          <p>Loading...</p>
+        </div>
+      </MainLayout>
+    );
+  }
 
   if (!product) {
     return (
@@ -40,7 +58,7 @@ export default function ProductDetailPage() {
           <p className="mb-6 text-muted-foreground">
             The product you're looking for doesn't exist or has been removed.
           </p>
-          <Button onClick={() => navigate('/products')} className="rounded-xl">
+          <Button onClick={() => navigate("/products")} className="rounded-xl">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Products
           </Button>
@@ -48,12 +66,6 @@ export default function ProductDetailPage() {
       </MainLayout>
     );
   }
-
-  const features = [
-    { icon: Package, label: 'Free delivery on orders above ₹5,000' },
-    { icon: Shield, label: 'Fully insured equipment' },
-    { icon: Clock, label: 'Flexible rental periods' },
-  ];
 
   return (
     <MainLayout>
@@ -101,14 +113,18 @@ export default function ProductDetailPage() {
             {/* Main Image */}
             <div className="relative flex-1">
               <div className="absolute right-4 top-4 z-10 flex gap-2">
-                <button 
+                <button
                   onClick={handleWishlistToggle}
                   className={cn(
                     "flex h-10 w-10 items-center justify-center rounded-full shadow-lg transition-all hover:scale-110",
-                    inWishlist ? "bg-pink-500 text-white hover:bg-pink-600" : "bg-white hover:bg-gray-50"
+                    inWishlist ?
+                      "bg-pink-500 text-white hover:bg-pink-600"
+                      : "bg-white hover:bg-gray-50",
                   )}
                 >
-                  <Heart className={cn("h-5 w-5", inWishlist && "fill-current")} />
+                  <Heart
+                    className={cn("h-5 w-5", inWishlist && "fill-current")}
+                  />
                 </button>
                 <button className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-lg hover:bg-gray-50">
                   <Share2 className="h-5 w-5" />
@@ -155,7 +171,9 @@ export default function ProductDetailPage() {
 
             <TabsContent value="description" className="space-y-4">
               <div className="rounded-2xl border border-border bg-card p-6">
-                <h3 className="mb-4 text-lg font-semibold">About This Product</h3>
+                <h3 className="mb-4 text-lg font-semibold">
+                  About This Product
+                </h3>
                 <p className="text-muted-foreground">{product.description}</p>
 
                 <div className="mt-6">
@@ -184,9 +202,11 @@ export default function ProductDetailPage() {
 
             <TabsContent value="specifications">
               <div className="rounded-2xl border border-border bg-card p-6">
-                <h3 className="mb-4 text-lg font-semibold">Product Specifications</h3>
+                <h3 className="mb-4 text-lg font-semibold">
+                  Product Specifications
+                </h3>
                 <div className="grid gap-4 sm:grid-cols-2">
-                  {Object.entries(product.attributes).map(([key, value]) => (
+                  {product.attributes && Object.entries(product.attributes).map(([key, value]) => (
                     <div key={key} className="flex justify-between border-b border-border pb-2">
                       <span className="text-muted-foreground capitalize">{key}</span>
                       <span className="font-medium">{value}</span>
@@ -197,8 +217,12 @@ export default function ProductDetailPage() {
                     <Badge variant="secondary">{product.category}</Badge>
                   </div>
                   <div className="flex justify-between border-b border-border pb-2">
-                    <span className="text-muted-foreground">Available Units</span>
-                    <span className="font-medium">{product.quantityOnHand}</span>
+                    <span className="text-muted-foreground">
+                      Available Units
+                    </span>
+                    <span className="font-medium">
+                      {product.quantityOnHand}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -213,31 +237,41 @@ export default function ProductDetailPage() {
                       {Array.from({ length: 5 }).map((_, i) => (
                         <Star
                           key={i}
-                          className={`h-5 w-5 ${
-                            i < 4 ? 'fill-warning text-warning' : 'text-muted'
-                          }`}
+                          className={`h-5 w-5 ${i < 4 ? "fill-warning text-warning" : "text-muted"
+                            }`}
                         />
                       ))}
                     </div>
-                    <p className="text-sm text-muted-foreground">Based on 24 reviews</p>
+                    <p className="text-sm text-muted-foreground">
+                      Based on 24 reviews
+                    </p>
                   </div>
                 </div>
 
                 <div className="space-y-4">
                   {[1, 2, 3].map((i) => (
-                    <div key={i} className="border-b border-border pb-4 last:border-0">
+                    <div
+                      key={i}
+                      className="border-b border-border pb-4 last:border-0"
+                    >
                       <div className="mb-2 flex items-center gap-2">
                         <div className="flex gap-0.5">
                           {Array.from({ length: 5 }).map((_, j) => (
-                            <Star key={j} className="h-3 w-3 fill-warning text-warning" />
+                            <Star
+                              key={j}
+                              className="h-3 w-3 fill-warning text-warning"
+                            />
                           ))}
                         </div>
                         <span className="text-sm font-medium">John D.</span>
-                        <span className="text-xs text-muted-foreground">2 weeks ago</span>
+                        <span className="text-xs text-muted-foreground">
+                          2 weeks ago
+                        </span>
                       </div>
                       <p className="text-sm text-muted-foreground">
-                        Excellent equipment, arrived in perfect condition. The rental process was
-                        smooth and the team was very helpful. Will definitely rent again!
+                        Excellent equipment, arrived in perfect condition. The
+                        rental process was smooth and the team was very helpful.
+                        Will definitely rent again!
                       </p>
                     </div>
                   ))}
@@ -246,7 +280,7 @@ export default function ProductDetailPage() {
             </TabsContent>
           </Tabs>
         </motion.div>
-      </div>
-    </MainLayout>
+      </div >
+    </MainLayout >
   );
 }
