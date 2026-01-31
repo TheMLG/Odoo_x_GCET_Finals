@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ChevronLeft } from 'lucide-react';
 import { MainLayout } from '@/components/layout/MainLayout';
@@ -10,9 +10,12 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { CheckoutSidebar } from './components/CheckoutSidebar';
 import { CheckoutSteps } from './components/CheckoutSteps';
+import { useAuthStore } from '@/stores/authStore';
 
 export default function ContactDetailsPage() {
   const navigate = useNavigate();
+  const { user } = useAuthStore();
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -20,6 +23,23 @@ export default function ContactDetailsPage() {
     phone: '',
     isWhatsApp: 'yes',
   });
+
+  // Fetch and populate user contact details
+  useEffect(() => {
+    const loadUserDetails = () => {
+      if (user) {
+        setFormData(prev => ({
+          ...prev,
+          firstName: user.firstName || '',
+          lastName: user.lastName || '',
+          email: user.email || '',
+          // Phone number might not be in the user object, keep existing value
+        }));
+      }
+    };
+
+    loadUserDetails();
+  }, [user]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
