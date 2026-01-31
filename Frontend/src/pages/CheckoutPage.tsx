@@ -551,8 +551,9 @@ export default function CheckoutPage() {
                 Place Your Order & Pay
               </Button>
 
-              <p className="mt-4 text-center text-xs text-gray-500 leading-relaxed">
-                By placing your order, you agree to SharePal's privacy notice and conditions of use.
+              <p className="mt-4 text-center text-xs text-muted-foreground">
+                By placing your order, you agree to SharePal's privacy notice and conditions of
+                use.
               </p>
             </motion.div>
           </div>

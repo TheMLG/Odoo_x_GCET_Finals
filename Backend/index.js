@@ -9,6 +9,7 @@ import adminRoutes from "./routes/admin.routes.js";
 import productRoutes from "./routes/product.routes.js";
 import cartRoutes from "./routes/cart.routes.js";
 import wishlistRoutes from "./routes/wishlist.routes.js";
+import couponRoutes from "./routes/coupon.routes.js";
 
 dotenv.config();
 
@@ -28,9 +29,9 @@ app.use(cookieParser());
 
 // Health check
 app.get("/", (req, res) => {
-  res.json({ 
-    status: "ok", 
-    message: "Odoo x GCET Finals Backend API" 
+  res.json({
+    status: "ok",
+    message: "Odoo x GCET Finals Backend API"
   });
 });
 
@@ -41,12 +42,13 @@ app.use("/api/v1/admin", adminRoutes);
 app.use("/api/v1/products", productRoutes);
 app.use("/api/v1/cart", cartRoutes);
 app.use("/api/v1/wishlist", wishlistRoutes);
+app.use("/api/v1/coupons", couponRoutes);
 
 // 404 handler
 app.use((req, res) => {
-  res.status(404).json({ 
-    success: false, 
-    message: "Route not found" 
+  res.status(404).json({
+    success: false,
+    message: "Route not found"
   });
 });
 
@@ -54,7 +56,7 @@ app.use((req, res) => {
 app.use((err, req, res, next) => {
   const statusCode = err.statusCode || 500;
   const message = err.message || "Internal Server Error";
-  
+
   res.status(statusCode).json({
     success: false,
     message,

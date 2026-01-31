@@ -14,7 +14,7 @@ export default function SignupPage() {
       >
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-slate-900 mb-3">
-            Join SharePal
+            Join RentX
           </h1>
           <p className="text-slate-600 text-lg">
             Choose how you want to get started

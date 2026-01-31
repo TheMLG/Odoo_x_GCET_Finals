@@ -103,7 +103,7 @@ export const useCartStore = create<CartState>((set, get) => ({
           rentalDuration: 'daily',
           startDate: item.rentalStart,
           endDate: item.rentalEnd,
-          totalPrice: parseFloat(item.unitPrice), // unitPrice from backend is total for line item
+          totalPrice: parseFloat(item.unitPrice) * item.quantity, // unitPrice * quantity for line item total
         };
       });
 
