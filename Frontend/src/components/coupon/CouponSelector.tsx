@@ -52,6 +52,11 @@ export function CouponSelector({ totalAmount, onCouponApplied, appliedCouponCode
             return;
         }
 
+        if (totalAmount <= 0) {
+            toast.error('Cannot apply coupon to empty order');
+            return;
+        }
+
         try {
             setIsApplying(true);
             const result = await validateCoupon(code.toUpperCase(), totalAmount);

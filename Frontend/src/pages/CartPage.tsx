@@ -9,15 +9,15 @@ import { Separator } from '@/components/ui/separator';
 import { useCartStore } from '@/stores/cartStore';
 import { useAuthStore } from '@/stores/authStore';
 import { CouponSelector } from '@/components/coupon/CouponSelector';
+import { validateCoupon } from '@/lib/couponApi';
 
 import { toast } from 'sonner';
 import { useEffect, useState } from 'react';
 
 export default function CartPage() {
   const navigate = useNavigate();
-  const { items, removeItem, updateItem, getTotalAmount, clearCart, fetchCart, isLoading } = useCartStore();
+  const { items, removeItem, updateItem, getTotalAmount, clearCart, fetchCart, isLoading, appliedCoupon, applyCoupon, removeCoupon } = useCartStore();
   const { isAuthenticated } = useAuthStore();
-  const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number } | null>(null);
 
   // Fetch cart on mount if authenticated
   useEffect(() => {
@@ -25,6 +25,35 @@ export default function CartPage() {
       fetchCart();
     }
   }, [isAuthenticated, fetchCart]);
+
+  // Re-validate coupon if it has 0 discount (e.g. from Welcome Dialog)
+  useEffect(() => {
+    const validatePendingCoupon = async () => {
+      // Only validate if we have items (so total > 0) and a coupon with 0 discount
+      const total = getTotalAmount();
+      if (appliedCoupon && appliedCoupon.discount === 0 && items.length > 0 && total > 0) {
+        try {
+          const result = await validateCoupon(appliedCoupon.code, total);
+          if (result && result.discountAmount > 0) {
+            console.log("Re-validated coupon:", result);
+            applyCoupon({ code: result.coupon.code, discount: result.discountAmount });
+            toast.success(`Coupon ${result.coupon.code} applied!`, {
+              description: `You saved ₹${result.discountAmount.toFixed(0)}`
+            });
+          }
+        } catch (error) {
+          console.error("Failed to re-validate coupon:", error);
+          // If validation fails (e.g. invalid code or expired), remove it?
+          // Maybe better to leave it to user to remove, or remove silently?
+          // Let's remove it if it's invalid to avoid confusion
+          removeCoupon();
+          toast.error("Applied coupon is no longer valid");
+        }
+      }
+    };
+
+    validatePendingCoupon();
+  }, [items, appliedCoupon, getTotalAmount, applyCoupon, removeCoupon]);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-IN', {
@@ -43,9 +72,9 @@ export default function CartPage() {
 
   const handleCouponApplied = (code: string, discount: number) => {
     if (code && discount > 0) {
-      setAppliedCoupon({ code, discount });
+      applyCoupon({ code, discount });
     } else {
-      setAppliedCoupon(null);
+      removeCoupon();
     }
   };
 

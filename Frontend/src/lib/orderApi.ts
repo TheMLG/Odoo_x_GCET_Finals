@@ -67,8 +67,8 @@ export interface Payment {
 /**
  * Create a new order from active cart
  */
-export async function createOrder(): Promise<Order[]> {
-    const response = await api.post('/orders');
+export async function createOrder(orderData?: any): Promise<Order[]> {
+    const response = await api.post('/orders', orderData);
     return response.data.data;
 }
 
