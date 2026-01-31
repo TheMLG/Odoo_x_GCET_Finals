@@ -206,7 +206,7 @@ export default function DeliveryTimePage() {
                           <h3 className="font-semibold">Pickup Location</h3>
                         </div>
                         <div className="mb-4 text-sm">
-                          <p className="font-medium">SharePal Store - Main Branch</p>
+                          <p className="font-medium">RentX Store - Main Branch</p>
                           <p className="text-muted-foreground">
                             123 Main Street, Commercial Complex
                           </p>

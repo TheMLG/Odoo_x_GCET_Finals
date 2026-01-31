@@ -127,7 +127,7 @@ export default function ReportsAnalytics() {
 
     // Title
     doc.setFontSize(20);
-    doc.text('SharePal Analytics Report', 14, 22);
+    doc.text('RentX Analytics Report', 14, 22);
 
     doc.setFontSize(10);
     doc.text(`Generated on: ${date}`, 14, 30);
@@ -225,7 +225,7 @@ export default function ReportsAnalytics() {
     });
 
     // Save PDF
-    doc.save(`sharepal_analytics_${timeRange}_${new Date().toISOString().split('T')[0]}.pdf`);
+    doc.save(`rentx_analytics_${timeRange}_${new Date().toISOString().split('T')[0]}.pdf`);
 
     toast({
       title: 'Success',

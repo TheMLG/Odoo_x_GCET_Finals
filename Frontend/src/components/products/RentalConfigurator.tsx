@@ -186,9 +186,9 @@ export function RentalConfigurator({ product }: RentalConfiguratorProps) {
               <Tag className="h-5 w-5 text-emerald-600" />
             </div>
             <div className="flex-1">
-              <div className="font-medium">SHAREPAL</div>
+              <div className="font-medium">RENTX10</div>
               <div className="text-sm text-muted-foreground">
-                Use code SHAREPAL & get 10% off on orders above {'\u20B9'}1500. Maximum discount: {'\u20B9'}300
+                Use code RENTX10 & get 10% off on orders above {'\u20B9'}1500. Maximum discount: {'\u20B9'}300
               </div>
             </div>
           </div>

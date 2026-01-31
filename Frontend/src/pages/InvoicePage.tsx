@@ -64,7 +64,7 @@ const mockInvoice: Invoice = {
   customerPhone: '+91 8320331941',
   customerAddress: 'Mumbai, Maharashtra, India',
   customerGSTIN: '27AAAAA0000A1Z5',
-  companyName: 'SharePal Rentals',
+  companyName: 'RentX',
   companyAddress: 'Herengracht 133, Amsterdam',
   companyGSTIN: '09AAAAA0000A1ZF',
   items: [
@@ -284,8 +284,8 @@ export default function InvoicePage() {
                 {/* Footer */}
                 <div className="mt-12 border-t border-border pt-6">
                   <p className="text-center text-sm text-muted-foreground">
-                    Thank you for choosing SharePal! For any queries, contact us at
-                    support@sharepal.com
+                    Thank you for choosing RentX! For any queries, contact us at
+                    support@rentx.com
                   </p>
                 </div>
               </CardContent>

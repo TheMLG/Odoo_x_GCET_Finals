@@ -83,56 +83,45 @@ export function Navbar() {
       animate={{ y: 0 }}
       className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
     >
-      <div className="container flex h-16 items-center justify-between px-4 md:px-6">
+      <div className="container flex h-14 sm:h-16 items-center justify-between px-3 sm:px-4 md:px-6">
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2">
-          <div className="flex h-10 items-center rounded-xl bg-blue-600 px-3">
-            <span className="text-lg font-bold text-white">
-              Share<span className="text-yellow-300">Pal</span>
-            </span>
-          </div>
+        <Link to="/" className="flex items-center gap-2 sm:gap-3">
+          <img 
+            src="/RentX.png" 
+            alt="RentX Logo" 
+            className="h-8 sm:h-10 md:h-12 w-auto"
+          />
+          <span className="text-lg sm:text-xl md:text-2xl font-bold text-slate-900">
+            Rent<span className="text-blue-600">X</span>
+          </span>
         </Link>
 
         {/* Desktop Navigation */}
-        {isCustomer && (
-          <div className="hidden flex-1 items-center gap-4 px-8 md:flex">
-            {/* Location */}
-            <button className="flex items-center gap-2 rounded-lg px-3 py-2 hover:bg-muted">
-              <MapPin className="h-5 w-5" />
-              <span className="text-sm font-medium">{rentalLocation}</span>
-            </button>
-
-            {/* Search Bar */}
-            <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <input
-                type="text"
-                placeholder="Search for products..."
-                className="w-full rounded-lg border border-border bg-background py-2 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-              />
-            </div>
-          </div>
-        )}
+        <nav className="hidden lg:flex items-center gap-1">
+          {navLinks.map((link) => (
+            <Link
+              key={link.href}
+              to={link.href}
+              className={cn(
+                "rounded-lg px-4 py-2 text-sm font-medium transition-colors",
+                location.pathname === link.href ?
+                  "bg-primary text-primary-foreground"
+                : "hover:bg-muted",
+              )}
+            >
+              {link.label}
+            </Link>
+          ))}
+        </nav>
 
         {/* Actions */}
-        <div className="flex items-center gap-3">
-          {/* Search Icon for Mobile */}
-          {isCustomer && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="rounded-xl md:hidden"
-            >
-              <Search className="h-5 w-5" />
-            </Button>
-          )}
-
+        <div className="flex items-center gap-1 sm:gap-2 md:gap-3">
           {/* Wishlist */}
           <Link to="/wishlist" className="relative">
-            <Button variant="ghost" size="icon" className="rounded-xl">
-              <Heart className="h-5 w-5" />
+            <Button variant="ghost" size="icon" className="rounded-xl h-9 w-9 sm:h-10 sm:w-10">
+              <Heart className="h-4 w-4 sm:h-5 sm:w-5" />
               {wishlistItems.length > 0 && (
-                <Badge className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-pink-500 p-0 text-xs text-white">
+                <Badge className="absolute -right-1 -top-1 flex h-4 w-4 sm:h-5 sm:w-5 items-center justify-center rounded-full bg-pink-500 p-0 text-[10px] sm:text-xs text-white">
                   {wishlistItems.length}
                 </Badge>
               )}
@@ -145,12 +134,12 @@ export function Navbar() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="rounded-xl"
+                className="rounded-xl h-9 w-9 sm:h-10 sm:w-10"
                 onClick={() => setIsCartOpen(true)}
               >
-                <ShoppingCart className="h-5 w-5" />
+                <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5" />
                 {items.length > 0 && (
-                  <Badge className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 p-0 text-xs text-white">
+                  <Badge className="absolute -right-1 -top-1 flex h-4 w-4 sm:h-5 sm:w-5 items-center justify-center rounded-full bg-red-500 p-0 text-[10px] sm:text-xs text-white">
                     {items.length}
                   </Badge>
                 )}
@@ -162,9 +151,9 @@ export function Navbar() {
           {isAuthenticated ?
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-2 rounded-full bg-gray-900 p-2 pr-4 text-white hover:bg-gray-800">
-                  <User className="h-5 w-5" />
-                  <span className="hidden text-sm font-medium md:inline">
+                <button className="flex items-center gap-1.5 sm:gap-2 rounded-full bg-gray-900 p-1.5 sm:p-2 pr-2 sm:pr-4 text-white hover:bg-gray-800">
+                  <User className="h-4 w-4 sm:h-5 sm:w-5" />
+                  <span className="hidden sm:inline text-sm font-medium">
                     Hi, {user?.firstName || "User"}
                   </span>
                 </button>
@@ -209,7 +198,7 @@ export function Navbar() {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-          : <div className="hidden items-center gap-2 md:flex">
+          : <div className="hidden md:flex items-center gap-2">
               <Button variant="ghost" asChild className="rounded-xl">
                 <Link to="/login">Login</Link>
               </Button>
@@ -223,12 +212,12 @@ export function Navbar() {
           <Button
             variant="ghost"
             size="icon"
-            className="rounded-xl md:hidden"
+            className="rounded-xl lg:hidden h-9 w-9 sm:h-10 sm:w-10"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           >
             {isMobileMenuOpen ?
-              <X className="h-5 w-5" />
-            : <Menu className="h-5 w-5" />}
+              <X className="h-4 w-4 sm:h-5 sm:w-5" />
+            : <Menu className="h-4 w-4 sm:h-5 sm:w-5" />}
           </Button>
         </div>
       </div>
@@ -239,16 +228,16 @@ export function Navbar() {
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: "auto" }}
           exit={{ opacity: 0, height: 0 }}
-          className="border-t border-border md:hidden"
+          className="border-t border-border lg:hidden"
         >
-          <nav className="container flex flex-col gap-2 px-4 py-4">
+          <nav className="container flex flex-col gap-2 px-3 sm:px-4 py-3 sm:py-4">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 to={link.href}
                 onClick={() => setIsMobileMenuOpen(false)}
                 className={cn(
-                  "rounded-xl px-4 py-2 text-sm font-medium transition-colors",
+                  "rounded-xl px-3 sm:px-4 py-2.5 text-sm font-medium transition-colors",
                   location.pathname === link.href ?
                     "bg-primary text-primary-foreground"
                   : "hover:bg-muted",
@@ -262,14 +251,14 @@ export function Navbar() {
                 <Link
                   to="/login"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="rounded-xl px-4 py-2 text-sm font-medium hover:bg-muted"
+                  className="rounded-xl px-3 sm:px-4 py-2.5 text-sm font-medium hover:bg-muted"
                 >
                   Login
                 </Link>
                 <Link
                   to="/signup/user"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="rounded-xl bg-primary px-4 py-2 text-center text-sm font-medium text-primary-foreground"
+                  className="rounded-xl bg-primary px-3 sm:px-4 py-2.5 text-center text-sm font-medium text-primary-foreground"
                 >
                   Sign Up
                 </Link>

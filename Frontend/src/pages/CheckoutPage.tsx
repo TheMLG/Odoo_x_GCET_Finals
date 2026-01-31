@@ -360,7 +360,7 @@ export default function CheckoutPage() {
                 </Button>
 
                 <p className="mt-4 text-center text-xs text-muted-foreground">
-                  By placing your order, you agree to SharePal's privacy notice and conditions of
+                  By placing your order, you agree to RentX's privacy notice and conditions of
                   use.
                 </p>
               </motion.div>
