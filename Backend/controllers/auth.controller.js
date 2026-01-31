@@ -514,3 +514,98 @@ export const resetPassword = asyncHandler(async (req, res) => {
     .status(200)
     .json(new ApiResponse(200, {}, "Password reset successfully"));
 });
+
+// Change Password (for authenticated users)
+export const changePassword = asyncHandler(async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+
+  // Validation
+  if (!currentPassword || !newPassword) {
+    throw new ApiError(400, "Current password and new password are required");
+  }
+
+  if (newPassword.length < 6) {
+    throw new ApiError(400, "New password must be at least 6 characters long");
+  }
+
+  // Get user with password
+  const user = await prisma.user.findUnique({
+    where: { id: req.user.id },
+    select: {
+      id: true,
+      password: true,
+    },
+  });
+
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+
+  // Verify current password
+  const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+
+  if (!isPasswordValid) {
+    throw new ApiError(401, "Current password is incorrect");
+  }
+
+  // Hash new password
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+  // Update password
+  await prisma.user.update({
+    where: { id: req.user.id },
+    data: {
+      password: hashedPassword,
+    },
+  });
+
+  res
+    .status(200)
+    .json(new ApiResponse(200, null, "Password changed successfully"));
+});
+
+// Update User Profile (for authenticated users)
+export const updateUserProfile = asyncHandler(async (req, res) => {
+  const { firstName, lastName, email } = req.body;
+
+  // Check if email already exists for a different user
+  if (email) {
+    const existingUser = await prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (existingUser && existingUser.id !== req.user.id) {
+      throw new ApiError(400, "Email already exists");
+    }
+  }
+
+  const updatedUser = await prisma.user.update({
+    where: { id: req.user.id },
+    data: {
+      ...(firstName && { firstName }),
+      ...(lastName && { lastName }),
+      ...(email && { email }),
+    },
+    include: {
+      roles: {
+        include: {
+          role: true,
+        },
+      },
+      vendor: true,
+    },
+  });
+
+  // Remove password from response
+  const { password, ...userWithoutPassword } = updatedUser;
+
+  res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        userWithoutPassword,
+        "Profile updated successfully",
+      ),
+    );
+});

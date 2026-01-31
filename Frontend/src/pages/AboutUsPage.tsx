@@ -69,7 +69,7 @@ const AboutUsPage = () => {
               {...fadeIn}
             >
               <h1 className="mb-6 text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
-                About <span className="text-primary">RentalPro</span>
+                About <span className="text-primary">RentX</span>
               </h1>
               <p className="text-lg text-muted-foreground sm:text-xl">
                 Revolutionizing the way people and businesses access equipment through a trusted, innovative rental platform.
@@ -242,7 +242,7 @@ const AboutUsPage = () => {
               <h2 className="mb-6 text-center text-3xl font-bold">Our Story</h2>
               <div className="space-y-4 text-muted-foreground">
                 <p>
-                  RentalPro was born from a simple observation: too many valuable tools and equipment sit 
+                  RentX was born from a simple observation: too many valuable tools and equipment sit 
                   idle while others struggle to afford or access them. Founded in 2020, we set out to 
                   bridge this gap and create a marketplace that benefits everyone.
                 </p>

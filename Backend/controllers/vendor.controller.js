@@ -1,3 +1,4 @@
+import bcrypt from "bcryptjs";
 import prisma from "../config/prisma.js";
 import ApiError from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
@@ -62,6 +63,96 @@ export const updateVendorProfile = asyncHandler(async (req, res) => {
   res
     .status(200)
     .json(new ApiResponse(200, vendor, "Vendor profile updated successfully"));
+});
+
+// Update vendor user information (personal details)
+export const updateVendorUser = asyncHandler(async (req, res) => {
+  const { firstName, lastName, email } = req.body;
+
+  // Check if email already exists for a different user
+  if (email) {
+    const existingUser = await prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (existingUser && existingUser.id !== req.user.id) {
+      throw new ApiError(400, "Email already exists");
+    }
+  }
+
+  const updatedUser = await prisma.user.update({
+    where: { id: req.user.id },
+    data: {
+      ...(firstName && { firstName }),
+      ...(lastName && { lastName }),
+      ...(email && { email }),
+    },
+    include: {
+      vendor: true,
+    },
+  });
+
+  // Remove password from response
+  const { password, ...userWithoutPassword } = updatedUser;
+
+  res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        userWithoutPassword,
+        "User information updated successfully",
+      ),
+    );
+});
+
+// Change vendor password
+export const changeVendorPassword = asyncHandler(async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+
+  // Validation
+  if (!currentPassword || !newPassword) {
+    throw new ApiError(400, "Current password and new password are required");
+  }
+
+  if (newPassword.length < 6) {
+    throw new ApiError(400, "New password must be at least 6 characters long");
+  }
+
+  // Get user with password
+  const user = await prisma.user.findUnique({
+    where: { id: req.user.id },
+    select: {
+      id: true,
+      password: true,
+    },
+  });
+
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+
+  // Verify current password
+  const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+
+  if (!isPasswordValid) {
+    throw new ApiError(401, "Current password is incorrect");
+  }
+
+  // Hash new password
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+  // Update password
+  await prisma.user.update({
+    where: { id: req.user.id },
+    data: {
+      password: hashedPassword,
+    },
+  });
+
+  res
+    .status(200)
+    .json(new ApiResponse(200, null, "Password changed successfully"));
 });
 
 // Create new product

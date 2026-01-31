@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { ProductCard } from '@/components/products/ProductCard';
 import { useRentalStore } from '@/stores/rentalStore';
+import { useAuthStore } from '@/stores/authStore';
 import { RoleBasedRedirect } from '@/components/RoleBasedRedirect';
 import { useEffect } from 'react';
 
@@ -43,7 +44,7 @@ const testimonials = [
   {
     name: 'Sarah Johnson',
     role: 'Event Planner',
-    content: 'RentalPro has transformed how we source equipment for events. The booking process is seamless!',
+    content: 'RentX has transformed how we source equipment for events. The booking process is seamless!',
     rating: 5,
   },
   {
@@ -62,6 +63,7 @@ const testimonials = [
 
 export default function HomePage() {
   const { products, fetchProducts } = useRentalStore();
+  const { isAuthenticated } = useAuthStore();
   const featuredProducts = products.filter((p) => p.isPublished).slice(0, 4);
 
   // Fetch products on mount
@@ -153,7 +155,7 @@ export default function HomePage() {
             viewport={{ once: true }}
             className="mb-12 text-center"
           >
-            <h2 className="mb-4 text-3xl font-bold md:text-4xl">Why Choose RentalPro?</h2>
+            <h2 className="mb-4 text-3xl font-bold md:text-4xl">Why Choose RentX?</h2>
             <p className="mx-auto max-w-2xl text-muted-foreground">
               We make equipment rental simple, reliable, and affordable for businesses of all sizes.
             </p>
@@ -234,7 +236,7 @@ export default function HomePage() {
           >
             <h2 className="mb-4 text-3xl font-bold md:text-4xl">What Our Customers Say</h2>
             <p className="mx-auto max-w-2xl text-muted-foreground">
-              Join thousands of satisfied businesses who trust RentalPro
+              Join thousands of satisfied businesses who trust RentX
             </p>
           </motion.div>
 
@@ -268,39 +270,41 @@ export default function HomePage() {
       </section>
 
       {/* CTA */}
-      <section className="bg-primary py-20">
-        <div className="container px-4 md:px-6">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="mx-auto max-w-3xl text-center"
-          >
-            <h2 className="mb-4 text-3xl font-bold text-primary-foreground md:text-4xl">
-              Ready to Get Started?
-            </h2>
-            <p className="mb-8 text-lg text-primary-foreground/80">
-              Sign up today and get access to thousands of rental products with flexible pricing.
-            </p>
-            <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
-              <Button size="lg" variant="secondary" asChild className="rounded-xl px-8">
-                <Link to="/signup">
-                  <CheckCircle className="mr-2 h-4 w-4" />
-                  Create Free Account
-                </Link>
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                asChild
-                className="rounded-xl border-primary-foreground/20 bg-transparent px-8 text-primary-foreground hover:bg-primary-foreground/10"
-              >
-                <Link to="/contact">Contact Sales</Link>
-              </Button>
-            </div>
-          </motion.div>
-        </div>
-      </section>
+      {!isAuthenticated && (
+        <section className="bg-primary py-20">
+          <div className="container px-4 md:px-6">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="mx-auto max-w-3xl text-center"
+            >
+              <h2 className="mb-4 text-3xl font-bold text-primary-foreground md:text-4xl">
+                Ready to Get Started?
+              </h2>
+              <p className="mb-8 text-lg text-primary-foreground/80">
+                Sign up today and get access to thousands of rental products with flexible pricing.
+              </p>
+              <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
+                <Button size="lg" variant="secondary" asChild className="rounded-xl px-8">
+                  <Link to="/signup">
+                    <CheckCircle className="mr-2 h-4 w-4" />
+                    Create Free Account
+                  </Link>
+                </Button>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  asChild
+                  className="rounded-xl border-primary-foreground/20 bg-transparent px-8 text-primary-foreground hover:bg-primary-foreground/10"
+                >
+                  <Link to="/contact">Contact Sales</Link>
+                </Button>
+              </div>
+            </motion.div>
+          </div>
+        </section>
+      )}
     </MainLayout>
     </RoleBasedRedirect>
   );

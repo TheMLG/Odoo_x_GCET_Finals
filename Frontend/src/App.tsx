@@ -39,6 +39,10 @@ import ProductsPage from "./pages/ProductsPage";
 import WishlistPage from "./pages/WishlistPage";
 import AboutUsPage from "./pages/AboutUsPage";
 import ContactPage from "./pages/ContactPage";
+import UserSettingsPage from "./pages/UserSettingsPage";
+import TermsAndConditions from "./pages/TermsAndConditions";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import RefundPolicy from "./pages/RefundPolicy";
 
 const queryClient = new QueryClient();
 
@@ -105,6 +109,9 @@ const App = () => (
           <Route path="/wishlist" element={<WishlistPage />} />
           <Route path="/about" element={<AboutUsPage />} />
           <Route path="/contact" element={<ContactPage />} />
+          <Route path="/terms" element={<TermsAndConditions />} />
+          <Route path="/privacy" element={<PrivacyPolicy />} />
+          <Route path="/refund" element={<RefundPolicy />} />
 
           {/* Auth Routes - Only accessible when not authenticated */}
           <Route
@@ -200,6 +207,14 @@ const App = () => (
             element={
               <ProtectedRoute>
                 <InvoicePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/settings"
+            element={
+              <ProtectedRoute>
+                <UserSettingsPage />
               </ProtectedRoute>
             }
           />
