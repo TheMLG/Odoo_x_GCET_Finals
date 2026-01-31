@@ -59,6 +59,7 @@ export function Navbar() {
   ];
 
   const userRole = getUserRole();
+  const isAdminOrVendor = userRole === "ADMIN" || userRole === "VENDOR";
 
   const dashboardLink =
     userRole === "ADMIN" ? "/admin/dashboard"
@@ -87,9 +88,9 @@ export function Navbar() {
       <div className="container flex h-14 sm:h-16 items-center justify-between px-3 sm:px-4 md:px-6">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2 sm:gap-3">
-          <img 
-            src="/RentX.png" 
-            alt="RentX Logo" 
+          <img
+            src="/RentX.png"
+            alt="RentX Logo"
             className="h-8 sm:h-10 md:h-12 w-auto"
           />
           <span className="text-lg sm:text-xl md:text-2xl font-bold text-slate-900">
@@ -98,36 +99,40 @@ export function Navbar() {
         </Link>
 
         {/* Desktop Navigation */}
-        <nav className="hidden lg:flex items-center gap-1">
-          {navLinks.map((link) => (
-            <Link
-              key={link.href}
-              to={link.href}
-              className={cn(
-                "rounded-lg px-4 py-2 text-sm font-medium transition-colors",
-                location.pathname === link.href ?
-                  "bg-primary text-primary-foreground"
-                : "hover:bg-muted",
-              )}
-            >
-              {link.label}
-            </Link>
-          ))}
-        </nav>
+        {!isAdminOrVendor && (
+          <nav className="hidden lg:flex items-center gap-1">
+            {navLinks.map((link) => (
+              <Link
+                key={link.href}
+                to={link.href}
+                className={cn(
+                  "rounded-lg px-4 py-2 text-sm font-medium transition-colors",
+                  location.pathname === link.href ?
+                    "bg-primary text-primary-foreground"
+                    : "hover:bg-muted",
+                )}
+              >
+                {link.label}
+              </Link>
+            ))}
+          </nav>
+        )}
 
         {/* Actions */}
         <div className="flex items-center gap-1 sm:gap-2 md:gap-3">
           {/* Wishlist */}
-          <Link to="/wishlist" className="relative">
-            <Button variant="ghost" size="icon" className="rounded-xl h-9 w-9 sm:h-10 sm:w-10">
-              <Heart className="h-4 w-4 sm:h-5 sm:w-5" />
-              {wishlistItems.length > 0 && (
-                <Badge className="absolute -right-1 -top-1 flex h-4 w-4 sm:h-5 sm:w-5 items-center justify-center rounded-full bg-pink-500 p-0 text-[10px] sm:text-xs text-white">
-                  {wishlistItems.length}
-                </Badge>
-              )}
-            </Button>
-          </Link>
+          {!isAdminOrVendor && (
+            <Link to="/wishlist" className="relative">
+              <Button variant="ghost" size="icon" className="rounded-xl h-9 w-9 sm:h-10 sm:w-10">
+                <Heart className="h-4 w-4 sm:h-5 sm:w-5" />
+                {wishlistItems.length > 0 && (
+                  <Badge className="absolute -right-1 -top-1 flex h-4 w-4 sm:h-5 sm:w-5 items-center justify-center rounded-full bg-pink-500 p-0 text-[10px] sm:text-xs text-white">
+                    {wishlistItems.length}
+                  </Badge>
+                )}
+              </Button>
+            </Link>
+          )}
 
           {/* Cart */}
           {isCustomer && (
@@ -167,18 +172,8 @@ export function Navbar() {
                   <p className="text-xs text-muted-foreground">{user?.email}</p>
                 </div>
                 <DropdownMenuSeparator />
-                {userRole === "VENDOR" && (
-                  <DropdownMenuItem asChild>
-                    <Link
-                      to={dashboardLink}
-                      className="flex items-center gap-2"
-                    >
-                      <LayoutDashboard className="h-4 w-4" />
-                      Dashboard
-                    </Link>
-                  </DropdownMenuItem>
-                )}
-                {userRole !== "ADMIN" && (
+
+                {!isAdminOrVendor && (
                   <DropdownMenuItem asChild>
                     <Link to={ordersLink} className="flex items-center gap-2">
                       <FileText className="h-4 w-4" />
@@ -213,21 +208,23 @@ export function Navbar() {
           }
 
           {/* Mobile Menu Button */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="rounded-xl lg:hidden h-9 w-9 sm:h-10 sm:w-10"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          >
-            {isMobileMenuOpen ?
-              <X className="h-5 w-5" />
-            : <Menu className="h-5 w-5" />}
-          </Button>
+          {!isAdminOrVendor && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="rounded-xl lg:hidden h-9 w-9 sm:h-10 sm:w-10"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            >
+              {isMobileMenuOpen ?
+                <X className="h-5 w-5" />
+                : <Menu className="h-5 w-5" />}
+            </Button>
+          )}
         </div>
       </div>
 
       {/* Mobile Menu */}
-      {isMobileMenuOpen && (
+      {!isAdminOrVendor && isMobileMenuOpen && (
         <motion.div
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: "auto" }}

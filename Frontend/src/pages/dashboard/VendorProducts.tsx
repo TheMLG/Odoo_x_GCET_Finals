@@ -1,3 +1,4 @@
+import { ProductDialog } from "@/components/vendor/ProductDialog";
 import { VendorLayout } from "@/components/layout/VendorLayout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -120,12 +121,7 @@ export default function VendorProducts() {
               Manage your rental product inventory
             </p>
           </div>
-          <Button asChild className="rounded-xl">
-            <Link to="/vendor/products/new">
-              <Plus className="mr-2 h-4 w-4" />
-              Add Product
-            </Link>
-          </Button>
+          <ProductDialog mode="add" onProductSaved={fetchProducts} />
         </motion.div>
 
         {/* Filters */}
@@ -177,7 +173,7 @@ export default function VendorProducts() {
           <div className="flex justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
           </div>
-        : /* Products Grid */
+          : /* Products Grid */
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {filteredProducts.map((product, index) => {
               const qty = product.inventory?.totalQty || 0;
@@ -192,7 +188,7 @@ export default function VendorProducts() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.1 * index }}
                 >
-                  <Card className="rounded-2xl overflow-hidden hover:shadow-lg transition-shadow">
+                  <Card className="rounded-2xl overflow-hidden border border-border/60 bg-card shadow-sm hover:shadow-xl transition-all duration-300">
                     {/* Product Image */}
                     <div className="aspect-video bg-muted flex items-center justify-center overflow-hidden">
                       {product.product_image_url ?
@@ -201,7 +197,7 @@ export default function VendorProducts() {
                           alt={product.name}
                           className="h-full w-full object-cover"
                         />
-                      : <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                        : <div className="flex flex-col items-center gap-2 text-muted-foreground">
                           <ImageIcon className="h-12 w-12" />
                           <span className="text-sm">No image</span>
                         </div>
@@ -230,16 +226,27 @@ export default function VendorProducts() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem>
-                              <Eye className="mr-2 h-4 w-4" />
-                              View
-                            </DropdownMenuItem>
-                            <DropdownMenuItem asChild>
-                              <Link to={`/vendor/products/${product.id}/edit`}>
-                                <Edit className="mr-2 h-4 w-4" />
-                                Edit
-                              </Link>
-                            </DropdownMenuItem>
+                            <ProductDialog
+                              mode="view"
+                              product={product}
+                              trigger={
+                                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                  <Eye className="mr-2 h-4 w-4" />
+                                  View
+                                </DropdownMenuItem>
+                              }
+                            />
+                            <ProductDialog
+                              mode="edit"
+                              product={product}
+                              onProductSaved={fetchProducts}
+                              trigger={
+                                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                  <Edit className="mr-2 h-4 w-4" />
+                                  Edit
+                                </DropdownMenuItem>
+                              }
+                            />
                             <DropdownMenuSeparator />
                             <DropdownMenuItem
                               className="text-destructive focus:text-destructive"
@@ -293,14 +300,9 @@ export default function VendorProducts() {
             <p className="text-muted-foreground mb-4">
               {products.length === 0 ?
                 "Get started by adding your first product"
-              : "Try adjusting your search or filters"}
+                : "Try adjusting your search or filters"}
             </p>
-            <Button asChild className="rounded-xl">
-              <Link to="/vendor/products/new">
-                <Plus className="mr-2 h-4 w-4" />
-                Add Product
-              </Link>
-            </Button>
+            <ProductDialog mode="add" onProductSaved={fetchProducts} />
           </motion.div>
         )}
       </div>

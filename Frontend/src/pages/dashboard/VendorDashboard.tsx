@@ -1,3 +1,4 @@
+import { ProductDialog } from "@/components/vendor/ProductDialog";
 import { VendorLayout } from "@/components/layout/VendorLayout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -15,7 +16,7 @@ import {
   Settings,
   ShoppingCartIcon,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   Area,
@@ -32,23 +33,27 @@ export default function VendorDashboard() {
   const [error, setError] = useState<string | null>(null);
   const [stats, setStats] = useState<VendorDashboardStats | null>(null);
 
-  useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-        const dashboardStats = await getVendorDashboardStats();
-        setStats(dashboardStats);
-      } catch (err: any) {
-        console.error("Error fetching dashboard data:", err);
+  const fetchDashboardData = useCallback(async () => {
+    try {
+      // Don't set loading to true here to avoid flickering on refresh
+      setError(null);
+      const dashboardStats = await getVendorDashboardStats();
+      setStats(dashboardStats);
+    } catch (err: any) {
+      console.error("Error fetching dashboard data:", err);
+      // Only set error if we don't have stats yet
+      if (!stats) {
         setError(
           err.response?.data?.message || "Failed to load dashboard data",
         );
-      } finally {
-        setIsLoading(false);
       }
-    };
+    } finally {
+      setIsLoading(false);
+    }
+  }, [stats]);
 
+  useEffect(() => {
+    setIsLoading(true);
     fetchDashboardData();
   }, []);
 
@@ -144,12 +149,7 @@ export default function VendorDashboard() {
                 Settings
               </Link>
             </Button>
-            <Button asChild className="rounded-xl">
-              <Link to="/vendor/products/new">
-                <Plus className="mr-2 h-4 w-4" />
-                Add Product
-              </Link>
-            </Button>
+            <ProductDialog mode="add" onProductSaved={fetchDashboardData} />
           </div>
         </motion.div>
 

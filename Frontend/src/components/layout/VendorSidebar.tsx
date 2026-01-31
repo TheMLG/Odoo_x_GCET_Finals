@@ -1,124 +1,118 @@
-import { Button } from "@/components/ui/button";
-import { VENDOR_NAV_ITEMS } from "@/lib/constants";
-import { cn } from "@/lib/utils";
-import { AnimatePresence, motion } from "framer-motion";
-import { ChevronLeft, ChevronRight, Store } from "lucide-react";
-import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation } from 'react-router-dom';
+import { cn } from '@/lib/utils';
+import { VENDOR_NAV_ITEMS } from '@/lib/constants';
+import {
+  ChevronLeft,
+  ChevronRight,
+  Store,
+  LogOut,
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
-export function VendorSidebar() {
+interface VendorSidebarProps {
+  isCollapsed: boolean;
+  setIsCollapsed: (value: boolean) => void;
+  className?: string;
+}
+
+export function VendorSidebar({ isCollapsed, setIsCollapsed, className }: VendorSidebarProps) {
   const location = useLocation();
-  const [isCollapsed, setIsCollapsed] = useState(false);
 
   return (
-    <motion.aside
-      initial={false}
-      animate={{ width: isCollapsed ? 80 : 280 }}
-      transition={{ duration: 0.3, ease: "easeInOut" }}
-      className="sticky top-16 h-[calc(100vh-4rem)] border-r border-border bg-card"
+    <aside
+      className={cn(
+        'fixed left-0 top-16 z-40 h-[calc(100vh-4rem)] border-r bg-card transition-all duration-300 hidden md:block',
+        isCollapsed ? 'w-16' : 'w-64',
+        className
+      )}
     >
       <div className="flex h-full flex-col">
-        {/* Sidebar Header */}
-        <div className="flex items-center justify-between border-b border-border p-4">
-          <AnimatePresence mode="wait">
-            {!isCollapsed && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="flex items-center gap-3"
-              >
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
-                  <Store className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <h2 className="font-semibold text-foreground">
-                    Vendor Portal
-                  </h2>
-                  <p className="text-xs text-muted-foreground">
-                    Manage your store
-                  </p>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+        {/* Header */}
+        <div className="flex items-center justify-between border-b p-4">
+          {!isCollapsed && (
+            <div className="flex items-center gap-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
+                <Store className="h-4 w-4 text-primary" />
+              </div>
+              <div>
+                <h2 className="text-sm font-semibold text-foreground">
+                  Vendor Portal
+                </h2>
+                <p className="text-[10px] text-muted-foreground">
+                  Manage your store
+                </p>
+              </div>
+            </div>
+          )}
           <Button
             variant="ghost"
             size="icon"
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="h-8 w-8 rounded-lg"
+            className={cn("h-8 w-8", !isCollapsed && "ml-auto")}
           >
-            {isCollapsed ?
+            {isCollapsed ? (
               <ChevronRight className="h-4 w-4" />
-            : <ChevronLeft className="h-4 w-4" />}
+            ) : (
+              <ChevronLeft className="h-4 w-4" />
+            )}
           </Button>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 space-y-1 p-3">
+        <nav className="flex-1 space-y-1 overflow-y-auto p-3">
           {VENDOR_NAV_ITEMS.map((item) => {
-            const isActive =
-              location.pathname === item.href ||
-              (item.href !== "/vendor/dashboard" &&
-                location.pathname.startsWith(item.href));
+            const isActive = location.pathname === item.href ||
+              (item.href !== '/vendor/dashboard' && location.pathname.startsWith(item.href));
+            const Icon = item.icon;
 
             return (
               <Link
                 key={item.href}
                 to={item.href}
                 className={cn(
-                  "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200",
-                  isActive ?
-                    "bg-primary text-primary-foreground shadow-sm"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                  isCollapsed && "justify-center px-2",
+                  'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
+                  isActive
+                    ? 'bg-primary/10 text-primary'
+                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                 )}
                 title={isCollapsed ? item.label : undefined}
               >
-                <item.icon
-                  className={cn(
-                    "h-5 w-5 flex-shrink-0",
-                    isActive && "text-primary-foreground",
-                  )}
-                />
-                <AnimatePresence mode="wait">
-                  {!isCollapsed && (
-                    <motion.span
-                      initial={{ opacity: 0, width: 0 }}
-                      animate={{ opacity: 1, width: "auto" }}
-                      exit={{ opacity: 0, width: 0 }}
-                      className="whitespace-nowrap"
-                    >
-                      {item.label}
-                    </motion.span>
-                  )}
-                </AnimatePresence>
+                <Icon className={cn('h-5 w-5 flex-shrink-0', isActive && 'text-primary')} />
+                {!isCollapsed && (
+                  <span>{item.label}</span>
+                )}
               </Link>
             );
           })}
         </nav>
 
-        {/* Footer */}
-        <div className="border-t border-border p-3">
-          <AnimatePresence mode="wait">
-            {!isCollapsed && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="rounded-xl bg-muted/50 p-3"
+        {/* Footer Info & Logout */}
+        <div className="border-t p-4 mt-auto">
+          {!isCollapsed ?
+            <div className="space-y-4">
+
+              <Button
+                variant="outline"
+                className="w-full justify-start gap-2 text-red-500 hover:text-red-600 hover:bg-red-50"
+                onClick={() => {
+                  window.location.href = '/login';
+                }}
               >
-                <p className="text-xs text-muted-foreground">
-                  Need help? Visit our{" "}
-                  <Link to="/help" className="text-primary hover:underline">
-                    Help Center
-                  </Link>
-                </p>
-              </motion.div>
-            )}
-          </AnimatePresence>
+                <LogOut className="h-4 w-4" />
+                Logout
+              </Button>
+            </div>
+            : <Button
+              variant="ghost"
+              size="icon"
+              className="w-full text-red-500 hover:text-red-600 hover:bg-red-50"
+              title="Logout"
+            >
+              <LogOut className="h-4 w-4" />
+            </Button>
+          }
         </div>
       </div>
-    </motion.aside>
+    </aside>
   );
 }

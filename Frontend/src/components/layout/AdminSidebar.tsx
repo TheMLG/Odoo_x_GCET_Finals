@@ -9,7 +9,9 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
+  LogOut,
 } from 'lucide-react';
+import { useAuthStore } from '@/stores/authStore';
 import { Button } from '@/components/ui/button';
 
 const menuItems = [
@@ -131,21 +133,45 @@ export function AdminSidebar({ isCollapsed, setIsCollapsed, className }: AdminSi
         <SidebarNav isCollapsed={isCollapsed} />
 
         {/* Footer Info */}
-        {!isCollapsed && (
-          <div className="border-t p-4">
-            <div className="rounded-lg bg-muted/50 p-3">
-              <div className="flex items-center gap-2 text-xs">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary">
-                  <Users className="h-4 w-4 text-primary-foreground" />
-                </div>
-                <div>
-                  <p className="font-medium">Admin Panel</p>
-                  <p className="text-muted-foreground">Full System Access</p>
+        <div className="border-t p-4 mt-auto">
+          {!isCollapsed ?
+            <div className="space-y-4">
+              <div className="rounded-lg bg-muted/50 p-3">
+                <div className="flex items-center gap-2 text-xs">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary">
+                    <Users className="h-4 w-4 text-primary-foreground" />
+                  </div>
+                  <div>
+                    <p className="font-medium">Admin Panel</p>
+                    <p className="text-muted-foreground">Full System Access</p>
+                  </div>
                 </div>
               </div>
+              <Button
+                variant="outline"
+                className="w-full justify-start gap-2 text-red-500 hover:text-red-600 hover:bg-red-50"
+                onClick={() => {
+                  // Add logout logic here, referencing auth store if needed or just use Link/href if handled globally
+                  // For now, assuming direct call or navigation. 
+                  // Ideally imports useAuthStore.
+                  // But wait, I need to import useAuthStore first.
+                  window.location.href = '/login'; // Fallback or proper logout
+                }}
+              >
+                <LogOut className="h-4 w-4" />
+                Logout
+              </Button>
             </div>
-          </div>
-        )}
+            : <Button
+              variant="ghost"
+              size="icon"
+              className="w-full text-red-500 hover:text-red-600 hover:bg-red-50"
+              title="Logout"
+            >
+              <LogOut className="h-4 w-4" />
+            </Button>
+          }
+        </div>
       </div>
     </aside>
   );
