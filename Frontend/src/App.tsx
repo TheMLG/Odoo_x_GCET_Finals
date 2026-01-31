@@ -11,6 +11,7 @@ import LoginPage from "./pages/auth/LoginPage";
 import SignupPage from "./pages/auth/SignupPage";
 import UserSignupPage from "./pages/auth/UserSignupPage";
 import VendorSignupPage from "./pages/auth/VendorSignupPage";
+import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";  // Add this import
 import CartPage from "./pages/CartPage";
 import ContactDetailsPage from "./pages/checkout/ContactDetailsPage";
 import AddressPage from "./pages/checkout/AddressPage";
@@ -66,8 +67,8 @@ function ProtectedRoute({
     // Redirect to appropriate dashboard based on role
     const redirectPath =
       userRole === "ADMIN" ? "/admin/dashboard"
-      : userRole === "VENDOR" ? "/vendor/dashboard"
-      : "/dashboard";
+        : userRole === "VENDOR" ? "/vendor/dashboard"
+          : "/dashboard";
     return <Navigate to={redirectPath} replace />;
   }
 
@@ -145,6 +146,14 @@ const App = () => (
             element={
               <PublicRoute>
                 <VendorSignupPage />
+              </PublicRoute>
+            }
+          />
+          <Route
+            path="/auth/forgot-password"
+            element={
+              <PublicRoute>
+                <ForgotPasswordPage />
               </PublicRoute>
             }
           />
