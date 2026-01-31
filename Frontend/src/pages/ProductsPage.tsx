@@ -2,7 +2,7 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { ProductCard } from "@/components/products/ProductCard";
 import { ProductFilters } from "@/components/products/ProductFilters";
 import { FilterSidebar } from "@/components/products/FilterSidebar";
-import { WelcomeCouponDialog } from "@/components/coupon/WelcomeCouponDialog";
+
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -134,7 +134,7 @@ export default function ProductsPage() {
 
   return (
     <MainLayout>
-      <WelcomeCouponDialog />
+
       <div className="container px-4 py-8 md:px-6 md:py-12">
         {/* Header */}
         <motion.div

@@ -9,7 +9,7 @@ import { Separator } from '@/components/ui/separator';
 import { useCartStore } from '@/stores/cartStore';
 import { useAuthStore } from '@/stores/authStore';
 import { CouponSelector } from '@/components/coupon/CouponSelector';
-import { WelcomeCouponDialog } from '@/components/coupon/WelcomeCouponDialog';
+
 import { toast } from 'sonner';
 import { useEffect, useState } from 'react';
 
@@ -80,7 +80,7 @@ export default function CartPage() {
   if (items.length === 0) {
     return (
       <MainLayout>
-        <WelcomeCouponDialog />
+
         <div className="container flex min-h-[60vh] flex-col items-center justify-center px-4 py-12">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -108,7 +108,7 @@ export default function CartPage() {
 
   return (
     <MainLayout>
-      <WelcomeCouponDialog />
+
       <div className="container px-4 py-8 md:px-6 md:py-12">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

@@ -96,8 +96,8 @@ export default function DeliveryTimePage() {
             addDays(
               new Date(),
               slot.id === "standard" ? 7
-              : slot.id === "express" ? 3
-              : 1,
+                : slot.id === "express" ? 3
+                  : 1,
             ),
             "yyyy-MM-dd",
           ),
@@ -166,7 +166,7 @@ export default function DeliveryTimePage() {
                           "relative rounded-xl border-2 transition-all cursor-pointer",
                           localDeliveryType === "pickup" ?
                             "border-blue-600 bg-blue-50"
-                          : "border-border hover:border-gray-400",
+                            : "border-border hover:border-gray-400",
                         )}
                       >
                         <div className="p-6">
@@ -197,7 +197,7 @@ export default function DeliveryTimePage() {
                           "relative rounded-xl border-2 transition-all cursor-pointer",
                           localDeliveryType === "shipping" ?
                             "border-blue-600 bg-blue-50"
-                          : "border-border hover:border-gray-400",
+                            : "border-border hover:border-gray-400",
                         )}
                       >
                         <div className="p-6">
@@ -239,7 +239,7 @@ export default function DeliveryTimePage() {
                       </div>
                       <div className="mb-4 text-sm">
                         <p className="font-medium">
-                          SharePal Store - Main Branch
+                          RentX Store - Main Branch
                         </p>
                         <p className="text-muted-foreground">
                           123 Main Street, Commercial Complex
@@ -290,7 +290,7 @@ export default function DeliveryTimePage() {
                               !slot.available && "opacity-50",
                               selectedSlot === slot.id ?
                                 "border-blue-600 bg-blue-50"
-                              : "border-border hover:border-gray-400",
+                                : "border-border hover:border-gray-400",
                             )}
                           >
                             <div className="flex items-start gap-4 p-4">
@@ -329,7 +329,7 @@ export default function DeliveryTimePage() {
                                       <div className="rounded-full bg-green-100 px-3 py-1 text-sm font-bold text-green-700">
                                         FREE
                                       </div>
-                                    : <div className="rounded-full bg-gray-100 px-3 py-1 text-sm font-bold">
+                                      : <div className="rounded-full bg-gray-100 px-3 py-1 text-sm font-bold">
                                         {formatPrice(slot.cost)}
                                       </div>
                                     }
@@ -388,7 +388,7 @@ export default function DeliveryTimePage() {
             deliveryCost={
               localDeliveryType === "shipping" && selectedSlot ?
                 shippingSlots.find((s) => s.id === selectedSlot)?.cost || 0
-              : 0
+                : 0
             }
           />
         </div>

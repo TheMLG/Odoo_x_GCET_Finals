@@ -5,9 +5,10 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuthStore } from "@/stores/authStore";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { WelcomeCouponDialog } from "@/components/coupon/WelcomeCouponDialog";
 
 // Pages
-import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage"; // Add this import
+import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
 import LoginPage from "./pages/auth/LoginPage";
 import SignupPage from "./pages/auth/SignupPage";
 import UserSignupPage from "./pages/auth/UserSignupPage";
@@ -73,8 +74,8 @@ function ProtectedRoute({
     // Redirect to appropriate dashboard based on role
     const redirectPath =
       userRole === "ADMIN" ? "/admin/dashboard"
-      : userRole === "VENDOR" ? "/vendor/dashboard"
-      : "/";
+        : userRole === "VENDOR" ? "/vendor/dashboard"
+          : "/";
     return <Navigate to={redirectPath} replace />;
   }
 
@@ -90,8 +91,8 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
     // Redirect to appropriate dashboard based on role
     const redirectPath =
       userRole === "ADMIN" ? "/admin/dashboard"
-      : userRole === "VENDOR" ? "/vendor/dashboard"
-      : "/";
+        : userRole === "VENDOR" ? "/vendor/dashboard"
+          : "/";
     return <Navigate to={redirectPath} replace />;
   }
 
@@ -103,6 +104,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
+      <WelcomeCouponDialog />
       <BrowserRouter>
         <ScrollToTop />
         <Routes>
