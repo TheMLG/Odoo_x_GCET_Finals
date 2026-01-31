@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Clock, Calendar, CalendarDays, ShoppingCart, Heart } from 'lucide-react';
 import { Product } from '@/types/rental';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { useWishlistStore } from '@/stores/wishlistStore';
+import { useAuthStore } from '@/stores/authStore';
 import { toast } from 'sonner';
 
 interface ProductCardProps {
@@ -27,10 +28,23 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
     }).format(price);
   };
 
+  const { isAuthenticated } = useAuthStore();
+  const navigate = useNavigate();
+
   const handleWishlistToggle = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
+    if (!isAuthenticated) {
+      toast.info('Please login to use wishlist', {
+        action: {
+          label: 'Login',
+          onClick: () => navigate('/login')
+        }
+      });
+      return;
+    }
+
     if (inWishlist) {
       await removeItem(product.id);
       toast.success('Removed from wishlist');
@@ -55,8 +69,8 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
               className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
             />
             {product.quantityOnHand < 3 && (
-              <Badge 
-                variant="destructive" 
+              <Badge
+                variant="destructive"
                 className="absolute right-3 top-3 rounded-lg"
               >
                 Only {product.quantityOnHand} left
@@ -67,7 +81,7 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
               onClick={handleWishlistToggle}
               className="absolute left-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 backdrop-blur-sm transition-all hover:bg-white hover:scale-110"
             >
-              <Heart 
+              <Heart
                 className={cn(
                   "h-5 w-5 transition-colors",
                   inWishlist ? "fill-pink-500 text-pink-500" : "text-gray-600"

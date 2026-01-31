@@ -16,7 +16,7 @@ interface CheckoutSidebarProps {
 export function CheckoutSidebar({ currentStep, deliveryCost = 0 }: CheckoutSidebarProps) {
   const { items, getTotalAmount } = useCartStore();
   const [showCoupons, setShowCoupons] = useState(false);
-  const [showBillDetails, setShowBillDetails] = useState(false);
+  const [showBillDetails, setShowBillDetails] = useState(true);
 
   const subtotalAmount = getTotalAmount();
   const totalAmount = subtotalAmount + deliveryCost;
@@ -84,16 +84,15 @@ export function CheckoutSidebar({ currentStep, deliveryCost = 0 }: CheckoutSideb
           >
             View Coupons
             <ChevronDown
-              className={`h-4 w-4 transition-transform ${
-                showCoupons ? 'rotate-180' : ''
-              }`}
+              className={`h-4 w-4 transition-transform ${showCoupons ? 'rotate-180' : ''
+                }`}
             />
           </button>
         </div>
 
         {/* Bill Summary */}
         <div className="mb-6 rounded-xl border border-border p-4">
-          <button 
+          <button
             onClick={() => setShowBillDetails(!showBillDetails)}
             className="mb-2 flex w-full items-center justify-between"
           >
@@ -104,12 +103,16 @@ export function CheckoutSidebar({ currentStep, deliveryCost = 0 }: CheckoutSideb
             <div className="text-2xl font-bold">{formatPrice(totalAmount)}</div>
           </button>
           <p className="text-xs text-muted-foreground">Price incl. of all taxes</p>
-          
+
           {showBillDetails && (
             <div className="mt-4 space-y-2 border-t border-border pt-4">
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Rental Amount</span>
-                <span className="font-medium">{formatPrice(subtotalAmount)}</span>
+                <span className="text-muted-foreground">Rental Cost (Base)</span>
+                <span className="font-medium">{formatPrice(subtotalAmount / 1.18)}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">GST (18%)</span>
+                <span className="font-medium">{formatPrice(subtotalAmount - (subtotalAmount / 1.18))}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Delivery Charges</span>
@@ -118,10 +121,6 @@ export function CheckoutSidebar({ currentStep, deliveryCost = 0 }: CheckoutSideb
                 ) : (
                   <span className="font-medium">{formatPrice(deliveryCost)}</span>
                 )}
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">GST (18%)</span>
-                <span className="font-medium">Included</span>
               </div>
               <div className="flex justify-between border-t border-border pt-2">
                 <span className="font-semibold">Total Amount</span>
