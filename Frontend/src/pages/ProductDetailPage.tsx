@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useRentalStore } from '@/stores/rentalStore';
 import { useWishlistStore } from '@/stores/wishlistStore';
+import { useAuthStore } from '@/stores/authStore';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { useEffect } from 'react';
@@ -28,8 +29,20 @@ export default function ProductDetailPage() {
 
   const inWishlist = product ? isInWishlist(product.id) : false;
 
+  const { isAuthenticated } = useAuthStore();
+
   const handleWishlistToggle = async () => {
     if (!product) return;
+
+    if (!isAuthenticated) {
+      toast.info('Please login to use wishlist', {
+        action: {
+          label: 'Login',
+          onClick: () => navigate('/login')
+        }
+      });
+      return;
+    }
 
     if (inWishlist) {
       await removeItem(product.id);
