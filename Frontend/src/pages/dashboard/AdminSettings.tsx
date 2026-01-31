@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { MainLayout } from '@/components/layout/MainLayout';
+import { AdminLayout } from '@/components/layout/AdminLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -132,7 +132,7 @@ export default function AdminSettings() {
   };
 
   return (
-    <MainLayout showFooter={false}>
+    <AdminLayout>
       <div className="container px-4 py-8 md:px-6 md:py-12 max-w-4xl mx-auto">
         {/* Header */}
         <motion.div
@@ -343,53 +343,8 @@ export default function AdminSettings() {
               </CardContent>
             </Card>
           </motion.div>
-
-          {/* Account Information */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-          >
-            <Card className="rounded-2xl">
-              <CardHeader>
-                <CardTitle>Account Information</CardTitle>
-                <CardDescription>
-                  View your account details
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div>
-                    <Label className="text-muted-foreground">User ID</Label>
-                    <p className="mt-1 font-medium">{user?.id}</p>
-                  </div>
-                  <div>
-                    <Label className="text-muted-foreground">Role</Label>
-                    <div className="mt-1 flex items-center gap-2">
-                      <Shield className="h-4 w-4 text-primary" />
-                      <span className="font-medium">
-                        {user?.roles?.[0]?.role?.name || 'ADMIN'}
-                      </span>
-                    </div>
-                  </div>
-                  <div>
-                    <Label className="text-muted-foreground">Member Since</Label>
-                    <p className="mt-1 font-medium">
-                      {user?.createdAt
-                        ? new Date(user.createdAt).toLocaleDateString('en-US', {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric',
-                          })
-                        : 'N/A'}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
         </div>
       </div>
-    </MainLayout>
+    </AdminLayout>
   );
 }

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { VendorLayout } from "@/components/layout/VendorLayout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -17,6 +18,28 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+=======
+```
+import { motion } 'framer-motion';
+import { Link } 'react-router-dom';
+import {
+  Package,
+  ShoppingCart,
+  FileText,
+  IndianRupee,
+  TrendingUp,
+  AlertTriangle,
+  Plus,
+  ArrowUpRight,
+  Settings
+} from 'lucide-react';
+import { MainLayout } from '@/components/layout/MainLayout';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { useAuthStore } from '@/stores/authStore';
+import { useRentalStore } from '@/stores/rentalStore';
+>>>>>>> 1d3deda463c98958ce34ccdd8ce71790ad9e5cd6
 import {
   Area,
   AreaChart,
@@ -49,6 +72,7 @@ export default function VendorDashboard() {
       }
     };
 
+<<<<<<< HEAD
     fetchDashboardData();
   }, []);
 
@@ -121,6 +145,50 @@ export default function VendorDashboard() {
       </VendorLayout>
     );
   }
+=======
+  const stats = [
+    {
+      title: 'Total Revenue',
+      value: `₹${ totalRevenue.toLocaleString() } `,
+      icon: IndianRupee,
+      textColor: 'text-emerald-700',
+      bgColor: 'bg-emerald-100',
+      iconColor: 'text-emerald-600',
+      subtitle: 'Total earnings',
+      change: '+12%',
+    },
+    {
+      title: 'Total Orders',
+      value: vendorOrders.length,
+      icon: ShoppingCart,
+      textColor: 'text-blue-700',
+      bgColor: 'bg-blue-100',
+      iconColor: 'text-blue-600',
+      subtitle: 'All orders',
+      change: '+8%',
+    },
+    {
+      title: 'Active Rentals',
+      value: activeRentals.length,
+      icon: Package,
+      textColor: 'text-purple-700',
+      bgColor: 'bg-purple-100',
+      iconColor: 'text-purple-600',
+      subtitle: 'Currently rented',
+      change: null,
+    },
+    {
+      title: 'Overdue Returns',
+      value: overdueReturns.length,
+      icon: AlertTriangle,
+      textColor: 'text-red-700',
+      bgColor: 'bg-red-100',
+      iconColor: 'text-red-600',
+      subtitle: 'Requires attention',
+      change: null,
+    },
+  ];
+>>>>>>> 1d3deda463c98958ce34ccdd8ce71790ad9e5cd6
 
   return (
     <VendorLayout>
@@ -162,6 +230,7 @@ export default function VendorDashboard() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
             >
+<<<<<<< HEAD
               <Card
                 className={`rounded-3xl border-0 shadow-sm ${stat.bgColor}`}
               >
@@ -170,19 +239,30 @@ export default function VendorDashboard() {
                     <p
                       className={`text-sm font-semibold uppercase tracking-wide ${stat.textColor}`}
                     >
+=======
+              <Card className={`rounded - 3xl border - 0 shadow - sm ${ stat.bgColor } `}>
+                <CardContent className="p-6">
+                  <div className="flex items-start justify-between mb-3">
+                    <p className={`text - sm font - semibold uppercase tracking - wide ${ stat.textColor } `}>
+>>>>>>> 1d3deda463c98958ce34ccdd8ce71790ad9e5cd6
                       {stat.title}
                     </p>
                     <div className="flex h-11 w-11 items-center justify-center rounded-full bg-white shadow-sm">
-                      <stat.icon className={`h-5 w-5 ${stat.iconColor}`} />
+                      <stat.icon className={`h - 5 w - 5 ${ stat.iconColor } `} />
                     </div>
                   </div>
                   <div className="space-y-0.5">
+<<<<<<< HEAD
                     <p className={`text-4xl font-bold ${stat.textColor}`}>
                       {stat.value}
                     </p>
                     <p className={`text-sm ${stat.textColor} opacity-70`}>
                       {stat.subtitle}
                     </p>
+=======
+                    <p className={`text - 4xl font - bold ${ stat.textColor } `}>{stat.value}</p>
+                    <p className={`text - sm ${ stat.textColor } opacity - 70`}>{stat.subtitle}</p>
+>>>>>>> 1d3deda463c98958ce34ccdd8ce71790ad9e5cd6
                   </div>
                 </CardContent>
               </Card>
@@ -242,10 +322,14 @@ export default function VendorDashboard() {
                           border: "1px solid hsl(var(--border))",
                           borderRadius: "12px",
                         }}
+<<<<<<< HEAD
                         formatter={(value: number) => [
                           `₹${value.toLocaleString()}`,
                           "Revenue",
                         ]}
+=======
+                        formatter={(value: number) => [`₹${ value.toLocaleString() } `, 'Revenue']}
+>>>>>>> 1d3deda463c98958ce34ccdd8ce71790ad9e5cd6
                       />
                       <Area
                         type="monotone"

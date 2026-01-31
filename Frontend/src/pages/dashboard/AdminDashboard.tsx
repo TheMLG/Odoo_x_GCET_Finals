@@ -1,20 +1,23 @@
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { 
-  Users, 
-  Package, 
-  ShoppingCart, 
-  DollarSign,
+import {
+  Users,
+  Package,
+  ShoppingCart,
+  ShoppingCart,
   TrendingUp,
   Settings,
   BarChart3,
-  ArrowUpRight
+  ArrowUpRight,
+  IndianRupee
 } from 'lucide-react';
-import { MainLayout } from '@/components/layout/MainLayout';
+import { AdminLayout } from '@/components/layout/AdminLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { useRentalStore } from '@/stores/rentalStore';
+import { useToast } from '@/hooks/use-toast';
+import api from '@/lib/api';
 import {
   BarChart,
   Bar,
@@ -45,24 +48,78 @@ const categoryData = [
   { name: 'Other', value: 5, color: 'hsl(215, 16%, 47%)' },
 ];
 
+interface DashboardStats {
+  totalUsers: number;
+  totalVendors: number;
+  totalProducts: number;
+  totalOrders: number;
+  recentOrders: any[];
+}
+
 export default function AdminDashboard() {
-  const { products, orders } = useRentalStore();
+  const { toast } = useToast();
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const totalRevenue = orders.reduce((sum, o) => sum + o.paidAmount, 0);
-  const activeProducts = products.filter((p) => p.isPublished).length;
-  const totalOrders = orders.length;
-  const activeRentals = orders.filter((o) => o.status === 'picked_up').length;
+  useEffect(() => {
+    fetchDashboardStats();
+  }, []);
 
-  const stats = [
+  const fetchDashboardStats = async () => {
+    setIsLoading(true);
+    try {
+      const response = await api.get('/admin/stats');
+      setStats(response.data.data);
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.response?.data?.message || 'Failed to fetch dashboard stats',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <AdminLayout>
+        <div className="container px-4 py-8 md:px-6 md:py-12">
+          <div className="text-center">Loading dashboard...</div>
+        </div>
+      </AdminLayout>
+    );
+  }
+
+  if (!stats) {
+    return (
+      <AdminLayout>
+        <div className="container px-4 py-8 md:px-6 md:py-12">
+          <div className="text-center text-red-500">Failed to load dashboard data</div>
+        </div>
+      </AdminLayout>
+    );
+  }
+
+  const totalRevenue = stats.recentOrders?.reduce((sum: number, o: any) => sum + (o.totalAmount || 0), 0) || 0;
+  const activeProducts = stats.totalProducts;
+  const totalOrders = stats.totalOrders;
+  const activeRentals = stats.recentOrders?.filter((o: any) => o.status === 'PICKED_UP').length || 0;
+
+  const statCards = [
     {
       title: 'Total Revenue',
-      value: `₹${totalRevenue.toLocaleString()}`,
-      icon: DollarSign,
+      value: (
+        <div className="flex items-center gap-1">
+          <IndianRupee className="h-7 w-7" />
+          {totalRevenue.toLocaleString()}
+        </div>
+      ),
+      icon: IndianRupee,
       textColor: 'text-emerald-700',
       bgColor: 'bg-emerald-100',
       iconColor: 'text-emerald-600',
       subtitle: 'Total earnings',
-      change: '+15%',
     },
     {
       title: 'Total Orders',
@@ -72,7 +129,6 @@ export default function AdminDashboard() {
       bgColor: 'bg-blue-100',
       iconColor: 'text-blue-600',
       subtitle: 'All time orders',
-      change: '+12%',
     },
     {
       title: 'Active Products',
@@ -82,7 +138,6 @@ export default function AdminDashboard() {
       bgColor: 'bg-purple-100',
       iconColor: 'text-purple-600',
       subtitle: 'Published products',
-      change: '+5',
     },
     {
       title: 'Active Rentals',
@@ -92,36 +147,27 @@ export default function AdminDashboard() {
       bgColor: 'bg-red-100',
       iconColor: 'text-red-600',
       subtitle: 'Currently rented',
-      change: null,
     },
   ];
 
   return (
-    <MainLayout showFooter={false}>
+    <AdminLayout>
       <div className="container px-4 py-8 md:px-6 md:py-12">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-center"
+          className="mb-8"
         >
-          <div>
-            <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-            <p className="text-muted-foreground">
-              System overview and management
-            </p>
-          </div>
-          <Button asChild variant="outline" className="rounded-xl">
-            <Link to="/admin/settings">
-              <Settings className="mr-2 h-4 w-4" />
-              Settings
-            </Link>
-          </Button>
+          <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+          <p className="text-muted-foreground">
+            System overview and management
+          </p>
         </motion.div>
 
         {/* Stats Grid */}
         <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {stats.map((stat, index) => (
+          {statCards.map((stat, index) => (
             <motion.div
               key={stat.title}
               initial={{ opacity: 0, y: 20 }}
@@ -295,6 +341,6 @@ export default function AdminDashboard() {
           </Card>
         </motion.div>
       </div>
-    </MainLayout>
+    </AdminLayout>
   );
 }
