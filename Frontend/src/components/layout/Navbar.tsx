@@ -1,35 +1,34 @@
-import { Link, useLocation } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import {
-  Package,
-  ShoppingCart,
-  User,
-  LogOut,
-  Menu,
-  X,
-  LayoutDashboard,
-  FileText,
-  Settings,
-  Search,
-  MapPin,
-  Heart
-} from 'lucide-react';
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { CartSheet } from "@/components/products/CartSheet";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { useAuthStore } from '@/stores/authStore';
-import { useCartStore } from '@/stores/cartStore';
-import { useRentalStore } from '@/stores/rentalStore';
-import { useWishlistStore } from '@/stores/wishlistStore';
-import { CartSheet } from '@/components/products/CartSheet';
-import { cn } from '@/lib/utils';
+} from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
+import { useAuthStore } from "@/stores/authStore";
+import { useCartStore } from "@/stores/cartStore";
+import { useRentalStore } from "@/stores/rentalStore";
+import { useWishlistStore } from "@/stores/wishlistStore";
+import { motion } from "framer-motion";
+import {
+  FileText,
+  Heart,
+  LayoutDashboard,
+  LogOut,
+  MapPin,
+  Menu,
+  Search,
+  Settings,
+  ShoppingCart,
+  User,
+  X,
+} from "lucide-react";
+import { useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 
 export function Navbar() {
   const location = useLocation();
@@ -41,33 +40,31 @@ export function Navbar() {
   const [isCartOpen, setIsCartOpen] = useState(false);
 
   const navLinks = [
-    { href: '/', label: 'Home' },
-    { href: '/products', label: 'Products' },
-    { href: '/about', label: 'About' },
-    { href: '/contact', label: 'Contact' },
+    { href: "/", label: "Home" },
+    { href: "/products", label: "Products" },
+    { href: "/about", label: "About" },
+    { href: "/contact", label: "Contact" },
   ];
 
   const userRole = getUserRole();
 
-  const dashboardLink = userRole === 'ADMIN'
-    ? '/admin/dashboard'
-    : userRole === 'VENDOR'
-      ? '/vendor/dashboard'
-      : '/dashboard';
+  const dashboardLink =
+    userRole === "ADMIN" ? "/admin/dashboard"
+    : userRole === "VENDOR" ? "/vendor/dashboard"
+    : "/dashboard";
 
-  const settingsLink = userRole === 'ADMIN'
-    ? '/admin/settings'
-    : userRole === 'VENDOR'
-      ? '/vendor/settings'
-      : '/settings';
+  const settingsLink =
+    userRole === "ADMIN" ? "/admin/settings"
+    : userRole === "VENDOR" ? "/vendor/settings"
+    : "/settings";
 
-  const ordersLink = userRole === 'ADMIN'
-    ? '/admin/orders'
-    : userRole === 'VENDOR'
-      ? '/vendor/orders'
-      : '/orders';
+  const ordersLink =
+    userRole === "ADMIN" ? "/admin/orders"
+    : userRole === "VENDOR" ? "/vendor/orders"
+    : "/orders";
 
-  const isCustomer = !isAuthenticated || (userRole !== 'ADMIN' && userRole !== 'VENDOR');
+  const isCustomer =
+    !isAuthenticated || (userRole !== "ADMIN" && userRole !== "VENDOR");
 
   return (
     <motion.header
@@ -79,27 +76,20 @@ export function Navbar() {
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2">
           <div className="flex h-10 items-center rounded-xl bg-blue-600 px-3">
-            <span className="text-lg font-bold text-white">Share<span className="text-yellow-300">Pal</span></span>
+            <span className="text-lg font-bold text-white">
+              Share<span className="text-yellow-300">Pal</span>
+            </span>
           </div>
         </Link>
 
         {/* Desktop Navigation */}
-<<<<<<< HEAD
         {isCustomer && (
           <div className="hidden flex-1 items-center gap-4 px-8 md:flex">
             {/* Location */}
             <button className="flex items-center gap-2 rounded-lg px-3 py-2 hover:bg-muted">
               <MapPin className="h-5 w-5" />
-              <span className="text-sm font-medium">Mumbai</span>
+              <span className="text-sm font-medium">{rentalLocation}</span>
             </button>
-=======
-        <div className="hidden flex-1 items-center gap-4 px-8 md:flex">
-          {/* Location */}
-          <button className="flex items-center gap-2 rounded-lg px-3 py-2 hover:bg-muted">
-            <MapPin className="h-5 w-5" />
-            <span className="text-sm font-medium">{rentalLocation}</span>
-          </button>
->>>>>>> 506d7df715d9587171652d6674bfb24aee8b41fc
 
             {/* Search Bar */}
             <div className="relative flex-1 max-w-md">
@@ -117,7 +107,11 @@ export function Navbar() {
         <div className="flex items-center gap-3">
           {/* Search Icon for Mobile */}
           {isCustomer && (
-            <Button variant="ghost" size="icon" className="rounded-xl md:hidden">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="rounded-xl md:hidden"
+            >
               <Search className="h-5 w-5" />
             </Button>
           )}
@@ -127,9 +121,7 @@ export function Navbar() {
             <Button variant="ghost" size="icon" className="rounded-xl">
               <Heart className="h-5 w-5" />
               {wishlistItems.length > 0 && (
-                <Badge 
-                  className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-pink-500 p-0 text-xs text-white"
-                >
+                <Badge className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-pink-500 p-0 text-xs text-white">
                   {wishlistItems.length}
                 </Badge>
               )}
@@ -147,9 +139,7 @@ export function Navbar() {
               >
                 <ShoppingCart className="h-5 w-5" />
                 {items.length > 0 && (
-                  <Badge
-                    className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 p-0 text-xs text-white"
-                  >
+                  <Badge className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 p-0 text-xs text-white">
                     {items.length}
                   </Badge>
                 )}
@@ -158,24 +148,31 @@ export function Navbar() {
           )}
 
           {/* User Menu */}
-          {isAuthenticated ? (
+          {isAuthenticated ?
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="flex items-center gap-2 rounded-full bg-gray-900 p-2 pr-4 text-white hover:bg-gray-800">
                   <User className="h-5 w-5" />
-                  <span className="hidden text-sm font-medium md:inline">Hi, {user?.firstName || 'User'}</span>
+                  <span className="hidden text-sm font-medium md:inline">
+                    Hi, {user?.firstName || "User"}
+                  </span>
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56 rounded-xl">
                 <div className="px-2 py-1.5">
-                  <p className="text-sm font-medium">{user?.firstName} {user?.lastName}</p>
+                  <p className="text-sm font-medium">
+                    {user?.firstName} {user?.lastName}
+                  </p>
                   <p className="text-xs text-muted-foreground">{user?.email}</p>
                 </div>
                 <DropdownMenuSeparator />
-                {userRole !== 'ADMIN' && (
+                {userRole !== "ADMIN" && (
                   <>
                     <DropdownMenuItem asChild>
-                      <Link to={dashboardLink} className="flex items-center gap-2">
+                      <Link
+                        to={dashboardLink}
+                        className="flex items-center gap-2"
+                      >
                         <LayoutDashboard className="h-4 w-4" />
                         Dashboard
                       </Link>
@@ -201,8 +198,7 @@ export function Navbar() {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-          ) : (
-            <div className="hidden items-center gap-2 md:flex">
+          : <div className="hidden items-center gap-2 md:flex">
               <Button variant="ghost" asChild className="rounded-xl">
                 <Link to="/login">Login</Link>
               </Button>
@@ -210,7 +206,7 @@ export function Navbar() {
                 <Link to="/signup/user">Sign Up</Link>
               </Button>
             </div>
-          )}
+          }
 
           {/* Mobile Menu Button */}
           <Button
@@ -219,7 +215,9 @@ export function Navbar() {
             className="rounded-xl md:hidden"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           >
-            {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            {isMobileMenuOpen ?
+              <X className="h-5 w-5" />
+            : <Menu className="h-5 w-5" />}
           </Button>
         </div>
       </div>
@@ -228,7 +226,7 @@ export function Navbar() {
       {isMobileMenuOpen && (
         <motion.div
           initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: 'auto' }}
+          animate={{ opacity: 1, height: "auto" }}
           exit={{ opacity: 0, height: 0 }}
           className="border-t border-border md:hidden"
         >
@@ -239,10 +237,10 @@ export function Navbar() {
                 to={link.href}
                 onClick={() => setIsMobileMenuOpen(false)}
                 className={cn(
-                  'rounded-xl px-4 py-2 text-sm font-medium transition-colors',
-                  location.pathname === link.href
-                    ? 'bg-primary text-primary-foreground'
-                    : 'hover:bg-muted'
+                  "rounded-xl px-4 py-2 text-sm font-medium transition-colors",
+                  location.pathname === link.href ?
+                    "bg-primary text-primary-foreground"
+                  : "hover:bg-muted",
                 )}
               >
                 {link.label}

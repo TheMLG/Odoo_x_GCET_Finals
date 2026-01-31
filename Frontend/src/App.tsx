@@ -1,13 +1,12 @@
+import { ScrollToTop } from "@/components/common/ScrollToTop";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuthStore } from "@/stores/authStore";
-import { ScrollToTop } from "@/components/common/ScrollToTop";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
 // Pages
-import WishlistPage from "./pages/WishlistPage";
 import LoginPage from "./pages/auth/LoginPage";
 import SignupPage from "./pages/auth/SignupPage";
 import UserSignupPage from "./pages/auth/UserSignupPage";
@@ -30,15 +29,18 @@ import OrdersPage from "./pages/OrdersPage";
 import ProductDetailPage from "./pages/ProductDetailPage";
 import ProductsPage from "./pages/ProductsPage";
 
+// Admin Pages Imports
+import ManageOrders from "./pages/dashboard/ManageOrders";
+import ManageProducts from "./pages/dashboard/ManageProducts";
+import ManageUsers from "./pages/dashboard/ManageUsers";
+import ManageVendors from "./pages/dashboard/ManageVendors";
+import ReportsAnalytics from "./pages/dashboard/ReportsAnalytics";
+
 const queryClient = new QueryClient();
 
 // Protected Route Component
 function ProtectedRoute({
   children,
-  allowedRoles
-}: {
-  children: React.ReactNode;
-  allowedRoles?: ('ADMIN' | 'VENDOR' | 'CUSTOMER')[];
   allowedRoles,
 }: {
   children: React.ReactNode;
@@ -86,7 +88,6 @@ function DashboardRouter() {
   const { getUserRole } = useAuthStore();
   const role = getUserRole();
 
-  if (role === 'ADMIN') {
   if (role === "ADMIN") {
     return <Navigate to="/admin/dashboard" replace />;
   }
@@ -192,7 +193,6 @@ const App = () => (
             }
           />
           <Route
-            path="/vendor/settings"
             path="/vendor/orders"
             element={
               <ProtectedRoute allowedRoles={["VENDOR", "ADMIN"]}>
@@ -234,9 +234,6 @@ const App = () => (
           />
           <Route
             path="/vendor"
-            element={
-              <Navigate to="/vendor/dashboard" replace />
-            }
             element={<Navigate to="/vendor/dashboard" replace />}
           />
           <Route
@@ -260,7 +257,7 @@ const App = () => (
           <Route
             path="/admin/users"
             element={
-              <ProtectedRoute allowedRoles={['ADMIN']}>
+              <ProtectedRoute allowedRoles={["ADMIN"]}>
                 <ManageUsers />
               </ProtectedRoute>
             }
@@ -268,7 +265,7 @@ const App = () => (
           <Route
             path="/admin/vendors"
             element={
-              <ProtectedRoute allowedRoles={['ADMIN']}>
+              <ProtectedRoute allowedRoles={["ADMIN"]}>
                 <ManageVendors />
               </ProtectedRoute>
             }
@@ -276,7 +273,7 @@ const App = () => (
           <Route
             path="/admin/products"
             element={
-              <ProtectedRoute allowedRoles={['ADMIN']}>
+              <ProtectedRoute allowedRoles={["ADMIN"]}>
                 <ManageProducts />
               </ProtectedRoute>
             }
@@ -284,7 +281,7 @@ const App = () => (
           <Route
             path="/admin/orders"
             element={
-              <ProtectedRoute allowedRoles={['ADMIN']}>
+              <ProtectedRoute allowedRoles={["ADMIN"]}>
                 <ManageOrders />
               </ProtectedRoute>
             }
@@ -292,15 +289,12 @@ const App = () => (
           <Route
             path="/admin/reports"
             element={
-              <ProtectedRoute allowedRoles={['ADMIN']}>
+              <ProtectedRoute allowedRoles={["ADMIN"]}>
                 <ReportsAnalytics />
               </ProtectedRoute>
             }
           />
           <Route
-            path="/admin/settings"
-            element={
-              <ProtectedRoute allowedRoles={['ADMIN']}>
             path="/admin/settings"
             element={
               <ProtectedRoute allowedRoles={["ADMIN"]}>
@@ -310,9 +304,6 @@ const App = () => (
           />
           <Route
             path="/admin"
-            element={
-              <Navigate to="/admin/dashboard" replace />
-            }
             element={<Navigate to="/admin/dashboard" replace />}
           />
           <Route

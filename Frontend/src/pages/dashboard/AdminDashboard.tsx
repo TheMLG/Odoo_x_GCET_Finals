@@ -1,6 +1,12 @@
 import { AdminLayout } from "@/components/layout/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  ChartConfig,
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
 import { useToast } from "@/hooks/use-toast";
 import api from "@/lib/api";
 import { motion } from "framer-motion";
@@ -10,25 +16,10 @@ import {
   IndianRupee,
   Package,
   ShoppingCart,
-<<<<<<< HEAD
-  TrendingUp,
-  Settings,
-  BarChart3,
-  ArrowUpRight,
-  IndianRupee
-} from 'lucide-react';
-import { AdminLayout } from '@/components/layout/AdminLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { useToast } from '@/hooks/use-toast';
-import api from '@/lib/api';
-=======
   Users,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
->>>>>>> 506d7df715d9587171652d6674bfb24aee8b41fc
 import {
   Bar,
   BarChart,
@@ -36,26 +27,9 @@ import {
   Cell,
   Pie,
   PieChart,
-  ResponsiveContainer,
-  Tooltip,
   XAxis,
   YAxis,
-<<<<<<< HEAD
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-} from 'recharts';
-import {
-  ChartConfig,
-  ChartContainer,
-  ChartLegend,
-  ChartLegendContent,
-  ChartTooltip,
-  ChartTooltipContent,
-} from '@/components/ui/chart';
+} from "recharts";
 
 const chartConfig = {
   orders: {
@@ -63,9 +37,6 @@ const chartConfig = {
     color: "hsl(221, 83%, 53%)",
   },
 } satisfies ChartConfig;
-=======
-} from "recharts";
->>>>>>> 506d7df715d9587171652d6674bfb24aee8b41fc
 
 const ordersByMonth = [
   { month: "Jan", orders: 45 },
@@ -234,17 +205,12 @@ export default function AdminDashboard() {
                     </div>
                   </div>
                   <div className="space-y-0.5">
-<<<<<<< HEAD
-                    <div className={`text-4xl font-bold ${stat.textColor}`}>{stat.value}</div>
-                    <p className={`text-sm ${stat.textColor} opacity-70`}>{stat.subtitle}</p>
-=======
-                    <p className={`text-4xl font-bold ${stat.textColor}`}>
+                    <div className={`text-4xl font-bold ${stat.textColor}`}>
                       {stat.value}
-                    </p>
+                    </div>
                     <p className={`text-sm ${stat.textColor} opacity-70`}>
                       {stat.subtitle}
                     </p>
->>>>>>> 506d7df715d9587171652d6674bfb24aee8b41fc
                   </div>
                 </CardContent>
               </Card>
@@ -273,10 +239,16 @@ export default function AdminDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="h-[300px]">
-<<<<<<< HEAD
-                  <ChartContainer config={chartConfig} className="h-full w-full">
+                  <ChartContainer
+                    config={chartConfig}
+                    className="h-full w-full"
+                  >
                     <BarChart data={ordersByMonth} barGap={8}>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                      <CartesianGrid
+                        strokeDasharray="3 3"
+                        vertical={false}
+                        stroke="hsl(var(--border))"
+                      />
                       <XAxis
                         dataKey="month"
                         stroke="hsl(var(--muted-foreground))"
@@ -292,26 +264,7 @@ export default function AdminDashboard() {
                       />
                       <ChartTooltip
                         content={<ChartTooltipContent />}
-                        cursor={{ fill: 'hsl(var(--muted) / 0.4)' }}
-=======
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={ordersByMonth}>
-                      <CartesianGrid
-                        strokeDasharray="3 3"
-                        stroke="hsl(var(--border))"
-                      />
-                      <XAxis
-                        dataKey="month"
-                        stroke="hsl(var(--muted-foreground))"
-                      />
-                      <YAxis stroke="hsl(var(--muted-foreground))" />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: "hsl(var(--card))",
-                          border: "1px solid hsl(var(--border))",
-                          borderRadius: "12px",
-                        }}
->>>>>>> 506d7df715d9587171652d6674bfb24aee8b41fc
+                        cursor={{ fill: "hsl(var(--muted) / 0.4)" }}
                       />
                       <Bar
                         dataKey="orders"
@@ -338,7 +291,10 @@ export default function AdminDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="h-[200px]">
-                  <ChartContainer config={chartConfig} className="h-full w-full">
+                  <ChartContainer
+                    config={chartConfig}
+                    className="h-full w-full"
+                  >
                     <PieChart>
                       <Pie
                         data={categoryData}
@@ -355,17 +311,8 @@ export default function AdminDashboard() {
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
                       </Pie>
-<<<<<<< HEAD
                       <ChartTooltip
                         content={<ChartTooltipContent hideLabel />}
-=======
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: "hsl(var(--card))",
-                          border: "1px solid hsl(var(--border))",
-                          borderRadius: "12px",
-                        }}
->>>>>>> 506d7df715d9587171652d6674bfb24aee8b41fc
                       />
                     </PieChart>
                   </ChartContainer>

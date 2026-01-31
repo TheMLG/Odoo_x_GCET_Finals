@@ -1,61 +1,45 @@
-import { useState, useMemo, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { MainLayout } from '@/components/layout/MainLayout';
-import { ProductCard } from '@/components/products/ProductCard';
-import { ProductFilters } from '@/components/products/ProductFilters';
-<<<<<<< HEAD
-import api from '@/lib/api';
-import { Product } from '@/types/rental';
+import { MainLayout } from "@/components/layout/MainLayout";
+import { ProductCard } from "@/components/products/ProductCard";
+import { ProductFilters } from "@/components/products/ProductFilters";
+import api from "@/lib/api";
+import { Product } from "@/types/rental";
+import { motion } from "framer-motion";
+import { Loader2 } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-=======
-import { useRentalStore } from '@/stores/rentalStore';
-import { Loader2 } from 'lucide-react';
-import { toast } from 'sonner';
-
-export default function ProductsPage() {
-  const { products, isLoadingProducts, productsError, fetchProducts } = useRentalStore();
->>>>>>> 506d7df715d9587171652d6674bfb24aee8b41fc
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [sortBy, setSortBy] = useState('featured');
+  const [sortBy, setSortBy] = useState("featured");
 
-<<<<<<< HEAD
   useEffect(() => {
     const fetchProducts = async () => {
       setIsLoading(true);
       try {
-        const response = await api.get('/products');
+        const response = await api.get("/products");
         // Map backend response to Product type
         const mappedProducts = response.data.data.map((p: any) => ({
           id: p.id,
           name: p.name,
           description: p.description,
-          category: p.vendor?.product_category || 'Uncategorized',
-          images: p.images || [], // Ensure backend sends images, otherwise default empty?? Backend Product model doesn't have images field?
-          // Backend Product model has NO images field in schema.prisma! 
-          // Wait, schema.prisma Step 28 showed no images field for Product.
-          // Yet Mock data likely has images. 
-          // If backend doesn't have images, I should probably provide a placeholder or check if I missed separate Images table.
-          // Checking Schema Step 28: Product has id, vendorId, name, description, isPublished, createdAt.
-          // NO IMAGES.
-          // I should add a placeholder image for now or use a random one.
-          isRentable: true, // Assuming all fetched are rentals
+          category: p.vendor?.product_category || "Uncategorized",
+          images: p.images || [],
+          isRentable: true,
           isPublished: p.isPublished,
-          costPrice: 0, // Not exposed publicly
-          pricePerHour: 0, // Not in basic pricing transformation currently? 
+          costPrice: 0,
+          pricePerHour: 0,
           pricePerDay: p.pricing?.pricePerDay || 0,
           pricePerWeek: p.pricing?.pricePerWeek || 0,
           quantityOnHand: p.inventory?.quantityOnHand || 0,
           vendorId: p.vendorId,
           attributes: p.attributes || {},
-          createdAt: p.createdAt
+          createdAt: p.createdAt,
         }));
         setProducts(mappedProducts);
       } catch (error) {
-        console.error('Failed to fetch products:', error);
+        console.error("Failed to fetch products:", error);
       } finally {
         setIsLoading(false);
       }
@@ -63,21 +47,6 @@ export default function ProductsPage() {
 
     fetchProducts();
   }, []);
-=======
-  // Fetch products on mount
-  useEffect(() => {
-    fetchProducts();
-  }, [fetchProducts]);
-
-  // Show error toast if fetching fails
-  useEffect(() => {
-    if (productsError) {
-      toast.error('Failed to load products', {
-        description: productsError,
-      });
-    }
-  }, [productsError]);
->>>>>>> 506d7df715d9587171652d6674bfb24aee8b41fc
 
   const filteredProducts = useMemo(() => {
     let result = products.filter((p) => p.isPublished);
@@ -89,7 +58,7 @@ export default function ProductsPage() {
         (p) =>
           p.name.toLowerCase().includes(query) ||
           p.description.toLowerCase().includes(query) ||
-          p.category.toLowerCase().includes(query)
+          p.category.toLowerCase().includes(query),
       );
     }
 
@@ -100,18 +69,19 @@ export default function ProductsPage() {
 
     // Sort
     switch (sortBy) {
-      case 'price-low':
+      case "price-low":
         result = [...result].sort((a, b) => a.pricePerDay - b.pricePerDay);
         break;
-      case 'price-high':
+      case "price-high":
         result = [...result].sort((a, b) => b.pricePerDay - a.pricePerDay);
         break;
-      case 'name':
+      case "name":
         result = [...result].sort((a, b) => a.name.localeCompare(b.name));
         break;
-      case 'newest':
+      case "newest":
         result = [...result].sort(
-          (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          (a, b) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
         );
         break;
       default:
@@ -131,9 +101,12 @@ export default function ProductsPage() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
-          <h1 className="mb-2 text-3xl font-bold md:text-4xl">Rental Products</h1>
+          <h1 className="mb-2 text-3xl font-bold md:text-4xl">
+            Rental Products
+          </h1>
           <p className="text-muted-foreground">
-            Browse our extensive collection of professional equipment available for rent
+            Browse our extensive collection of professional equipment available
+            for rent
           </p>
         </motion.div>
 
@@ -161,26 +134,31 @@ export default function ProductsPage() {
           transition={{ delay: 0.2 }}
           className="mb-6 text-sm text-muted-foreground"
         >
-          Showing {filteredProducts.length} product{filteredProducts.length !== 1 ? 's' : ''}
+          Showing {filteredProducts.length} product
+          {filteredProducts.length !== 1 ? "s" : ""}
         </motion.p>
 
         {/* Loading state */}
-        {isLoadingProducts ? (
+        {isLoading ?
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            <span className="ml-3 text-muted-foreground">Loading products...</span>
+            <span className="ml-3 text-muted-foreground">
+              Loading products...
+            </span>
           </div>
-        ) : (
-          <>
+        : <>
             {/* Products Grid */}
-            {filteredProducts.length > 0 ? (
+            {filteredProducts.length > 0 ?
               <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {filteredProducts.map((product, index) => (
-                  <ProductCard key={product.id} product={product} index={index} />
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                    index={index}
+                  />
                 ))}
               </div>
-            ) : (
-              <motion.div
+            : <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="flex flex-col items-center justify-center py-20 text-center"
@@ -188,14 +166,16 @@ export default function ProductsPage() {
                 <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-muted">
                   <span className="text-2xl">🔍</span>
                 </div>
-                <h3 className="mb-2 text-lg font-semibold">No products found</h3>
+                <h3 className="mb-2 text-lg font-semibold">
+                  No products found
+                </h3>
                 <p className="text-muted-foreground">
                   Try adjusting your search or filter criteria
                 </p>
               </motion.div>
-            )}
+            }
           </>
-        )}
+        }
       </div>
     </MainLayout>
   );
