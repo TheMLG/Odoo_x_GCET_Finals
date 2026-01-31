@@ -33,30 +33,17 @@ import NotFound from "./pages/NotFound";
 import OrdersPage from "./pages/OrdersPage";
 import ProductDetailPage from "./pages/ProductDetailPage";
 import ProductsPage from "./pages/ProductsPage";
-
-// Admin Pages Imports
-import ManageOrders from "./pages/dashboard/ManageOrders";
-import ManageProducts from "./pages/dashboard/ManageProducts";
-import ManageUsers from "./pages/dashboard/ManageUsers";
-import ManageVendors from "./pages/dashboard/ManageVendors";
-import ReportsAnalytics from "./pages/dashboard/ReportsAnalytics";
+import WishlistPage from "./pages/WishlistPage";
 
 const queryClient = new QueryClient();
 
 // Protected Route Component
 function ProtectedRoute({
   children,
-<<<<<<< HEAD
   allowedRoles,
 }: {
   children: React.ReactNode;
   allowedRoles?: ("ADMIN" | "VENDOR" | "CUSTOMER")[];
-=======
-  allowedRoles
-}: {
-  children: React.ReactNode;
-  allowedRoles?: ('ADMIN' | 'VENDOR' | 'CUSTOMER')[];
->>>>>>> 4968aec0092750d53f950ed54ee59be6aeadc6d8
 }) {
   const { isAuthenticated, getUserRole } = useAuthStore();
 
@@ -76,8 +63,8 @@ function ProtectedRoute({
     // Redirect to appropriate dashboard based on role
     const redirectPath =
       userRole === "ADMIN" ? "/admin/dashboard"
-        : userRole === "VENDOR" ? "/vendor/dashboard"
-          : "/dashboard";
+      : userRole === "VENDOR" ? "/vendor/dashboard"
+      : "/dashboard";
     return <Navigate to={redirectPath} replace />;
   }
 
@@ -100,11 +87,7 @@ function DashboardRouter() {
   const { getUserRole } = useAuthStore();
   const role = getUserRole();
 
-<<<<<<< HEAD
   if (role === "ADMIN") {
-=======
-  if (role === 'ADMIN') {
->>>>>>> 4968aec0092750d53f950ed54ee59be6aeadc6d8
     return <Navigate to="/admin/dashboard" replace />;
   }
   if (role === "VENDOR") {

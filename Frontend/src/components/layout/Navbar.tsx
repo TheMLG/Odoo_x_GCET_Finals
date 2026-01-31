@@ -121,13 +121,7 @@ export function Navbar() {
             <Button variant="ghost" size="icon" className="rounded-xl">
               <Heart className="h-5 w-5" />
               {wishlistItems.length > 0 && (
-<<<<<<< HEAD
                 <Badge className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-pink-500 p-0 text-xs text-white">
-=======
-                <Badge
-                  className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-pink-500 p-0 text-xs text-white"
-                >
->>>>>>> 4968aec0092750d53f950ed54ee59be6aeadc6d8
                   {wishlistItems.length}
                 </Badge>
               )}
