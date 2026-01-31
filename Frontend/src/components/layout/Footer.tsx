@@ -1,5 +1,5 @@
-import { Link } from 'react-router-dom';
-import { Package, Mail, Phone, MapPin } from 'lucide-react';
+import { Link } from "react-router-dom";
+import { Package, Mail, Phone, MapPin } from "lucide-react";
 
 export function Footer() {
   return (
@@ -15,32 +15,46 @@ export function Footer() {
               <span className="text-xl font-bold">RentalPro</span>
             </Link>
             <p className="text-sm text-muted-foreground">
-              Professional equipment rental platform for businesses. Rent cameras, drones, 
-              computers, and more with flexible pricing.
+              Professional equipment rental platform for businesses. Rent
+              cameras, drones, computers, and more with flexible pricing.
             </p>
           </div>
 
           {/* Quick Links */}
           <div className="space-y-4">
-            <h3 className="text-sm font-semibold uppercase tracking-wider">Quick Links</h3>
+            <h3 className="text-sm font-semibold uppercase tracking-wider">
+              Quick Links
+            </h3>
             <ul className="space-y-2">
               <li>
-                <Link to="/products" className="text-sm text-muted-foreground hover:text-primary">
+                <Link
+                  to="/products"
+                  className="text-sm text-muted-foreground hover:text-primary"
+                >
                   Browse Products
                 </Link>
               </li>
               <li>
-                <Link to="/about" className="text-sm text-muted-foreground hover:text-primary">
+                <Link
+                  to="/about"
+                  className="text-sm text-muted-foreground hover:text-primary"
+                >
                   About Us
                 </Link>
               </li>
               <li>
-                <Link to="/contact" className="text-sm text-muted-foreground hover:text-primary">
+                <Link
+                  to="/contact"
+                  className="text-sm text-muted-foreground hover:text-primary"
+                >
                   Contact
                 </Link>
               </li>
               <li>
-                <Link to="/faq" className="text-sm text-muted-foreground hover:text-primary">
+                <Link
+                  to="/faq"
+                  className="text-sm text-muted-foreground hover:text-primary"
+                >
                   FAQ
                 </Link>
               </li>
@@ -49,20 +63,31 @@ export function Footer() {
 
           {/* Legal */}
           <div className="space-y-4">
-            <h3 className="text-sm font-semibold uppercase tracking-wider">Legal</h3>
+            <h3 className="text-sm font-semibold uppercase tracking-wider">
+              Legal
+            </h3>
             <ul className="space-y-2">
               <li>
-                <Link to="/terms" className="text-sm text-muted-foreground hover:text-primary">
+                <Link
+                  to="/terms"
+                  className="text-sm text-muted-foreground hover:text-primary"
+                >
                   Terms of Service
                 </Link>
               </li>
               <li>
-                <Link to="/privacy" className="text-sm text-muted-foreground hover:text-primary">
+                <Link
+                  to="/privacy"
+                  className="text-sm text-muted-foreground hover:text-primary"
+                >
                   Privacy Policy
                 </Link>
               </li>
               <li>
-                <Link to="/refund" className="text-sm text-muted-foreground hover:text-primary">
+                <Link
+                  to="/refund"
+                  className="text-sm text-muted-foreground hover:text-primary"
+                >
                   Refund Policy
                 </Link>
               </li>
@@ -71,11 +96,13 @@ export function Footer() {
 
           {/* Contact */}
           <div className="space-y-4">
-            <h3 className="text-sm font-semibold uppercase tracking-wider">Contact Us</h3>
+            <h3 className="text-sm font-semibold uppercase tracking-wider">
+              Contact Us
+            </h3>
             <ul className="space-y-3">
               <li className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Mail className="h-4 w-4" />
-                support@rentalpro.com
+                support@rentalx.com
               </li>
               <li className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Phone className="h-4 w-4" />
@@ -83,7 +110,7 @@ export function Footer() {
               </li>
               <li className="flex items-start gap-2 text-sm text-muted-foreground">
                 <MapPin className="h-4 w-4 mt-0.5" />
-                <span>123 Business Park, Sector 5, Mumbai, India - 400001</span>
+                <span>Ahemdabad, Gujarat, India</span>
               </li>
             </ul>
           </div>
