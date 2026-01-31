@@ -11,7 +11,7 @@ generator client {
 
 
 datasource db {
-  provider = "sqlserver"
+  provider = "postgresql"
 }
 
 // SQL Server doesn't support enums, using String with validated values in application layer
@@ -58,6 +58,7 @@ model Vendor {
   userId      String   @unique
   companyName String
   gstNo       String
+  product_category String
   createdAt  DateTime @default(now())
 
   user     User      @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
-import { Calendar as CalendarIcon, Clock, Minus, Plus, ShoppingCart } from 'lucide-react';
+import { Calendar as CalendarIcon, Clock, Minus, Plus, ShoppingCart, TrendingUp, Shield, Heart, ChevronRight, Tag, Zap, CheckCircle2 } from 'lucide-react';
 import { Product, RentalDuration } from '@/types/rental';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/popover';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Badge } from '@/components/ui/badge';
 import { useCartStore } from '@/stores/cartStore';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -77,130 +78,212 @@ export function RentalConfigurator({ product }: RentalConfiguratorProps) {
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.4 }}
-      className="space-y-6 rounded-2xl border border-border bg-card p-6"
+      className="space-y-6"
     >
-      <div>
-        <h2 className="text-2xl font-bold">{product.name}</h2>
-        <p className="mt-1 text-muted-foreground">{product.category}</p>
-      </div>
-
-      {/* Duration Selection */}
-      <div className="space-y-3">
-        <Label className="text-sm font-medium">Rental Duration</Label>
-        <RadioGroup
-          value={duration}
-          onValueChange={(value) => setDuration(value as RentalDuration)}
-          className="grid grid-cols-3 gap-3"
-        >
-          {durationOptions.map((option) => (
-            <Label
-              key={option.value}
-              htmlFor={option.value}
-              className={cn(
-                'flex cursor-pointer flex-col items-center gap-2 rounded-xl border-2 p-4 transition-all',
-                duration === option.value
-                  ? 'border-primary bg-primary/5'
-                  : 'border-border hover:border-primary/50'
-              )}
-            >
-              <RadioGroupItem value={option.value} id={option.value} className="sr-only" />
-              <option.icon className={cn(
-                'h-5 w-5',
-                duration === option.value ? 'text-primary' : 'text-muted-foreground'
-              )} />
-              <span className="text-sm font-medium">{option.label}</span>
-              <span className={cn(
-                'text-lg font-bold',
-                duration === option.value ? 'text-primary' : ''
-              )}>
-                {formatPrice(option.price)}
-              </span>
-            </Label>
-          ))}
-        </RadioGroup>
-      </div>
-
-      {/* Start Date */}
-      <div className="space-y-3">
-        <Label className="text-sm font-medium">Start Date</Label>
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              className={cn(
-                'w-full justify-start rounded-xl text-left font-normal',
-                !startDate && 'text-muted-foreground'
-              )}
-            >
-              <CalendarIcon className="mr-2 h-4 w-4" />
-              {startDate ? format(startDate, 'PPP') : 'Select start date'}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
-            <Calendar
-              mode="single"
-              selected={startDate}
-              onSelect={setStartDate}
-              disabled={(date) => date < new Date()}
-              initialFocus
-              className="pointer-events-auto"
-            />
-          </PopoverContent>
-        </Popover>
-      </div>
-
-      {/* Quantity */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <Label className="text-sm font-medium">Quantity</Label>
-          <span className="text-sm text-muted-foreground">
-            {product.quantityOnHand} available
-          </span>
+      {/* Product Header */}
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">{product.name}</h1>
+          <p className="mt-2 text-muted-foreground">{product.description}</p>
+          <div className="mt-3 flex items-center gap-2 text-sm text-emerald-600">
+            <TrendingUp className="h-4 w-4" />
+            <span className="font-medium">210 booked this month</span>
+          </div>
         </div>
-        <div className="flex items-center gap-3">
-          <Button
-            variant="outline"
-            size="icon"
-            className="rounded-xl"
-            onClick={() => setQuantity(Math.max(1, quantity - 1))}
-            disabled={quantity <= 1}
-          >
-            <Minus className="h-4 w-4" />
-          </Button>
-          <span className="w-12 text-center text-lg font-semibold">{quantity}</span>
-          <Button
-            variant="outline"
-            size="icon"
-            className="rounded-xl"
-            onClick={() => setQuantity(Math.min(product.quantityOnHand, quantity + 1))}
-            disabled={quantity >= product.quantityOnHand}
-          >
-            <Plus className="h-4 w-4" />
-          </Button>
-        </div>
+        <button className="flex h-10 w-10 items-center justify-center rounded-full border border-border hover:bg-muted">
+          <Heart className="h-5 w-5" />
+        </button>
       </div>
 
-      {/* Total */}
-      <div className="rounded-xl bg-muted/50 p-4">
-        <div className="flex items-center justify-between">
-          <span className="text-muted-foreground">Total</span>
-          <span className="text-2xl font-bold text-primary">{formatPrice(totalPrice)}</span>
+      {/* Rental Duration & Price */}
+      <div className="space-y-3">
+        <div className="text-sm text-muted-foreground">Rent for {duration === 'daily' ? '2 days' : duration === 'weekly' ? '1 week' : '4 hours'}</div>
+        <div className="text-4xl font-bold">{formatPrice(totalPrice)}</div>
+        <div className="flex items-center gap-1.5 text-sm text-pink-600 font-medium">
+          <Tag className="h-4 w-4" />
+          Additional day at ₹108 only
         </div>
-        <p className="mt-1 text-xs text-muted-foreground">
-          + GST applicable at checkout
-        </p>
+        <div className="text-xs text-muted-foreground">Price incl. of all taxes</div>
       </div>
 
-      {/* Add to Cart */}
+      {/* Add to Cart Button */}
       <Button
         size="lg"
-        className="w-full rounded-xl"
+        className="w-full rounded-xl bg-blue-600 hover:bg-blue-700"
         onClick={handleAddToCart}
         disabled={!startDate || quantity > product.quantityOnHand}
       >
         <ShoppingCart className="mr-2 h-5 w-5" />
         Add to Cart
       </Button>
+
+      {/* Available Offers */}
+      <div className="rounded-xl border border-border p-4">
+        <div className="mb-3 flex items-center justify-between">
+          <h3 className="font-semibold">Available Offers (3 Offers)</h3>
+          <ChevronRight className="h-5 w-5" />
+        </div>
+        <div className="space-y-3">
+          <div className="flex gap-3">
+            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-emerald-100">
+              <Tag className="h-5 w-5 text-emerald-600" />
+            </div>
+            <div className="flex-1">
+              <div className="font-medium">SHAREPAL</div>
+              <div className="text-sm text-muted-foreground">
+                Use code SHAREPAL & get 10% off on orders above ₹1500. Maximum discount: ₹300
+              </div>
+            </div>
+          </div>
+          <div className="flex gap-3">
+            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-blue-100">
+              <Tag className="h-5 w-5 text-blue-600" />
+            </div>
+            <div className="flex-1">
+              <div className="font-medium">EARLYE</div>
+              <div className="text-sm text-muted-foreground">
+                Use code EARLYE & get 15% off on orders above ₹2000
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* SharePal Zero Policy */}
+      <div className="rounded-2xl bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 p-6 shadow-sm border border-purple-100">
+        <div className="mb-4 flex items-center gap-2">
+          <div className="flex h-8 items-center rounded-lg bg-gradient-to-r from-purple-600 to-blue-600 px-3 text-xs font-bold text-white shadow-md">
+            SharePal
+          </div>
+          <span className="font-bold text-purple-900">ZERO Policy</span>
+        </div>
+        <div className="mb-3 flex items-center gap-2">
+          <CheckCircle2 className="h-5 w-5 text-purple-600" />
+          <span className="font-semibold text-purple-900">Transparent prices</span>
+        </div>
+        <div className="mb-3 text-sm text-purple-700">Zero Surprises</div>
+        <div className="space-y-2">
+          <div className="flex items-center gap-2 text-sm">
+            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-purple-100">
+              <CheckCircle2 className="h-4 w-4 text-purple-600" />
+            </div>
+            <span className="text-purple-900">Zero Security Deposit</span>
+          </div>
+          <div className="flex items-center gap-2 text-sm">
+            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-purple-100">
+              <CheckCircle2 className="h-4 w-4 text-purple-600" />
+            </div>
+            <span className="text-purple-900">Zero Delivery Charges</span>
+          </div>
+          <div className="flex items-center gap-2 text-sm">
+            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-purple-100">
+              <CheckCircle2 className="h-4 w-4 text-purple-600" />
+            </div>
+            <span className="text-purple-900">Zero Hidden Charges</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Duration Selection - Collapsed for simplicity */}
+      <details className="rounded-xl border border-border p-4">
+        <summary className="cursor-pointer font-semibold">Rental Options</summary>
+        <div className="mt-4 space-y-4">
+          <div className="space-y-3">
+            <Label className="text-sm font-medium">Rental Duration</Label>
+            <RadioGroup
+              value={duration}
+              onValueChange={(value) => setDuration(value as RentalDuration)}
+              className="grid grid-cols-3 gap-3"
+            >
+              {durationOptions.map((option) => (
+                <Label
+                  key={option.value}
+                  htmlFor={option.value}
+                  className={cn(
+                    'flex cursor-pointer flex-col items-center gap-2 rounded-xl border-2 p-4 transition-all',
+                    duration === option.value
+                      ? 'border-primary bg-primary/5'
+                      : 'border-border hover:border-primary/50'
+                  )}
+                >
+                  <RadioGroupItem value={option.value} id={option.value} className="sr-only" />
+                  <option.icon className={cn(
+                    'h-5 w-5',
+                    duration === option.value ? 'text-primary' : 'text-muted-foreground'
+                  )} />
+                  <span className="text-sm font-medium">{option.label}</span>
+                  <span className={cn(
+                    'text-lg font-bold',
+                    duration === option.value ? 'text-primary' : ''
+                  )}>
+                    {formatPrice(option.price)}
+                  </span>
+                </Label>
+              ))}
+            </RadioGroup>
+          </div>
+
+          {/* Start Date */}
+          <div className="space-y-3">
+            <Label className="text-sm font-medium">Start Date</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    'w-full justify-start rounded-xl text-left font-normal',
+                    !startDate && 'text-muted-foreground'
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {startDate ? format(startDate, 'PPP') : 'Select start date'}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={startDate}
+                  onSelect={setStartDate}
+                  disabled={(date) => date < new Date()}
+                  initialFocus
+                  className="pointer-events-auto"
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          {/* Quantity */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <Label className="text-sm font-medium">Quantity</Label>
+              <span className="text-sm text-muted-foreground">
+                {product.quantityOnHand} available
+              </span>
+            </div>
+            <div className="flex items-center gap-3">
+              <Button
+                variant="outline"
+                size="icon"
+                className="rounded-xl"
+                onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                disabled={quantity <= 1}
+              >
+                <Minus className="h-4 w-4" />
+              </Button>
+              <span className="w-12 text-center text-lg font-semibold">{quantity}</span>
+              <Button
+                variant="outline"
+                size="icon"
+                className="rounded-xl"
+                onClick={() => setQuantity(Math.min(product.quantityOnHand, quantity + 1))}
+                disabled={quantity >= product.quantityOnHand}
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      </details>
     </motion.div>
   );
 }

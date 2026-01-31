@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { ProductCard } from '@/components/products/ProductCard';
 import { useRentalStore } from '@/stores/rentalStore';
+import { RoleBasedRedirect } from '@/components/RoleBasedRedirect';
 
 const features = [
   {
@@ -63,7 +64,8 @@ export default function HomePage() {
   const featuredProducts = products.filter((p) => p.isPublished).slice(0, 4);
 
   return (
-    <MainLayout>
+    <RoleBasedRedirect>
+      <MainLayout>
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-primary/10 py-20 md:py-32">
         <div className="absolute inset-0 -z-10">
@@ -294,5 +296,6 @@ export default function HomePage() {
         </div>
       </section>
     </MainLayout>
+    </RoleBasedRedirect>
   );
 }

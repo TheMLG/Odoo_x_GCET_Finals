@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Check, Star, Package, Shield, Clock } from 'lucide-react';
+import { ArrowLeft, Check, Star, Package, Shield, Clock, Share2, Heart, TrendingUp } from 'lucide-react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { RentalConfigurator } from '@/components/products/RentalConfigurator';
 import { Button } from '@/components/ui/button';
@@ -56,33 +56,47 @@ export default function ProductDetailPage() {
           </Button>
         </motion.div>
 
-        <div className="grid gap-8 lg:grid-cols-2">
+        <div className="grid gap-8 lg:grid-cols-[1fr_500px]">
           {/* Product Images */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.4 }}
-            className="space-y-4"
+            className="flex gap-4"
           >
-            <div className="overflow-hidden rounded-2xl bg-muted">
-              <img
-                src={product.images[0]}
-                alt={product.name}
-                className="aspect-square w-full object-cover"
-              />
-            </div>
-
-            {/* Features */}
-            <div className="grid gap-3 sm:grid-cols-3">
-              {features.map((feature) => (
+            {/* Image Thumbnails */}
+            <div className="flex flex-col gap-4">
+              {product.images.slice(0, 5).map((img, idx) => (
                 <div
-                  key={feature.label}
-                  className="flex items-center gap-3 rounded-xl bg-muted/50 p-3"
+                  key={idx}
+                  className="h-20 w-20 cursor-pointer overflow-hidden rounded-xl border-2 border-border bg-muted transition-colors hover:border-primary"
                 >
-                  <feature.icon className="h-5 w-5 text-primary" />
-                  <span className="text-sm">{feature.label}</span>
+                  <img
+                    src={img}
+                    alt={`${product.name} ${idx + 1}`}
+                    className="h-full w-full object-cover"
+                  />
                 </div>
               ))}
+            </div>
+
+            {/* Main Image */}
+            <div className="relative flex-1">
+              <div className="absolute right-4 top-4 z-10 flex gap-2">
+                <button className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-lg hover:bg-gray-50">
+                  <Share2 className="h-5 w-5" />
+                </button>
+              </div>
+              <div className="overflow-hidden rounded-2xl bg-muted">
+                <img
+                  src={product.images[0]}
+                  alt={product.name}
+                  className="aspect-[4/3] w-full object-cover"
+                />
+              </div>
+              <div className="mt-2 text-center text-sm text-muted-foreground">
+                1 of {product.images.length} Images
+              </div>
             </div>
           </motion.div>
 
