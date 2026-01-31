@@ -8,7 +8,9 @@ import { ProductCard } from '@/components/products/ProductCard';
 import { useRentalStore } from '@/stores/rentalStore';
 import { useAuthStore } from '@/stores/authStore';
 import { RoleBasedRedirect } from '@/components/RoleBasedRedirect';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import api from '@/lib/api';
+import type { Review } from '@/types/rental';
 
 const features = [
   {
@@ -40,36 +42,34 @@ const stats = [
   { value: '24/7', label: 'Support' },
 ];
 
-const testimonials = [
-  {
-    name: 'Sarah Johnson',
-    role: 'Event Planner',
-    content: 'RentX has transformed how we source equipment for events. The booking process is seamless!',
-    rating: 5,
-  },
-  {
-    name: 'Michael Chen',
-    role: 'Filmmaker',
-    content: 'Best camera rental service I\'ve used. Great selection and the equipment is always in top condition.',
-    rating: 5,
-  },
-  {
-    name: 'Priya Sharma',
-    role: 'Construction Manager',
-    content: 'Reliable service for all our construction equipment needs. Highly recommended!',
-    rating: 5,
-  },
-];
-
 export default function HomePage() {
   const { products, fetchProducts } = useRentalStore();
   const { isAuthenticated } = useAuthStore();
+  const [topReviews, setTopReviews] = useState<Review[]>([]);
+  const [loadingReviews, setLoadingReviews] = useState(true);
   const featuredProducts = products.filter((p) => p.isPublished).slice(0, 4);
 
   // Fetch products on mount
   useEffect(() => {
     fetchProducts();
   }, [fetchProducts]);
+
+  // Fetch top reviews on mount
+  useEffect(() => {
+    const fetchTopReviews = async () => {
+      try {
+        setLoadingReviews(true);
+        const response = await api.get('/reviews/top');
+        setTopReviews(response.data.data);
+      } catch (error) {
+        console.error('Error fetching top reviews:', error);
+      } finally {
+        setLoadingReviews(false);
+      }
+    };
+
+    fetchTopReviews();
+  }, []);
 
   return (
     <RoleBasedRedirect>
@@ -240,32 +240,60 @@ export default function HomePage() {
             </p>
           </motion.div>
 
-          <div className="grid gap-6 md:grid-cols-3">
-            {testimonials.map((testimonial, index) => (
-              <motion.div
-                key={testimonial.name}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-                viewport={{ once: true }}
-              >
-                <Card className="h-full rounded-2xl">
+          {loadingReviews ? (
+            <div className="grid gap-6 md:grid-cols-3">
+              {[1, 2, 3].map((i) => (
+                <Card key={i} className="h-full rounded-2xl">
                   <CardContent className="p-6">
-                    <div className="mb-4 flex gap-1">
-                      {Array.from({ length: testimonial.rating }).map((_, i) => (
-                        <Star key={i} className="h-4 w-4 fill-warning text-warning" />
-                      ))}
+                    <div className="mb-4 h-4 w-24 animate-pulse rounded bg-muted" />
+                    <div className="mb-4 space-y-2">
+                      <div className="h-3 w-full animate-pulse rounded bg-muted" />
+                      <div className="h-3 w-5/6 animate-pulse rounded bg-muted" />
                     </div>
-                    <p className="mb-4 text-muted-foreground">{testimonial.content}</p>
-                    <div>
-                      <p className="font-semibold">{testimonial.name}</p>
-                      <p className="text-sm text-muted-foreground">{testimonial.role}</p>
+                    <div className="space-y-1">
+                      <div className="h-4 w-32 animate-pulse rounded bg-muted" />
+                      <div className="h-3 w-24 animate-pulse rounded bg-muted" />
                     </div>
                   </CardContent>
                 </Card>
-              </motion.div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : topReviews.length > 0 ? (
+            <div className="grid gap-6 md:grid-cols-3">
+              {topReviews.map((review, index) => (
+                <motion.div
+                  key={review.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  viewport={{ once: true }}
+                >
+                  <Card className="h-full rounded-2xl">
+                    <CardContent className="p-6">
+                      <div className="mb-4 flex gap-1">
+                        {Array.from({ length: review.rating }).map((_, i) => (
+                          <Star key={i} className="h-4 w-4 fill-warning text-warning" />
+                        ))}
+                      </div>
+                      <p className="mb-4 text-muted-foreground">
+                        {review.comment || 'Great product and excellent service!'}
+                      </p>
+                      <div>
+                        <p className="font-semibold">
+                          {review.user.firstName} {review.user.lastName}
+                        </p>
+                        <p className="text-sm text-muted-foreground">{review.product.category}</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center text-muted-foreground">
+              <p>No reviews available yet. Be the first to review our products!</p>
+            </div>
+          )}
         </div>
       </section>
 

@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { ArrowLeft, Check, Star, Package, Shield, Clock, Share2, Heart } from 'lucide-react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { RentalConfigurator } from '@/components/products/RentalConfigurator';
+import { ReviewSection } from '@/components/products/ReviewSection';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -242,54 +243,7 @@ export default function ProductDetailPage() {
             </TabsContent>
 
             <TabsContent value="reviews">
-              <div className="rounded-2xl border border-border bg-card p-6">
-                <div className="mb-6 flex items-center gap-4">
-                  <div className="text-4xl font-bold">4.8</div>
-                  <div>
-                    <div className="flex gap-1">
-                      {Array.from({ length: 5 }).map((_, i) => (
-                        <Star
-                          key={i}
-                          className={`h-5 w-5 ${i < 4 ? "fill-warning text-warning" : "text-muted"
-                            }`}
-                        />
-                      ))}
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      Based on 24 reviews
-                    </p>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  {[1, 2, 3].map((i) => (
-                    <div
-                      key={i}
-                      className="border-b border-border pb-4 last:border-0"
-                    >
-                      <div className="mb-2 flex items-center gap-2">
-                        <div className="flex gap-0.5">
-                          {Array.from({ length: 5 }).map((_, j) => (
-                            <Star
-                              key={j}
-                              className="h-3 w-3 fill-warning text-warning"
-                            />
-                          ))}
-                        </div>
-                        <span className="text-sm font-medium">John D.</span>
-                        <span className="text-xs text-muted-foreground">
-                          2 weeks ago
-                        </span>
-                      </div>
-                      <p className="text-sm text-muted-foreground">
-                        Excellent equipment, arrived in perfect condition. The
-                        rental process was smooth and the team was very helpful.
-                        Will definitely rent again!
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              <ReviewSection productId={product.id} />
             </TabsContent>
           </Tabs>
         </motion.div>

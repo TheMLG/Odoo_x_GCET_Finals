@@ -39,6 +39,7 @@ model User {
   orders     Order[]
   wishlists  Wishlist[]
   addresses  Address[]
+  reviews    Review[]
 }
 
 model Role {
@@ -89,6 +90,7 @@ model Product {
   orderItems   OrderItem[]
   reservations Reservation[]
   wishlistItems WishlistItem[]
+  reviews      Review[]
 }
 
 model ProductInventory {

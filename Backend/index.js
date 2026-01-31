@@ -10,6 +10,7 @@ import productRoutes from "./routes/product.routes.js";
 import cartRoutes from "./routes/cart.routes.js";
 import wishlistRoutes from "./routes/wishlist.routes.js";
 import couponRoutes from "./routes/coupon.routes.js";
+import reviewRoutes from "./routes/review.routes.js";
 
 dotenv.config();
 
@@ -43,6 +44,7 @@ app.use("/api/v1/products", productRoutes);
 app.use("/api/v1/cart", cartRoutes);
 app.use("/api/v1/wishlist", wishlistRoutes);
 app.use("/api/v1/coupons", couponRoutes);
+app.use("/api/v1/reviews", reviewRoutes);
 
 // 404 handler
 app.use((req, res) => {
