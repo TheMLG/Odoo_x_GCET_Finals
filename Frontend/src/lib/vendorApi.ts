@@ -224,3 +224,36 @@ export const deleteProduct = async (id: string) => {
   const response = await api.delete(`/vendor/products/${id}`);
   return response.data.data;
 };
+
+// Vendor Analytics
+export interface VendorAnalyticsData {
+  stats: {
+    totalRevenue: string;
+    totalOrders: string;
+    activeRentals: string;
+    productsListed: string;
+  };
+  revenueData: Array<{
+    month: string;
+    revenue: number;
+    orders: number;
+  }>;
+  categoryData: Array<{
+    name: string;
+    value: number;
+  }>;
+  topProducts: Array<{
+    name: string;
+    rentals: number;
+    revenue: number;
+  }>;
+}
+
+export const getVendorAnalytics = async (
+  timeRange: string = "year",
+): Promise<VendorAnalyticsData> => {
+  const response = await api.get("/vendor/analytics", {
+    params: { timeRange },
+  });
+  return response.data.data;
+};

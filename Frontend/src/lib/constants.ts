@@ -1,4 +1,5 @@
 import {
+  BarChart3,
   FileText,
   LayoutDashboard,
   Package,
@@ -27,6 +28,11 @@ export const VENDOR_NAV_ITEMS = [
     label: "Products",
     href: "/vendor/products",
     icon: Package,
+  },
+  {
+    label: "Reports",
+    href: "/vendor/reports",
+    icon: BarChart3,
   },
   {
     label: "Settings",
