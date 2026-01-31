@@ -7,14 +7,14 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
 // Pages
+import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage"; // Add this import
 import LoginPage from "./pages/auth/LoginPage";
 import SignupPage from "./pages/auth/SignupPage";
 import UserSignupPage from "./pages/auth/UserSignupPage";
 import VendorSignupPage from "./pages/auth/VendorSignupPage";
-import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";  // Add this import
 import CartPage from "./pages/CartPage";
-import ContactDetailsPage from "./pages/checkout/ContactDetailsPage";
 import AddressPage from "./pages/checkout/AddressPage";
+import ContactDetailsPage from "./pages/checkout/ContactDetailsPage";
 import DeliveryTimePage from "./pages/checkout/DeliveryTimePage";
 import PaymentPage from "./pages/checkout/PaymentPage";
 import AdminDashboard from "./pages/dashboard/AdminDashboard";
@@ -33,6 +33,7 @@ import VendorSettings from "./pages/dashboard/VendorSettings";
 import HomePage from "./pages/HomePage";
 import InvoicePage from "./pages/InvoicePage";
 import NotFound from "./pages/NotFound";
+import OrderDetailPage from "./pages/OrderDetailPage";
 import OrdersPage from "./pages/OrdersPage";
 import ProductDetailPage from "./pages/ProductDetailPage";
 import ProductsPage from "./pages/ProductsPage";
@@ -72,8 +73,8 @@ function ProtectedRoute({
     // Redirect to appropriate dashboard based on role
     const redirectPath =
       userRole === "ADMIN" ? "/admin/dashboard"
-        : userRole === "VENDOR" ? "/vendor/dashboard"
-          : "/";
+      : userRole === "VENDOR" ? "/vendor/dashboard"
+      : "/";
     return <Navigate to={redirectPath} replace />;
   }
 
@@ -82,16 +83,20 @@ function ProtectedRoute({
 
 // Public Route - redirects authenticated users away from auth pages
 function PublicRoute({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, getUserRole } = useAuthStore();
 
   if (isAuthenticated) {
-    return <Navigate to="/" replace />;
+    const userRole = getUserRole();
+    // Redirect to appropriate dashboard based on role
+    const redirectPath =
+      userRole === "ADMIN" ? "/admin/dashboard"
+      : userRole === "VENDOR" ? "/vendor/dashboard"
+      : "/";
+    return <Navigate to={redirectPath} replace />;
   }
 
   return <>{children}</>;
 }
-
-
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -158,7 +163,7 @@ const App = () => (
           {/* Protected Routes - Require Authentication */}
           <Route
             path="/checkout"
-            element={<Navigate to="/checkout/contact" replace />}
+            element={<Navigate to="/checkout/address" replace />}
           />
           <Route
             path="/checkout/contact"
@@ -199,6 +204,14 @@ const App = () => (
             element={
               <ProtectedRoute>
                 <OrdersPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/orders/:orderId"
+            element={
+              <ProtectedRoute>
+                <OrderDetailPage />
               </ProtectedRoute>
             }
           />

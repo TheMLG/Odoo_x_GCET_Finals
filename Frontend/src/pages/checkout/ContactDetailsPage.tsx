@@ -1,43 +1,49 @@
-import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
-import { CheckoutHeader } from './components/CheckoutHeader';
-import { CheckoutSidebar } from './components/CheckoutSidebar';
-import { CheckoutSteps } from './components/CheckoutSteps';
-import { useAuthStore } from '@/stores/authStore';
-import { cn } from '@/lib/utils';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useAuthStore } from "@/stores/authStore";
+import { useCheckoutStore } from "@/stores/checkoutStore";
+import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import { CheckoutHeader } from "./components/CheckoutHeader";
+import { CheckoutSidebar } from "./components/CheckoutSidebar";
+import { CheckoutSteps } from "./components/CheckoutSteps";
 
 export default function ContactDetailsPage() {
   const navigate = useNavigate();
   const { user } = useAuthStore();
+  const { setContactDetails, contactDetails } = useCheckoutStore();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
   });
 
   // Fetch and populate user contact details
   useEffect(() => {
     const loadUserDetails = () => {
+      if (contactDetails) {
+        setFormData(contactDetails);
+        return;
+      }
+
       if (user) {
-        setFormData(prev => ({
+        setFormData((prev) => ({
           ...prev,
-          firstName: user.firstName || '',
-          lastName: user.lastName || '',
-          email: user.email || '',
+          firstName: user.firstName || "",
+          lastName: user.lastName || "",
+          email: user.email || "",
           // Phone number might not be in the user object, keep existing value
         }));
       }
     };
 
     loadUserDetails();
-  }, [user]);
+  }, [user, contactDetails]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -49,29 +55,34 @@ export default function ContactDetailsPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.firstName || !formData.lastName || !formData.email || !formData.phone) {
-      toast.error('Please fill in all required fields');
+    if (
+      !formData.firstName ||
+      !formData.lastName ||
+      !formData.email ||
+      !formData.phone
+    ) {
+      toast.error("Please fill in all required fields");
       return;
     }
 
     // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
-      toast.error('Please enter a valid email address');
+      toast.error("Please enter a valid email address");
       return;
     }
 
     // Phone validation
     if (formData.phone.length < 10) {
-      toast.error('Please enter a valid phone number');
+      toast.error("Please enter a valid phone number");
       return;
     }
 
-    // Save to localStorage or state management
-    localStorage.setItem('checkoutContactDetails', JSON.stringify(formData));
+    // Save to store
+    setContactDetails(formData);
 
-    toast.success('Details saved successfully!');
-    navigate('/checkout/address');
+    toast.success("Details saved successfully!");
+    navigate("/checkout/address");
   };
 
   return (
@@ -88,7 +99,9 @@ export default function ContactDetailsPage() {
               animate={{ opacity: 1, y: 0 }}
               className="rounded-lg bg-white p-6 md:p-8 shadow-sm border border-gray-200"
             >
-              <h2 className="mb-6 text-lg md:text-xl font-bold">1. Contact Details</h2>
+              <h2 className="mb-6 text-lg md:text-xl font-bold">
+                1. Contact Details
+              </h2>
 
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div className="grid gap-4 md:grid-cols-2">
@@ -106,7 +119,10 @@ export default function ContactDetailsPage() {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="lastName" className="text-sm font-medium sr-only">
+                    <Label
+                      htmlFor="lastName"
+                      className="text-sm font-medium sr-only"
+                    >
                       Last Name
                     </Label>
                     <Input
@@ -133,7 +149,6 @@ export default function ContactDetailsPage() {
                     className="mt-2"
                     placeholder="rajdhimmar4@gmail.com"
                   />
-
                 </div>
 
                 <div>
@@ -156,8 +171,6 @@ export default function ContactDetailsPage() {
                   </div>
                 </div>
 
-
-
                 <Button
                   type="submit"
                   className="w-full rounded-lg bg-blue-600 hover:bg-blue-700 py-5 text-base font-semibold shadow-sm"
@@ -175,4 +188,3 @@ export default function ContactDetailsPage() {
     </div>
   );
 }
-

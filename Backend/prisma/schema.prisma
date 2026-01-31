@@ -1,121 +1,97 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
   output   = "../generated/prisma"
 }
 
-
 datasource db {
   provider = "postgresql"
 }
 
-// SQL Server doesn't support enums, using String with validated values in application layer
-// Valid RoleName values: ADMIN, VENDOR, CUSTOMER
-// Valid CartStatus values: ACTIVE, CONVERTED
-// Valid OrderStatus values: CONFIRMED, PICKED_UP, RETURNED, CANCELLED
-// Valid PricingType values: HOUR, DAY, WEEK
-// Valid InvoiceStatus values: DRAFT, PARTIAL, PAID
-// Valid PaymentStatus values: PENDING, SUCCESS, FAILED
-
 model User {
-  id         String      @id @default(uuid())
-  email      String      @unique
-  password   String
-  firstName  String
-  lastName   String
-  createdAt DateTime    @default(now())
-  
-  otp        String?
-  otpExpiry  DateTime?
-
-  roles      UserRole[]
-  vendor     Vendor?
-  carts      Cart[]
-  orders     Order[]
-  wishlists  Wishlist[]
-  addresses  Address[]
+  id        String     @id @default(uuid())
+  email     String     @unique
+  password  String
+  firstName String
+  lastName  String
+  createdAt DateTime   @default(now())
+  otp       String?
+  otpExpiry DateTime?
+  addresses Address[]
+  carts     Cart[]
+  orders    Order[]
+  roles     UserRole[]
+  vendor    Vendor?
+  wishlists Wishlist?
   reviews    Review[]
 }
 
 model Role {
-  id    String   @id @default(uuid())
-  name  String   @unique // Valid: ADMIN, VENDOR, CUSTOMER
-
+  id    String     @id @default(uuid())
+  name  String     @unique
   users UserRole[]
 }
 
 model UserRole {
   userId String
   roleId String
-
-  user User @relation(fields: [userId], references: [id])
-  role Role @relation(fields: [roleId], references: [id])
+  role   Role   @relation(fields: [roleId], references: [id])
+  user   User   @relation(fields: [userId], references: [id])
 
   @@id([userId, roleId])
 }
 
 model Vendor {
-  id          String   @id @default(uuid())
-  userId      String   @unique
-  companyName String
-  gstNo       String
+  id               String    @id @default(uuid())
+  userId           String    @unique
+  companyName      String
+  gstNo            String
   product_category String
-  createdAt  DateTime @default(now())
-
-  user     User      @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  products Product[]
-  orders   Order[]
+  createdAt        DateTime  @default(now())
+  orders           Order[]
+  products         Product[]
+  user             User      @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model Product {
-  id          String   @id @default(uuid())
-  vendorId    String
-  name        String
-  description String?
-  category    String @default("Uncategorized")
-  product_image_url String @default("https://static.vecteezy.com/system/resources/thumbnails/051/739/975/small_2x/cosmetic-products-mock-up-photo.jpg")
-  isPublished Boolean  @default(false)
-  createdAt  DateTime @default(now())
-
-  vendor       Vendor             @relation(fields: [vendorId], references: [id])
-  inventory    ProductInventory?
-  pricing      RentalPricing[]
-  attributes   ProductAttribute[]
-  cartItems    CartItem[]
-  orderItems   OrderItem[]
-  reservations Reservation[]
-  wishlistItems WishlistItem[]
+  id                String             @id @default(uuid())
+  vendorId          String
+  name              String
+  description       String?
+  category          String             @default("Uncategorized")
+  product_image_url String             @default("https://static.vecteezy.com/system/resources/thumbnails/051/739/975/small_2x/cosmetic-products-mock-up-photo.jpg")
+  isPublished       Boolean            @default(false)
+  createdAt         DateTime           @default(now())
+  cartItems         CartItem[]
+  orderItems        OrderItem[]
+  vendor            Vendor             @relation(fields: [vendorId], references: [id])
+  attributes        ProductAttribute[]
+  inventory         ProductInventory?
+  pricing           RentalPricing[]
+  reservations      Reservation[]
+  wishlistItems     WishlistItem[]
   reviews      Review[]
 }
 
 model ProductInventory {
-  id        String @id @default(uuid())
-  productId String @unique
+  id        String  @id @default(uuid())
+  productId String  @unique
   totalQty  Int
-
-  product Product @relation(fields: [productId], references: [id])
+  product   Product @relation(fields: [productId], references: [id])
 }
 
 model RentalPricing {
-  id         String      @id @default(uuid())
+  id        String  @id @default(uuid())
   productId String
-  type       String      // Valid: HOUR, DAY, WEEK
-  price      Decimal
-
-  product Product @relation(fields: [productId], references: [id])
+  type      String
+  price     Decimal
+  product   Product @relation(fields: [productId], references: [id])
 
   @@unique([productId, type])
 }
 
 model Attribute {
-  id   String @id @default(uuid())
-  name String @unique
-
+  id     String           @id @default(uuid())
+  name   String           @unique
   values AttributeValue[]
 }
 
@@ -123,9 +99,8 @@ model AttributeValue {
   id          String
   attributeId String
   value       String
-
-  attribute Attribute @relation(fields: [attributeId], references: [id])
-  products  ProductAttribute[]
+  attribute   Attribute          @relation(fields: [attributeId], references: [id])
+  products    ProductAttribute[]
 
   @@id([id, attributeId])
 }
@@ -134,9 +109,8 @@ model ProductAttribute {
   productId        String
   attributeValueId String
   attributeId      String
-
-  product        Product        @relation(fields: [productId], references: [id])
-  attributeValue AttributeValue @relation(fields: [attributeValueId, attributeId], references: [id, attributeId])
+  attributeValue   AttributeValue @relation(fields: [attributeValueId, attributeId], references: [id, attributeId])
+  product          Product        @relation(fields: [productId], references: [id])
 
   @@id([productId, attributeValueId, attributeId])
 }
@@ -144,11 +118,10 @@ model ProductAttribute {
 model Cart {
   id        String     @id @default(uuid())
   userId    String
-  status    String     @default("ACTIVE") // Valid: ACTIVE, CONVERTED
+  status    String     @default("ACTIVE")
   createdAt DateTime   @default(now())
-
-  user  User       @relation(fields: [userId], references: [id])
-  items CartItem[]
+  user      User       @relation(fields: [userId], references: [id])
+  items     CartItem[]
 }
 
 model CartItem {
@@ -159,87 +132,80 @@ model CartItem {
   rentalStart DateTime
   rentalEnd   DateTime
   unitPrice   Decimal
-
-  cart    Cart    @relation(fields: [cartId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  product Product @relation(fields: [productId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  cart        Cart     @relation(fields: [cartId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  product     Product  @relation(fields: [productId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model Order {
-  id        String      @id @default(uuid())
-  userId    String
-  vendorId  String
+  id                String      @id @default(uuid())
+  userId            String
+  vendorId          String
   deliveryAddressId String?
-  couponId  String?
-  discountAmount Decimal  @default(0)
-  status    String      // Valid: CONFIRMED, INVOICED, RETURNED, CANCELLED
-  createdAt DateTime    @default(now())
-
-  user            User        @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  vendor          Vendor      @relation(fields: [vendorId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  deliveryAddress Address?    @relation(fields: [deliveryAddressId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  coupon          Coupon?     @relation(fields: [couponId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  items           OrderItem[]
-  invoice         Invoice?
+  couponId          String?
+  discountAmount    Decimal     @default(0)
+  orderNumber       String      @unique @default(cuid())
+  status            String
+  createdAt         DateTime    @default(now())
+  invoice           Invoice?
+  coupon            Coupon?     @relation(fields: [couponId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  deliveryAddress   Address?    @relation(fields: [deliveryAddressId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  user              User        @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  vendor            Vendor      @relation(fields: [vendorId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  items             OrderItem[]
 }
 
 model OrderItem {
-  id          String   @id @default(uuid())
-  orderId     String
-  productId   String
-  quantity    Int
-  rentalStart DateTime
-  rentalEnd   DateTime
-  unitPrice   Decimal
-
-  order        Order        @relation(fields: [orderId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  product      Product      @relation(fields: [productId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  id           String        @id @default(uuid())
+  orderId      String
+  productId    String
+  quantity     Int
+  rentalStart  DateTime
+  rentalEnd    DateTime
+  unitPrice    Decimal
+  order        Order         @relation(fields: [orderId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  product      Product       @relation(fields: [productId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   reservations Reservation[]
 }
 
 model Reservation {
-  id          String   @id @default(uuid())
-  orderItemId String
-  productId   String
+  id           String    @id @default(uuid())
+  orderItemId  String
+  productId    String
   reservedFrom DateTime
   reservedTo   DateTime
   quantity     Int
-
-  orderItem OrderItem @relation(fields: [orderItemId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  product   Product   @relation(fields: [productId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  orderItem    OrderItem @relation(fields: [orderItemId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  product      Product   @relation(fields: [productId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model Invoice {
-  id          String        @id @default(uuid())
-  orderId     String        @unique
-  totalAmount Decimal
-  gstAmount   Decimal
-  status      String        // Valid: DRAFT, PARTIAL, PAID
-  createdAt   DateTime      @default(now())
-
-  order    Order     @relation(fields: [orderId], references: [id])
-  payments Payment[]
+  id            String    @id @default(uuid())
+  invoiceNumber String    @unique @default(cuid())
+  orderId       String    @unique
+  totalAmount   Decimal
+  gstAmount     Decimal
+  status        String
+  createdAt     DateTime  @default(now())
+  order         Order     @relation(fields: [orderId], references: [id])
+  payments      Payment[]
 }
 
 model Payment {
-  id        String        @id @default(uuid())
+  id        String    @id @default(uuid())
   invoiceId String
   amount    Decimal
   mode      String
-  status    String        // Valid: PENDING, SUCCESS, FAILED
+  status    String
   paidAt    DateTime?
-
-  invoice Invoice @relation(fields: [invoiceId], references: [id])
+  invoice   Invoice   @relation(fields: [invoiceId], references: [id])
 }
 
 model Wishlist {
-  id        String   @id @default(uuid())
-  userId    String
-  createdAt DateTime @default(now())
-
-  user  User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  items WishlistItem[]
-
-  @@unique([userId])
+  id        String         @id @default(uuid())
+  userId    String         @unique
+  createdAt DateTime       @default(now())
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     WishlistItem[]
 }
 
 model WishlistItem {
@@ -247,29 +213,42 @@ model WishlistItem {
   wishlistId String
   productId  String
   addedAt    DateTime @default(now())
-
-  wishlist Wishlist @relation(fields: [wishlistId], references: [id], onDelete: Cascade)
-  product  Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  wishlist   Wishlist @relation(fields: [wishlistId], references: [id], onDelete: Cascade)
 
   @@unique([wishlistId, productId])
 }
 
 model Address {
-  id          String   @id @default(uuid())
-  userId      String
-  fullName    String
-  phoneNumber String
+  id           String   @id @default(uuid())
+  userId       String
+  fullName     String
+  phoneNumber  String
   addressLine1 String
   addressLine2 String?
-  city        String
-  state       String
-  postalCode  String
-  country     String   @default("India")
-  isDefault   Boolean  @default(false)
-  createdAt   DateTime @default(now())
+  city         String
+  state        String
+  postalCode   String
+  country      String   @default("India")
+  isDefault    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orders       Order[]
+}
 
-  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  orders Order[]
+model Review {
+  id        String   @id @default(uuid())
+  productId String
+  userId    String
+  rating    Int      // 1-5 stars
+  comment   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, userId]) // One review per user per product
 }
 
 model Review {
@@ -288,17 +267,16 @@ model Review {
 }
 
 model Coupon {
-  id               String   @id @default(uuid())
-  code             String   @unique
-  description      String
-  discountType     String   // Valid: PERCENTAGE, FIXED_AMOUNT
-  discountValue    Decimal
-  minOrderAmount   Decimal? // Minimum order required to apply coupon
-  maxUsageCount    Int?     // Max total uses (null = unlimited)
-  currentUsageCount Int     @default(0)
-  expiryDate       DateTime?
-  isActive         Boolean  @default(true)
-  createdAt        DateTime @default(now())
-
-  orders Order[]
+  id                String    @id @default(uuid())
+  code              String    @unique
+  description       String
+  discountType      String
+  discountValue     Decimal
+  minOrderAmount    Decimal?
+  maxUsageCount     Int?
+  currentUsageCount Int       @default(0)
+  expiryDate        DateTime?
+  isActive          Boolean   @default(true)
+  createdAt         DateTime  @default(now())
+  orders            Order[]
 }

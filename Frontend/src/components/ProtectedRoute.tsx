@@ -12,7 +12,7 @@ interface ProtectedRouteProps {
 export const ProtectedRoute = ({
   children,
   requiredRoles,
-  fallbackPath = '/auth/login',
+  fallbackPath = '/login',
 }: ProtectedRouteProps) => {
   const { isAuthenticated, user, isLoading, fetchCurrentUser } = useAuthStore();
   const location = useLocation();

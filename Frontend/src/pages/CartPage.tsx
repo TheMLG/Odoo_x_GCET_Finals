@@ -8,13 +8,16 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { useCartStore } from '@/stores/cartStore';
 import { useAuthStore } from '@/stores/authStore';
+import { CouponSelector } from '@/components/coupon/CouponSelector';
+import { WelcomeCouponDialog } from '@/components/coupon/WelcomeCouponDialog';
 import { toast } from 'sonner';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 export default function CartPage() {
   const navigate = useNavigate();
   const { items, removeItem, updateItem, getTotalAmount, clearCart, fetchCart, isLoading } = useCartStore();
   const { isAuthenticated } = useAuthStore();
+  const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number } | null>(null);
 
   // Fetch cart on mount if authenticated
   useEffect(() => {
@@ -33,8 +36,18 @@ export default function CartPage() {
 
   // item.totalPrice already includes GST in the store
   const total = getTotalAmount();
-  const baseAmount = total / 1.18;
-  const gstAmount = total - baseAmount;
+  const discountAmount = appliedCoupon?.discount || 0;
+  const totalAfterDiscount = total - discountAmount;
+  const baseAmount = totalAfterDiscount / 1.18;
+  const gstAmount = totalAfterDiscount - baseAmount;
+
+  const handleCouponApplied = (code: string, discount: number) => {
+    if (code && discount > 0) {
+      setAppliedCoupon({ code, discount });
+    } else {
+      setAppliedCoupon(null);
+    }
+  };
 
   const handleCheckout = () => {
     if (!isAuthenticated) {
@@ -44,7 +57,7 @@ export default function CartPage() {
       navigate('/login');
       return;
     }
-    navigate('/checkout');
+    navigate('/checkout/contact');
   };
 
   const handleQuantityChange = (itemId: string, newQuantity: number, maxQuantity: number) => {
@@ -67,6 +80,7 @@ export default function CartPage() {
   if (items.length === 0) {
     return (
       <MainLayout>
+        <WelcomeCouponDialog />
         <div className="container flex min-h-[60vh] flex-col items-center justify-center px-4 py-12">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -94,6 +108,7 @@ export default function CartPage() {
 
   return (
     <MainLayout>
+      <WelcomeCouponDialog />
       <div className="container px-4 py-8 md:px-6 md:py-12">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -240,7 +255,28 @@ export default function CartPage() {
               <CardContent className="p-6">
                 <h2 className="mb-4 text-lg font-semibold">Order Summary</h2>
 
+                {/* Coupon Selector */}
+                <div className="mb-4">
+                  <CouponSelector
+                    totalAmount={total}
+                    onCouponApplied={handleCouponApplied}
+                    appliedCouponCode={appliedCoupon?.code}
+                  />
+                </div>
+
+                <Separator className="my-4" />
+
                 <div className="space-y-3">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Subtotal</span>
+                    <span>{formatPrice(total)}</span>
+                  </div>
+                  {appliedCoupon && (
+                    <div className="flex justify-between text-sm text-green-600 font-medium">
+                      <span>Coupon Discount ({appliedCoupon.code})</span>
+                      <span>-{formatPrice(discountAmount)}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Base Amount</span>
                     <span>{formatPrice(baseAmount)}</span>
@@ -252,7 +288,7 @@ export default function CartPage() {
                   <Separator />
                   <div className="flex justify-between font-semibold">
                     <span>Total Amount</span>
-                    <span className="text-lg text-primary">{formatPrice(total)}</span>
+                    <span className="text-lg text-primary">{formatPrice(totalAfterDiscount)}</span>
                   </div>
                 </div>
 

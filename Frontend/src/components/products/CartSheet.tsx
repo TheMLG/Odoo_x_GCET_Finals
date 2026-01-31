@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input';
 import { useCartStore } from '@/stores/cartStore';
 import { useRentalStore } from '@/stores/rentalStore';
 import { DatePickerDialog } from '@/components/DatePickerDialog';
+import { CouponSelector } from '@/components/coupon/CouponSelector';
 import { toast } from 'sonner';
 
 interface CartSheetProps {
@@ -25,8 +26,7 @@ export function CartSheet({ open, onClose }: CartSheetProps) {
   const { items, removeItem, updateItem, getTotalAmount } = useCartStore();
   const { deliveryDate, pickupDate } = useRentalStore();
   const [showDateModal, setShowDateModal] = useState(false);
-  const [couponCode, setCouponCode] = useState('');
-  const [showCoupons, setShowCoupons] = useState(false);
+  const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number } | null>(null);
 
   // Default dates for display
   const defaultDeliveryDate = deliveryDate || new Date(2026, 1, 10); // Feb 10, 2026
@@ -38,6 +38,14 @@ export function CartSheet({ open, onClose }: CartSheetProps) {
       currency: 'INR',
       maximumFractionDigits: 0,
     }).format(price);
+  };
+
+  const handleCouponApplied = (code: string, discount: number) => {
+    if (code && discount > 0) {
+      setAppliedCoupon({ code, discount });
+    } else {
+      setAppliedCoupon(null);
+    }
   };
 
   const handleQuantityChange = (itemId: string, newQuantity: number, maxQuantity: number) => {
@@ -59,10 +67,14 @@ export function CartSheet({ open, onClose }: CartSheetProps) {
 
   const handleCheckout = () => {
     onClose();
-    navigate('/checkout');
+    navigate('/checkout/contact');
   };
 
   const totalAmount = getTotalAmount();
+  const discountAmount = appliedCoupon?.discount || 0;
+  const totalAfterDiscount = totalAmount - discountAmount;
+  const baseAmount = totalAfterDiscount / 1.18;
+  const gstAmount = totalAfterDiscount - baseAmount;
 
   return (
     <>
@@ -211,54 +223,42 @@ export function CartSheet({ open, onClose }: CartSheetProps) {
                   </div>
                 </div>
 
-                {/* Coupon Code */}
+                {/* Coupon Code - Use CouponSelector */}
                 <div className="space-y-3 border-t border-border pt-4">
-                  <div className="flex gap-2">
-                    <div className="relative flex-1">
-                      <Input
-                        placeholder="Enter coupon code"
-                        value={couponCode}
-                        onChange={(e) => setCouponCode(e.target.value)}
-                        className="rounded-xl pr-10"
-                      />
-                      <button className="absolute right-3 top-1/2 -translate-y-1/2">
-                        <Tag className="h-4 w-4 text-muted-foreground" />
-                      </button>
-                    </div>
-                    <Button
-                      variant="outline"
-                      className="rounded-xl"
-                      onClick={() => toast.info('Coupon applied!')}
-                    >
-                      Apply
-                    </Button>
-                  </div>
-                  <button
-                    onClick={() => setShowCoupons(!showCoupons)}
-                    className="flex items-center gap-1 text-sm text-blue-600 hover:underline"
-                  >
-                    View Coupons
-                    <ChevronDown className={`h-4 w-4 transition-transform ${showCoupons ? 'rotate-180' : ''}`} />
-                  </button>
+                  <CouponSelector
+                    totalAmount={totalAmount}
+                    onCouponApplied={handleCouponApplied}
+                    appliedCouponCode={appliedCoupon?.code}
+                  />
                 </div>
 
                 {/* Total Section */}
                 <div className="space-y-4 border-t border-border pt-4">
                   <div className="space-y-2">
                     <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Subtotal</span>
+                      <span>{formatPrice(totalAmount)}</span>
+                    </div>
+                    {appliedCoupon && (
+                      <div className="flex items-center justify-between text-sm text-green-600 font-medium">
+                        <span>Coupon Discount ({appliedCoupon.code})</span>
+                        <span>-{formatPrice(discountAmount)}</span>
+                      </div>
+                    )}
+                    <div className="flex items-center justify-between text-sm">
                       <span className="text-muted-foreground">Base Amount</span>
-                      <span>{formatPrice(totalAmount / 1.18)}</span>
+                      <span>{formatPrice(baseAmount)}</span>
                     </div>
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-muted-foreground">GST (18%)</span>
-                      <span>{formatPrice(totalAmount - (totalAmount / 1.18))}</span>
+                      <span>{formatPrice(gstAmount)}</span>
                     </div>
                     <div className="flex items-center justify-between pt-2">
                       <div>
                         <div className="text-lg font-semibold">Total Charges</div>
                         <div className="text-xs text-muted-foreground">Price incl. of all taxes</div>
                       </div>
-                      <div className="text-2xl font-bold">{formatPrice(totalAmount)}</div>
+                      <div className="text-2xl font-bold">{formatPrice(totalAfterDiscount)}</div>
                     </div>
                   </div>
 
