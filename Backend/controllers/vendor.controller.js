@@ -1,4 +1,5 @@
 import bcrypt from "bcryptjs";
+import PDFDocument from "pdfkit";
 import prisma from "../config/prisma.js";
 import ApiError from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
@@ -576,6 +577,325 @@ export const getVendorInvoices = asyncHandler(async (req, res) => {
       new ApiResponse(200, invoices, "Vendor invoices fetched successfully"),
     );
 });
+
+// Generate vendor invoice PDF
+export const generateVendorInvoicePDF = asyncHandler(async (req, res) => {
+  const { orderId } = req.params;
+
+  const vendor = await prisma.vendor.findUnique({
+    where: { userId: req.user.id },
+  });
+
+  if (!vendor) {
+    throw new ApiError(404, "Vendor profile not found");
+  }
+
+  const order = await prisma.order.findFirst({
+    where: {
+      id: orderId,
+      vendorId: vendor.id,
+    },
+    include: {
+      user: {
+        select: {
+          firstName: true,
+          lastName: true,
+          email: true,
+        },
+      },
+      vendor: {
+        include: {
+          user: {
+            select: {
+              firstName: true,
+              lastName: true,
+            },
+          },
+        },
+      },
+      items: {
+        include: {
+          product: true,
+        },
+      },
+      invoice: {
+        include: {
+          payments: true,
+        },
+      },
+    },
+  });
+
+  if (!order) {
+    throw new ApiError(404, "Order not found or access denied");
+  }
+
+  // Create PDF document
+  const doc = new PDFDocument({ margin: 50, size: "A4" });
+
+  // Set response headers
+  res.setHeader("Content-Type", "application/pdf");
+  res.setHeader(
+    "Content-Disposition",
+    `attachment; filename=invoice-${order.orderNumber}.pdf`,
+  );
+
+  // Pipe PDF to response
+  doc.pipe(res);
+
+  // Helper function for drawing rounded rectangles
+  const drawRoundedRect = (x, y, width, height, radius, fillColor) => {
+    doc.roundedRect(x, y, width, height, radius).fill(fillColor);
+  };
+
+  // ========== HEADER SECTION ==========
+  drawRoundedRect(40, 40, 515, 80, 8, "#1e40af");
+
+  doc
+    .fontSize(28)
+    .fillColor("#ffffff")
+    .text("RentX", 60, 55, { continued: false });
+
+  doc
+    .fontSize(10)
+    .fillColor("#93c5fd")
+    .text("Premium Rental Service Platform", 60, 88);
+
+  doc
+    .fontSize(24)
+    .fillColor("#ffffff")
+    .text("INVOICE", 400, 65, { align: "right", width: 140 });
+
+  doc.moveDown(4);
+
+  // ========== INVOICE DETAILS BOX ==========
+  const detailsY = 140;
+  drawRoundedRect(40, detailsY, 250, 100, 6, "#f1f5f9");
+  drawRoundedRect(305, detailsY, 250, 100, 6, "#f1f5f9");
+
+  // Left box - Invoice details
+  doc.fontSize(8).fillColor("#64748b");
+  doc.text("Invoice Number", 55, detailsY + 12);
+  doc.fontSize(9).fillColor("#1e293b");
+  doc.text(order.invoice?.invoiceNumber || "N/A", 55, detailsY + 24, {
+    width: 100,
+  });
+
+  doc.fontSize(8).fillColor("#64748b");
+  doc.text("Order Number", 160, detailsY + 12);
+  doc.fontSize(9).fillColor("#1e293b");
+  doc.text(order.orderNumber, 160, detailsY + 24, { width: 120 });
+
+  doc.fontSize(8).fillColor("#64748b");
+  doc.text("Date", 55, detailsY + 52);
+  doc.fontSize(9).fillColor("#1e293b");
+  doc.text(
+    new Date(order.createdAt).toLocaleDateString("en-IN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    }),
+    55,
+    detailsY + 64,
+  );
+
+  doc.fontSize(8).fillColor("#64748b");
+  doc.text("Status", 160, detailsY + 52);
+  const statusColor =
+    order.status === "CONFIRMED" ? "#16a34a"
+    : order.status === "CANCELLED" ? "#dc2626"
+    : "#f59e0b";
+  doc
+    .fontSize(9)
+    .fillColor(statusColor)
+    .text(order.status, 160, detailsY + 64);
+
+  // Right box - Customer details
+  doc
+    .fontSize(11)
+    .fillColor("#1e40af")
+    .text("Bill To:", 320, detailsY + 12);
+  doc.fontSize(10).fillColor("#1e293b");
+  doc.text(
+    `${order.user.firstName} ${order.user.lastName}`,
+    320,
+    detailsY + 32,
+  );
+  doc.fontSize(9).fillColor("#64748b");
+  doc.text(order.user.email, 320, detailsY + 50);
+
+  if (order.vendor) {
+    doc.fontSize(9).fillColor("#64748b");
+    doc.text(
+      `Vendor: ${order.vendor.companyName || `${order.vendor.user.firstName} ${order.vendor.user.lastName}`}`,
+      320,
+      detailsY + 68,
+    );
+  }
+
+  // ========== ITEMS TABLE ==========
+  const tableTop = 265;
+  drawRoundedRect(40, tableTop, 515, 30, 4, "#1e40af");
+
+  doc.fontSize(10).fillColor("#ffffff");
+  doc.text("Item Description", 55, tableTop + 10, { width: 180 });
+  doc.text("Period", 240, tableTop + 10, { width: 90 });
+  doc.text("Qty", 335, tableTop + 10, { width: 40, align: "center" });
+  doc.text("Rate", 385, tableTop + 10, { width: 70, align: "right" });
+  doc.text("Amount", 465, tableTop + 10, { width: 75, align: "right" });
+
+  let yPosition = tableTop + 40;
+  doc.fontSize(9);
+
+  order.items.forEach((item, index) => {
+    const startDate = new Date(item.rentalStart).toLocaleDateString("en-IN", {
+      day: "2-digit",
+      month: "short",
+    });
+    const endDate = new Date(item.rentalEnd).toLocaleDateString("en-IN", {
+      day: "2-digit",
+      month: "short",
+    });
+
+    if (index % 2 === 0) {
+      doc.rect(40, yPosition - 5, 515, 28).fill("#f8fafc");
+    }
+
+    doc
+      .fillColor("#1e293b")
+      .text(item.product.name, 55, yPosition, { width: 180 });
+    doc
+      .fillColor("#64748b")
+      .text(`${startDate} - ${endDate}`, 240, yPosition, { width: 90 });
+    doc.fillColor("#1e293b").text(item.quantity.toString(), 335, yPosition, {
+      width: 40,
+      align: "center",
+    });
+    doc.text(`Rs. ${parseFloat(item.unitPrice).toFixed(2)}`, 385, yPosition, {
+      width: 70,
+      align: "right",
+    });
+
+    const lineTotal = item.quantity * parseFloat(item.unitPrice);
+    doc
+      .fillColor("#1e40af")
+      .text(`Rs. ${lineTotal.toFixed(2)}`, 465, yPosition, {
+        width: 75,
+        align: "right",
+      });
+
+    yPosition += 28;
+  });
+
+  doc
+    .moveTo(40, yPosition + 5)
+    .lineTo(555, yPosition + 5)
+    .strokeColor("#e2e8f0")
+    .stroke();
+
+  // ========== TOTALS SECTION ==========
+  yPosition += 25;
+
+  const subtotal = order.items.reduce(
+    (sum, item) => sum + item.quantity * parseFloat(item.unitPrice),
+    0,
+  );
+  const gstAmount = order.invoice ? parseFloat(order.invoice.gstAmount) : 0;
+  const totalAmount =
+    order.invoice ? parseFloat(order.invoice.totalAmount) : subtotal;
+  const paidAmount =
+    order.invoice ?
+      order.invoice.payments
+        .filter((p) => p.status === "SUCCESS")
+        .reduce((sum, p) => sum + parseFloat(p.amount), 0)
+    : 0;
+  const balanceDue = totalAmount - paidAmount;
+
+  drawRoundedRect(350, yPosition, 205, 120, 6, "#f1f5f9");
+
+  doc.fontSize(9).fillColor("#64748b");
+  doc.text("Subtotal:", 365, yPosition + 15, { width: 80 });
+  doc
+    .fillColor("#1e293b")
+    .text(`Rs. ${subtotal.toFixed(2)}`, 455, yPosition + 15, {
+      width: 85,
+      align: "right",
+    });
+
+  doc
+    .fillColor("#64748b")
+    .text("GST (18%):", 365, yPosition + 35, { width: 80 });
+  doc
+    .fillColor("#1e293b")
+    .text(`Rs. ${gstAmount.toFixed(2)}`, 455, yPosition + 35, {
+      width: 85,
+      align: "right",
+    });
+
+  doc
+    .moveTo(365, yPosition + 55)
+    .lineTo(540, yPosition + 55)
+    .strokeColor("#cbd5e1")
+    .stroke();
+
+  doc
+    .fontSize(11)
+    .fillColor("#1e40af")
+    .text("Total:", 365, yPosition + 65, {
+      width: 80,
+    });
+  doc
+    .fontSize(11)
+    .fillColor("#1e40af")
+    .text(`Rs. ${totalAmount.toFixed(2)}`, 455, yPosition + 65, {
+      width: 85,
+      align: "right",
+    });
+
+  doc
+    .fontSize(9)
+    .fillColor("#16a34a")
+    .text("Paid:", 365, yPosition + 85, {
+      width: 80,
+    });
+  doc
+    .fillColor("#16a34a")
+    .text(`Rs. ${paidAmount.toFixed(2)}`, 455, yPosition + 85, {
+      width: 85,
+      align: "right",
+    });
+
+  if (balanceDue > 0) {
+    doc.fillColor("#dc2626").text("Balance Due:", 365, yPosition + 102, {
+      width: 80,
+    });
+    doc
+      .fillColor("#dc2626")
+      .text(`Rs. ${balanceDue.toFixed(2)}`, 455, yPosition + 102, {
+        width: 85,
+        align: "right",
+      });
+  }
+
+  // ========== FOOTER ==========
+  const footerY = 720;
+  doc.moveTo(40, footerY).lineTo(555, footerY).strokeColor("#e2e8f0").stroke();
+
+  doc.fontSize(8).fillColor("#64748b");
+  doc.text("Thank you for your business!", 40, footerY + 15, {
+    align: "center",
+    width: 515,
+  });
+  doc.text(
+    "For any queries, please contact support@rentx.com",
+    40,
+    footerY + 28,
+    { align: "center", width: 515 },
+  );
+
+  doc.end();
+});
+
 // Get single vendor product
 export const getVendorProduct = asyncHandler(async (req, res) => {
   const { productId } = req.params;

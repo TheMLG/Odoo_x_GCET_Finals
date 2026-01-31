@@ -1,13 +1,14 @@
 import { ScrollToTop } from "@/components/common/ScrollToTop";
+import { WelcomeCouponDialog } from "@/components/coupon/WelcomeCouponDialog";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuthStore } from "@/stores/authStore";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
-import { WelcomeCouponDialog } from "@/components/coupon/WelcomeCouponDialog";
 
 // Pages
+import AboutUsPage from "./pages/AboutUsPage";
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
 import LoginPage from "./pages/auth/LoginPage";
 import SignupPage from "./pages/auth/SignupPage";
@@ -18,6 +19,7 @@ import AddressPage from "./pages/checkout/AddressPage";
 import ContactDetailsPage from "./pages/checkout/ContactDetailsPage";
 import DeliveryTimePage from "./pages/checkout/DeliveryTimePage";
 import PaymentPage from "./pages/checkout/PaymentPage";
+import ContactPage from "./pages/ContactPage";
 import AdminDashboard from "./pages/dashboard/AdminDashboard";
 import AdminSettings from "./pages/dashboard/AdminSettings";
 import ManageOrders from "./pages/dashboard/ManageOrders";
@@ -28,6 +30,7 @@ import ReportsAnalytics from "./pages/dashboard/ReportsAnalytics";
 import VendorAddProduct from "./pages/dashboard/VendorAddProduct";
 import VendorDashboard from "./pages/dashboard/VendorDashboard";
 import VendorEditProduct from "./pages/dashboard/VendorEditProduct";
+import VendorInvoices from "./pages/dashboard/VendorInvoices";
 import VendorOrders from "./pages/dashboard/VendorOrders";
 import VendorProducts from "./pages/dashboard/VendorProducts";
 import VendorSettings from "./pages/dashboard/VendorSettings";
@@ -36,15 +39,13 @@ import InvoicePage from "./pages/InvoicePage";
 import NotFound from "./pages/NotFound";
 import OrderDetailPage from "./pages/OrderDetailPage";
 import OrdersPage from "./pages/OrdersPage";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
 import ProductDetailPage from "./pages/ProductDetailPage";
 import ProductsPage from "./pages/ProductsPage";
-import WishlistPage from "./pages/WishlistPage";
-import AboutUsPage from "./pages/AboutUsPage";
-import ContactPage from "./pages/ContactPage";
-import UserSettingsPage from "./pages/UserSettingsPage";
-import TermsAndConditions from "./pages/TermsAndConditions";
-import PrivacyPolicy from "./pages/PrivacyPolicy";
 import RefundPolicy from "./pages/RefundPolicy";
+import TermsAndConditions from "./pages/TermsAndConditions";
+import UserSettingsPage from "./pages/UserSettingsPage";
+import WishlistPage from "./pages/WishlistPage";
 
 const queryClient = new QueryClient();
 
@@ -74,8 +75,8 @@ function ProtectedRoute({
     // Redirect to appropriate dashboard based on role
     const redirectPath =
       userRole === "ADMIN" ? "/admin/dashboard"
-        : userRole === "VENDOR" ? "/vendor/dashboard"
-          : "/";
+      : userRole === "VENDOR" ? "/vendor/dashboard"
+      : "/";
     return <Navigate to={redirectPath} replace />;
   }
 
@@ -91,8 +92,8 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
     // Redirect to appropriate dashboard based on role
     const redirectPath =
       userRole === "ADMIN" ? "/admin/dashboard"
-        : userRole === "VENDOR" ? "/vendor/dashboard"
-          : "/";
+      : userRole === "VENDOR" ? "/vendor/dashboard"
+      : "/";
     return <Navigate to={redirectPath} replace />;
   }
 
@@ -248,6 +249,14 @@ const App = () => (
             element={
               <ProtectedRoute allowedRoles={["VENDOR", "ADMIN"]}>
                 <VendorOrders />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/vendor/invoices"
+            element={
+              <ProtectedRoute allowedRoles={["VENDOR", "ADMIN"]}>
+                <VendorInvoices />
               </ProtectedRoute>
             }
           />

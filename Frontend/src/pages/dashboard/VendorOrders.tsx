@@ -49,6 +49,8 @@ import {
   Clock,
   Eye,
   FileText,
+  LayoutGrid,
+  List,
   Loader2,
   MoreHorizontal,
   Package,
@@ -113,6 +115,7 @@ export default function VendorOrders() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [viewMode, setViewMode] = useState<"list" | "kanban">("list");
   const [selectedOrder, setSelectedOrder] = useState<VendorOrder | null>(null);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -243,6 +246,24 @@ export default function VendorOrders() {
             />
           </div>
           <div className="flex gap-3">
+            <div className="flex items-center rounded-xl border bg-background p-1">
+              <Button
+                variant={viewMode === "list" ? "default" : "ghost"}
+                size="sm"
+                className="rounded-lg px-3"
+                onClick={() => setViewMode("list")}
+              >
+                <List className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={viewMode === "kanban" ? "default" : "ghost"}
+                size="sm"
+                className="rounded-lg px-3"
+                onClick={() => setViewMode("kanban")}
+              >
+                <LayoutGrid className="h-4 w-4" />
+              </Button>
+            </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-[180px] rounded-xl">
                 <SelectValue placeholder="Filter by Status" />
@@ -263,7 +284,8 @@ export default function VendorOrders() {
           <div className="flex justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
           </div>
-        : /* Orders Table */
+        : viewMode === "list" ?
+          /* Orders Table (List View) */
           <Card className="rounded-2xl border border-border/50 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-sm text-left">
@@ -393,6 +415,189 @@ export default function VendorOrders() {
               </table>
             </div>
           </Card>
+        : /* Kanban View */
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {["CONFIRMED", "INVOICED", "RETURNED", "CANCELLED"].map(
+              (status) => {
+                const statusConfig = getStatusConfig(status);
+                const StatusIcon = statusConfig.icon;
+                const statusOrders = filteredOrders.filter(
+                  (order) => order.status === status,
+                );
+
+                return (
+                  <motion.div
+                    key={status}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex flex-col"
+                  >
+                    {/* Column Header */}
+                    <div className="flex items-center gap-2 mb-3 px-1">
+                      <div
+                        className={`flex h-8 w-8 items-center justify-center rounded-lg ${
+                          status === "CONFIRMED" ?
+                            "bg-green-100 dark:bg-green-900"
+                          : status === "INVOICED" ?
+                            "bg-blue-100 dark:bg-blue-900"
+                          : status === "RETURNED" ?
+                            "bg-purple-100 dark:bg-purple-900"
+                          : "bg-red-100 dark:bg-red-900"
+                        }`}
+                      >
+                        <StatusIcon
+                          className={`h-4 w-4 ${statusConfig.color}`}
+                        />
+                      </div>
+                      <span className="font-semibold">
+                        {statusConfig.label}
+                      </span>
+                      <Badge
+                        variant="secondary"
+                        className="ml-auto rounded-full"
+                      >
+                        {statusOrders.length}
+                      </Badge>
+                    </div>
+
+                    {/* Column Cards */}
+                    <div className="flex-1 space-y-3 min-h-[200px] p-2 bg-muted/30 rounded-xl">
+                      {statusOrders.length === 0 ?
+                        <div className="flex flex-col items-center justify-center h-32 text-muted-foreground text-sm">
+                          <Package className="h-6 w-6 mb-2 opacity-50" />
+                          No orders
+                        </div>
+                      : statusOrders.map((order) => {
+                          const itemsSummary = order.items
+                            .map((i) => i.product.name)
+                            .join(", ");
+
+                          return (
+                            <motion.div
+                              key={order.id}
+                              initial={{ opacity: 0, scale: 0.95 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              whileHover={{ scale: 1.02 }}
+                              className="cursor-pointer"
+                              onClick={() => handleViewOrder(order)}
+                            >
+                              <Card className="p-3 hover:shadow-md transition-shadow border-border/50">
+                                <div className="flex items-start justify-between mb-2">
+                                  <span className="text-xs font-medium text-muted-foreground">
+                                    #{order.id.slice(0, 8)}
+                                  </span>
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger
+                                      asChild
+                                      onClick={(e) => e.stopPropagation()}
+                                    >
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-6 w-6 -mr-1 -mt-1"
+                                      >
+                                        <MoreHorizontal className="h-3 w-3" />
+                                      </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                      <DropdownMenuItem
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleViewOrder(order);
+                                        }}
+                                      >
+                                        <Eye className="mr-2 h-4 w-4" />
+                                        View Details
+                                      </DropdownMenuItem>
+                                      {order.status === "CONFIRMED" && (
+                                        <DropdownMenuItem
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleStatusUpdate(
+                                              order.id,
+                                              "INVOICED",
+                                            );
+                                          }}
+                                        >
+                                          <FileText className="mr-2 h-4 w-4" />
+                                          Mark as Invoiced
+                                        </DropdownMenuItem>
+                                      )}
+                                      {order.status === "INVOICED" && (
+                                        <DropdownMenuItem
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleStatusUpdate(
+                                              order.id,
+                                              "RETURNED",
+                                            );
+                                          }}
+                                        >
+                                          <Package className="mr-2 h-4 w-4" />
+                                          Mark as Returned
+                                        </DropdownMenuItem>
+                                      )}
+                                      <DropdownMenuSeparator />
+                                      <DropdownMenuItem
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleDeleteClick(order);
+                                        }}
+                                        className="text-red-600 focus:text-red-600"
+                                      >
+                                        <Trash2 className="mr-2 h-4 w-4" />
+                                        Delete Order
+                                      </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
+                                </div>
+
+                                <div className="flex items-center gap-2 mb-2">
+                                  <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
+                                    {order.user.firstName[0]}
+                                  </div>
+                                  <span className="text-sm font-medium truncate">
+                                    {order.user.firstName} {order.user.lastName}
+                                  </span>
+                                </div>
+
+                                <p
+                                  className="text-xs text-muted-foreground truncate mb-2"
+                                  title={itemsSummary}
+                                >
+                                  {itemsSummary}
+                                </p>
+
+                                <div className="flex items-center justify-between">
+                                  <span className="text-xs text-muted-foreground flex items-center gap-1">
+                                    <Calendar className="h-3 w-3" />
+                                    {order.items.length > 0 ?
+                                      format(
+                                        new Date(order.items[0].rentalEnd),
+                                        "MMM d",
+                                      )
+                                    : "N/A"}
+                                  </span>
+                                  <span className="text-sm font-semibold">
+                                    ₹
+                                    {order.invoice ?
+                                      Number(
+                                        order.invoice.totalAmount,
+                                      ).toLocaleString()
+                                    : "0"}
+                                  </span>
+                                </div>
+                              </Card>
+                            </motion.div>
+                          );
+                        })
+                      }
+                    </div>
+                  </motion.div>
+                );
+              },
+            )}
+          </div>
         }
 
         {/* Empty State */}
