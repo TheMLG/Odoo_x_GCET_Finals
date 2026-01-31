@@ -159,3 +159,56 @@ export const verifyUserOrAdmin = asyncHandler(async (req, res, next) => {
         }
     }
 });
+
+export const verifyVendor = asyncHandler(async (req, res, next) => {
+    try {
+        // Prioritize Authorization header over cookies
+        const token = req.header("Authorization")?.replace("Bearer ", "") || req.cookies?.accessToken;
+
+        if (!token) {
+            throw new ApiError(401, "Unauthorized Request")
+        }
+        
+        const decodeToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
+
+        const user = await prisma.user.findUnique({
+            where: { id: decodeToken?._id },
+            select: {
+                id: true,
+                email: true,
+                firstName: true,
+                lastName: true,
+                createdAt: true,
+                roles: {
+                    include: {
+                        role: true
+                    }
+                },
+                vendor: true
+            }
+        })
+
+        if (!user) {
+            throw new ApiError(404, "Invalid Access Token");
+        }
+
+        // Check if user has VENDOR role
+        const isVendor = user.roles.some(userRole => userRole.role.name === 'VENDOR')
+        if (!isVendor) {
+            throw new ApiError(403, "Access denied. Vendor privileges required.");
+        }
+
+        req.user = user;
+        next()
+    } catch (err) {
+        if (err.name === 'JsonWebTokenError') {
+            throw new ApiError(401, "Invalid token");
+        } else if (err.name === 'TokenExpiredError') {
+            throw new ApiError(401, "Token expired");
+        } else if (err instanceof ApiError) {
+            throw err;
+        } else {
+            throw new ApiError(401, "Authentication failed");
+        }
+    }
+});
