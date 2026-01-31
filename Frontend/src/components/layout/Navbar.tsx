@@ -1,11 +1,11 @@
 import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { 
-  Package, 
-  ShoppingCart, 
-  User, 
-  LogOut, 
-  Menu, 
+import {
+  Package,
+  ShoppingCart,
+  User,
+  LogOut,
+  Menu,
   X,
   LayoutDashboard,
   FileText,
@@ -43,24 +43,26 @@ export function Navbar() {
   ];
 
   const userRole = getUserRole();
-  
+
   const dashboardLink = userRole === 'ADMIN'
-    ? '/admin/dashboard' 
+    ? '/admin/dashboard'
     : userRole === 'VENDOR'
-    ? '/vendor/dashboard' 
-    : '/dashboard';
+      ? '/vendor/dashboard'
+      : '/dashboard';
 
   const settingsLink = userRole === 'ADMIN'
-    ? '/admin/settings' 
+    ? '/admin/settings'
     : userRole === 'VENDOR'
-    ? '/vendor/settings' 
-    : '/settings';
+      ? '/vendor/settings'
+      : '/settings';
 
   const ordersLink = userRole === 'ADMIN'
-    ? '/admin/orders' 
+    ? '/admin/orders'
     : userRole === 'VENDOR'
-    ? '/vendor/orders' 
-    : '/orders';
+      ? '/vendor/orders'
+      : '/orders';
+
+  const isCustomer = !isAuthenticated || (userRole !== 'ADMIN' && userRole !== 'VENDOR');
 
   return (
     <motion.header
@@ -77,49 +79,55 @@ export function Navbar() {
         </Link>
 
         {/* Desktop Navigation */}
-        <div className="hidden flex-1 items-center gap-4 px-8 md:flex">
-          {/* Location */}
-          <button className="flex items-center gap-2 rounded-lg px-3 py-2 hover:bg-muted">
-            <MapPin className="h-5 w-5" />
-            <span className="text-sm font-medium">Mumbai</span>
-          </button>
+        {isCustomer && (
+          <div className="hidden flex-1 items-center gap-4 px-8 md:flex">
+            {/* Location */}
+            <button className="flex items-center gap-2 rounded-lg px-3 py-2 hover:bg-muted">
+              <MapPin className="h-5 w-5" />
+              <span className="text-sm font-medium">Mumbai</span>
+            </button>
 
-          {/* Search Bar */}
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <input
-              type="text"
-              placeholder="Search for products..."
-              className="w-full rounded-lg border border-border bg-background py-2 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-            />
+            {/* Search Bar */}
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <input
+                type="text"
+                placeholder="Search for products..."
+                className="w-full rounded-lg border border-border bg-background py-2 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Actions */}
         <div className="flex items-center gap-3">
           {/* Search Icon for Mobile */}
-          <Button variant="ghost" size="icon" className="rounded-xl md:hidden">
-            <Search className="h-5 w-5" />
-          </Button>
+          {isCustomer && (
+            <Button variant="ghost" size="icon" className="rounded-xl md:hidden">
+              <Search className="h-5 w-5" />
+            </Button>
+          )}
 
           {/* Cart */}
-          <div className="relative">
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="rounded-xl"
-              onClick={() => setIsCartOpen(true)}
-            >
-              <ShoppingCart className="h-5 w-5" />
-              {items.length > 0 && (
-                <Badge 
-                  className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 p-0 text-xs text-white"
-                >
-                  {items.length}
-                </Badge>
-              )}
-            </Button>
-          </div>
+          {isCustomer && (
+            <div className="relative">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="rounded-xl"
+                onClick={() => setIsCartOpen(true)}
+              >
+                <ShoppingCart className="h-5 w-5" />
+                {items.length > 0 && (
+                  <Badge
+                    className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 p-0 text-xs text-white"
+                  >
+                    {items.length}
+                  </Badge>
+                )}
+              </Button>
+            </div>
+          )}
 
           {/* User Menu */}
           {isAuthenticated ? (
@@ -136,18 +144,22 @@ export function Navbar() {
                   <p className="text-xs text-muted-foreground">{user?.email}</p>
                 </div>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link to={dashboardLink} className="flex items-center gap-2">
-                    <LayoutDashboard className="h-4 w-4" />
-                    Dashboard
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to={ordersLink} className="flex items-center gap-2">
-                    <FileText className="h-4 w-4" />
-                    My Orders
-                  </Link>
-                </DropdownMenuItem>
+                {userRole !== 'ADMIN' && (
+                  <>
+                    <DropdownMenuItem asChild>
+                      <Link to={dashboardLink} className="flex items-center gap-2">
+                        <LayoutDashboard className="h-4 w-4" />
+                        Dashboard
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to={ordersLink} className="flex items-center gap-2">
+                        <FileText className="h-4 w-4" />
+                        My Orders
+                      </Link>
+                    </DropdownMenuItem>
+                  </>
+                )}
                 <DropdownMenuItem asChild>
                   <Link to={settingsLink} className="flex items-center gap-2">
                     <Settings className="h-4 w-4" />

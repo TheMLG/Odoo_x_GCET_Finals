@@ -12,14 +12,14 @@ export const getAllUsers = asyncHandler(async (req, res) => {
 
   const where = role
     ? {
-        roles: {
-          some: {
-            role: {
-              name: role.toUpperCase(),
-            },
+      roles: {
+        some: {
+          role: {
+            name: role.toUpperCase(),
           },
         },
-      }
+      },
+    }
     : {};
 
   const [users, total] = await Promise.all([
@@ -393,11 +393,40 @@ export const getAllProducts = asyncHandler(async (req, res) => {
     prisma.product.count({ where }),
   ]);
 
+  // Transform products to match frontend expectations
+  const transformedProducts = products.map((product) => {
+    // Transform pricing array to object
+    const pricingObj = {
+      pricePerDay: 0,
+      pricePerWeek: 0,
+      pricePerMonth: 0,
+    };
+
+    if (product.pricing && Array.isArray(product.pricing)) {
+      product.pricing.forEach((p) => {
+        if (p.type === "DAY") pricingObj.pricePerDay = Number(p.price);
+        if (p.type === "WEEK") pricingObj.pricePerWeek = Number(p.price);
+        if (p.type === "MONTH") pricingObj.pricePerMonth = Number(p.price);
+      });
+    }
+
+    // Transform inventory
+    const inventoryObj = {
+      quantityOnHand: product.inventory?.totalQty || 0,
+    };
+
+    return {
+      ...product,
+      pricing: pricingObj,
+      inventory: inventoryObj,
+    };
+  });
+
   res.status(200).json(
     new ApiResponse(
       200,
       {
-        products,
+        products: transformedProducts,
         pagination: {
           total,
           page: parseInt(page),
@@ -568,7 +597,7 @@ export const getAnalytics = asyncHandler(async (req, res) => {
   // Calculate date range
   const now = new Date();
   let startDate = new Date();
-  
+
   switch (timeRange) {
     case "week":
       startDate.setDate(now.getDate() - 7);
@@ -862,4 +891,176 @@ export const changeAdminPassword = asyncHandler(async (req, res) => {
   res
     .status(200)
     .json(new ApiResponse(200, {}, "Password changed successfully"));
+});
+
+// Update Product
+// Update Product
+export const updateProduct = asyncHandler(async (req, res) => {
+  const { productId } = req.params;
+  const {
+    name,
+    description,
+    isPublished,
+    inventory, // { quantityOnHand: number }
+    pricing, // { pricePerDay: number, pricePerWeek: number, pricePerMonth: number }
+  } = req.body;
+
+  // Use transaction to ensure all updates succeed or fail together
+  const updatedProduct = await prisma.$transaction(async (tx) => {
+    // 1. Update basic product details
+    const product = await tx.product.update({
+      where: { id: productId },
+      data: {
+        name,
+        description,
+        isPublished,
+      },
+    });
+
+    // 2. Update Inventory if provided
+    if (inventory) {
+      // Check if inventory record exists
+      const existingInventory = await tx.productInventory.findUnique({
+        where: { productId },
+      });
+
+      if (existingInventory) {
+        await tx.productInventory.update({
+          where: { productId },
+          data: {
+            totalQty: Number(inventory.quantityOnHand || 0),
+          },
+        });
+      } else {
+        await tx.productInventory.create({
+          data: {
+            productId,
+            totalQty: Number(inventory.quantityOnHand || 0),
+          },
+        });
+      }
+    }
+
+    // 3. Update Pricing if provided
+    if (pricing) {
+      // Auto-calculate prices if missing
+      let pricePerDay = Number(pricing.pricePerDay || 0);
+      let pricePerWeek = Number(pricing.pricePerWeek || 0);
+      let pricePerMonth = Number(pricing.pricePerMonth || 0);
+
+      if (pricePerDay > 0) {
+        if (pricePerWeek === 0) pricePerWeek = pricePerDay * 7;
+        if (pricePerMonth === 0) pricePerMonth = pricePerDay * 30;
+      }
+
+      // Delete existing pricing
+      await tx.rentalPricing.deleteMany({
+        where: { productId },
+      });
+
+      // Create new pricing records
+      const pricingData = [];
+      if (pricePerDay > 0) {
+        pricingData.push({
+          productId,
+          type: "DAY",
+          price: pricePerDay,
+        });
+      }
+      if (pricePerWeek > 0) {
+        pricingData.push({
+          productId,
+          type: "WEEK",
+          price: pricePerWeek,
+        });
+      }
+      if (pricePerMonth > 0) {
+        pricingData.push({
+          productId,
+          type: "MONTH",
+          price: pricePerMonth,
+        });
+      }
+
+      if (pricingData.length > 0) {
+        await tx.rentalPricing.createMany({
+          data: pricingData,
+        });
+      }
+    }
+
+    // 4. Fetch the complete updated product
+    return await tx.product.findUnique({
+      where: { id: productId },
+      include: {
+        inventory: true,
+        pricing: true,
+        vendor: {
+          include: {
+            user: {
+              select: {
+                firstName: true,
+                lastName: true,
+                email: true,
+              },
+            },
+          },
+        },
+      },
+    });
+  });
+
+  // Transform the response to match frontend expectations (same as getAllProducts)
+  const pricingObj = {
+    pricePerDay: 0,
+    pricePerWeek: 0,
+    pricePerMonth: 0,
+  };
+
+  if (updatedProduct.pricing && Array.isArray(updatedProduct.pricing)) {
+    updatedProduct.pricing.forEach((p) => {
+      if (p.type === "DAY") pricingObj.pricePerDay = Number(p.price);
+      if (p.type === "WEEK") pricingObj.pricePerWeek = Number(p.price);
+      if (p.type === "MONTH") pricingObj.pricePerMonth = Number(p.price);
+    });
+  }
+
+  const inventoryObj = {
+    quantityOnHand: updatedProduct.inventory?.totalQty || 0,
+  };
+
+  const finalResponse = {
+    ...updatedProduct,
+    pricing: pricingObj,
+    inventory: inventoryObj,
+  };
+
+  return res.status(200).json(
+    new ApiResponse(200, finalResponse, "Product updated successfully")
+  );
+});
+
+// Delete Product
+export const deleteProduct = asyncHandler(async (req, res) => {
+  const { productId } = req.params;
+
+  // Use transaction to delete all related data
+  await prisma.$transaction(async (tx) => {
+    // 1. Delete dependent relations first
+    await tx.reservation.deleteMany({ where: { productId } });
+    await tx.orderItem.deleteMany({ where: { productId } });
+    await tx.cartItem.deleteMany({ where: { productId } });
+    await tx.productAttribute.deleteMany({ where: { productId } });
+    await tx.rentalPricing.deleteMany({ where: { productId } });
+
+    // 2. Delete inventory (one-to-one)
+    await tx.productInventory.deleteMany({ where: { productId } });
+
+    // 3. Finally delete the product
+    await tx.product.delete({ where: { id: productId } });
+  });
+
+  return res.status(200).json(
+    new ApiResponse(200, {}, "Product deleted successfully")
+  );
 });

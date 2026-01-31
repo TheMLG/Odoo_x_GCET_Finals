@@ -207,7 +207,7 @@ export function CartSheet({ open, onClose }: CartSheetProps) {
                   </div>
                   <div className="flex items-center gap-1.5 text-sm text-emerald-600">
                     <Zap className="h-4 w-4 fill-emerald-600" />
-                    <span>Additional day at ₹108 only on this cart</span>
+                    <span>Additional day at {'\u20B9'}108 only on this cart</span>
                   </div>
                 </div>
 

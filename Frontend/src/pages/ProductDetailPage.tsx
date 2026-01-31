@@ -6,15 +6,67 @@ import { RentalConfigurator } from '@/components/products/RentalConfigurator';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useRentalStore } from '@/stores/rentalStore';
+import { useState, useEffect } from 'react';
+import api from '@/lib/api';
+import { Product } from '@/types/rental';
 
 export default function ProductDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { products } = useRentalStore();
-  const product = products.find((p) => p.id === id);
+  const [product, setProduct] = useState<Product | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  if (!product) {
+  useEffect(() => {
+    const fetchProduct = async () => {
+      if (!id) return;
+      setIsLoading(true);
+      try {
+        const response = await api.get(`/products/${id}`);
+        const p = response.data.data;
+
+        // Map backend response to Product type
+        const mappedProduct = {
+          id: p.id,
+          name: p.name,
+          description: p.description,
+          category: p.vendor?.product_category || 'Uncategorized',
+          images: p.images || ['https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=1000&auto=format&fit=crop'], // Placeholder
+          isRentable: true,
+          isPublished: p.isPublished,
+          costPrice: 0,
+          pricePerHour: 0,
+          pricePerDay: p.pricing?.pricePerDay || 0,
+          pricePerWeek: p.pricing?.pricePerWeek || 0,
+          quantityOnHand: p.inventory?.quantityOnHand || 0,
+          vendorId: p.vendorId,
+          attributes: p.attributes || {},
+          createdAt: p.createdAt
+        };
+
+        setProduct(mappedProduct);
+      } catch (err) {
+        console.error("Error fetching product:", err);
+        setError("Failed to load product");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProduct();
+  }, [id]);
+
+  if (isLoading) {
+    return (
+      <MainLayout>
+        <div className="container flex min-h-[50vh] flex-col items-center justify-center px-4 py-12">
+          <p>Loading...</p>
+        </div>
+      </MainLayout>
+    );
+  }
+
+  if (error || !product) {
     return (
       <MainLayout>
         <div className="container flex min-h-[50vh] flex-col items-center justify-center px-4 py-12">
@@ -32,7 +84,7 @@ export default function ProductDetailPage() {
   }
 
   const features = [
-    { icon: Package, label: 'Free delivery on orders above ₹5,000' },
+    { icon: Package, label: 'Free delivery on orders above \u20B95,000' },
     { icon: Shield, label: 'Fully insured equipment' },
     { icon: Clock, label: 'Flexible rental periods' },
   ];
@@ -186,9 +238,8 @@ export default function ProductDetailPage() {
                       {Array.from({ length: 5 }).map((_, i) => (
                         <Star
                           key={i}
-                          className={`h-5 w-5 ${
-                            i < 4 ? 'fill-warning text-warning' : 'text-muted'
-                          }`}
+                          className={`h-5 w-5 ${i < 4 ? 'fill-warning text-warning' : 'text-muted'
+                            }`}
                         />
                       ))}
                     </div>

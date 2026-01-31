@@ -3,16 +3,13 @@ import { cn } from '@/lib/utils';
 import {
   LayoutDashboard,
   Users,
-  Store,
   Package,
   ShoppingCart,
   BarChart3,
   Settings,
-  FileText,
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react';
-import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 
 const menuItems = [
@@ -54,15 +51,58 @@ const menuItems = [
   },
 ];
 
-export function AdminSidebar() {
-  const location = useLocation();
-  const [isCollapsed, setIsCollapsed] = useState(false);
+interface SidebarNavProps {
+  isCollapsed?: boolean;
+  onItemClick?: () => void;
+}
 
+export function SidebarNav({ isCollapsed, onItemClick }: SidebarNavProps) {
+  const location = useLocation();
+
+  return (
+    <nav className="flex-1 space-y-1 overflow-y-auto p-3">
+      {menuItems.map((item) => {
+        const isActive = location.pathname === item.href ||
+          (item.href !== '/admin/dashboard' && location.pathname.startsWith(item.href));
+        const Icon = item.icon;
+
+        return (
+          <Link
+            key={item.href}
+            to={item.href}
+            onClick={onItemClick}
+            className={cn(
+              'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
+              isActive
+                ? 'bg-primary/10 text-primary'
+                : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+            )}
+            title={isCollapsed ? item.title : undefined}
+          >
+            <Icon className={cn('h-5 w-5 flex-shrink-0', isActive && 'text-primary')} />
+            {!isCollapsed && (
+              <span>{item.title}</span>
+            )}
+          </Link>
+        );
+      })}
+    </nav>
+  );
+}
+
+interface AdminSidebarProps {
+  isCollapsed: boolean;
+  setIsCollapsed: (value: boolean) => void;
+  className?: string;
+}
+
+export function AdminSidebar({ isCollapsed, setIsCollapsed, className }: AdminSidebarProps) {
   return (
     <aside
       className={cn(
-        'fixed left-0 top-16 z-40 h-[calc(100vh-4rem)] border-r bg-card transition-all duration-300',
-        isCollapsed ? 'w-16' : 'w-64'
+        'fixed left-0 top-16 z-40 h-[calc(100vh-4rem)] border-r bg-card transition-all duration-300 hidden md:block',
+        isCollapsed ? 'w-16' : 'w-64',
+        className
       )}
     >
       <div className="flex h-full flex-col">
@@ -88,32 +128,7 @@ export function AdminSidebar() {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 space-y-1 overflow-y-auto p-3">
-          {menuItems.map((item) => {
-            const isActive = location.pathname === item.href || 
-                           (item.href !== '/admin/dashboard' && location.pathname.startsWith(item.href));
-            const Icon = item.icon;
-
-            return (
-              <Link
-                key={item.href}
-                to={item.href}
-                className={cn(
-                  'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
-                  isActive
-                    ? 'bg-primary/10 text-primary'
-                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                )}
-                title={isCollapsed ? item.title : undefined}
-              >
-                <Icon className={cn('h-5 w-5 flex-shrink-0', isActive && 'text-primary')} />
-                {!isCollapsed && (
-                  <span>{item.title}</span>
-                )}
-              </Link>
-            );
-          })}
-        </nav>
+        <SidebarNav isCollapsed={isCollapsed} />
 
         {/* Footer Info */}
         {!isCollapsed && (

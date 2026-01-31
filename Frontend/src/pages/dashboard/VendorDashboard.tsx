@@ -1,6 +1,5 @@
-```
-import { motion } 'framer-motion';
-import { Link } 'react-router-dom';
+import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import {
   Package,
   ShoppingCart,
@@ -52,7 +51,7 @@ export default function VendorDashboard() {
   const stats = [
     {
       title: 'Total Revenue',
-      value: `₹${ totalRevenue.toLocaleString() } `,
+      value: `\u20B9${totalRevenue.toLocaleString()} `,
       icon: IndianRupee,
       textColor: 'text-emerald-700',
       bgColor: 'bg-emerald-100',
@@ -132,19 +131,19 @@ export default function VendorDashboard() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
             >
-              <Card className={`rounded - 3xl border - 0 shadow - sm ${ stat.bgColor } `}>
+              <Card className={`rounded-3xl border-0 shadow-sm ${stat.bgColor}`}>
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between mb-3">
-                    <p className={`text - sm font - semibold uppercase tracking - wide ${ stat.textColor } `}>
+                    <p className={`text-sm font-semibold uppercase tracking-wide ${stat.textColor}`}>
                       {stat.title}
                     </p>
                     <div className="flex h-11 w-11 items-center justify-center rounded-full bg-white shadow-sm">
-                      <stat.icon className={`h - 5 w - 5 ${ stat.iconColor } `} />
+                      <stat.icon className={`h-5 w-5 ${stat.iconColor}`} />
                     </div>
                   </div>
                   <div className="space-y-0.5">
-                    <p className={`text - 4xl font - bold ${ stat.textColor } `}>{stat.value}</p>
-                    <p className={`text - sm ${ stat.textColor } opacity - 70`}>{stat.subtitle}</p>
+                    <p className={`text-4xl font-bold ${stat.textColor}`}>{stat.value}</p>
+                    <p className={`text-sm ${stat.textColor} opacity-70`}>{stat.subtitle}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -184,7 +183,7 @@ export default function VendorDashboard() {
                           border: '1px solid hsl(var(--border))',
                           borderRadius: '12px',
                         }}
-                        formatter={(value: number) => [`₹${ value.toLocaleString() } `, 'Revenue']}
+                        formatter={(value: number) => [`\u20B9${value.toLocaleString()} `, 'Revenue']}
                       />
                       <Area
                         type="monotone"
@@ -258,7 +257,7 @@ export default function VendorDashboard() {
                       <div className="flex-1 min-w-0">
                         <p className="truncate font-medium">{product.name}</p>
                         <p className="text-sm text-muted-foreground">
-                          ₹{product.pricePerDay}/day
+                          {'\u20B9'}{product.pricePerDay}/day
                         </p>
                       </div>
                       <Badge variant="secondary" className="rounded-lg">

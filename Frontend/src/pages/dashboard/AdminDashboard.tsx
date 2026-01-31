@@ -5,7 +5,6 @@ import {
   Users,
   Package,
   ShoppingCart,
-  ShoppingCart,
   TrendingUp,
   Settings,
   BarChart3,
@@ -185,7 +184,7 @@ export default function AdminDashboard() {
                     </div>
                   </div>
                   <div className="space-y-0.5">
-                    <p className={`text-4xl font-bold ${stat.textColor}`}>{stat.value}</p>
+                    <div className={`text-4xl font-bold ${stat.textColor}`}>{stat.value}</div>
                     <p className={`text-sm ${stat.textColor} opacity-70`}>{stat.subtitle}</p>
                   </div>
                 </CardContent>

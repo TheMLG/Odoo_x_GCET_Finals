@@ -292,7 +292,7 @@ export default function ManageOrders() {
                     <IndianRupee className="h-4 w-4 text-green-600" />
                   </div>
                 </div>
-                <p className="text-3xl font-bold text-green-700">₹{stats.totalRevenue.toLocaleString()}</p>
+                <p className="text-3xl font-bold text-green-700">{'\u20B9'}{stats.totalRevenue.toLocaleString()}</p>
               </CardContent>
             </Card>
           </motion.div>

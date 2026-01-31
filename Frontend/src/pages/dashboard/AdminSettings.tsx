@@ -9,21 +9,22 @@ import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { useAuthStore } from '@/stores/authStore';
 import api from '@/lib/api';
-import { 
-  User, 
-  Mail, 
-  Lock, 
-  Save, 
+import {
+  User,
+  Mail,
+  Lock,
+  Save,
   ArrowLeft,
   Shield,
-  KeyRound 
+  KeyRound
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function AdminSettings() {
   const { toast } = useToast();
   const { user, setUser } = useAuthStore();
-  
+
   // Profile form state
   const [profileForm, setProfileForm] = useState({
     firstName: '',
@@ -31,7 +32,7 @@ export default function AdminSettings() {
     email: '',
   });
   const [isProfileLoading, setIsProfileLoading] = useState(false);
-  
+
   // Password form state
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: '',
@@ -59,10 +60,10 @@ export default function AdminSettings() {
     try {
       const response = await api.put('/admin/profile', profileForm);
       const updatedUser = response.data.data;
-      
+
       // Update auth store
       setUser(updatedUser);
-      
+
       toast({
         title: 'Success',
         description: 'Profile updated successfully',
@@ -140,12 +141,7 @@ export default function AdminSettings() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
-          <Button variant="ghost" asChild className="mb-4">
-            <Link to="/admin/dashboard">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Dashboard
-            </Link>
-          </Button>
+
           <div className="flex items-center gap-3 mb-2">
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
               <Shield className="h-6 w-6 text-primary" />
@@ -159,191 +155,200 @@ export default function AdminSettings() {
           </div>
         </motion.div>
 
-        <div className="space-y-6">
-          {/* Profile Information */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-          >
-            <Card className="rounded-2xl">
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <User className="h-5 w-5 text-primary" />
+        <Tabs defaultValue="general" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 lg:w-[400px] mb-8">
+            <TabsTrigger value="general" className="gap-2">
+              <User className="h-4 w-4" />
+              General
+            </TabsTrigger>
+            <TabsTrigger value="security" className="gap-2">
+              <Lock className="h-4 w-4" />
+              Security
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="general">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+            >
+              <Card className="rounded-2xl border-none shadow-sm">
+                <CardHeader>
                   <CardTitle>Profile Information</CardTitle>
-                </div>
-                <CardDescription>
-                  Update your personal information and email address
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleProfileUpdate} className="space-y-4">
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label htmlFor="firstName">First Name</Label>
-                      <Input
-                        id="firstName"
-                        placeholder="Enter first name"
-                        value={profileForm.firstName}
-                        onChange={(e) =>
-                          setProfileForm({ ...profileForm, firstName: e.target.value })
-                        }
-                        required
-                        className="rounded-xl"
-                      />
+                  <CardDescription>
+                    Update your personal information and email address
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <form onSubmit={handleProfileUpdate} className="space-y-6">
+                    <div className="grid gap-6 sm:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label htmlFor="firstName">First Name</Label>
+                        <Input
+                          id="firstName"
+                          placeholder="Enter first name"
+                          value={profileForm.firstName}
+                          onChange={(e) =>
+                            setProfileForm({ ...profileForm, firstName: e.target.value })
+                          }
+                          required
+                          className="rounded-xl"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="lastName">Last Name</Label>
+                        <Input
+                          id="lastName"
+                          placeholder="Enter last name"
+                          value={profileForm.lastName}
+                          onChange={(e) =>
+                            setProfileForm({ ...profileForm, lastName: e.target.value })
+                          }
+                          required
+                          className="rounded-xl"
+                        />
+                      </div>
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="lastName">Last Name</Label>
-                      <Input
-                        id="lastName"
-                        placeholder="Enter last name"
-                        value={profileForm.lastName}
-                        onChange={(e) =>
-                          setProfileForm({ ...profileForm, lastName: e.target.value })
-                        }
-                        required
-                        className="rounded-xl"
-                      />
+                      <Label htmlFor="email">Email Address</Label>
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="email"
+                          type="email"
+                          placeholder="admin@example.com"
+                          value={profileForm.email}
+                          onChange={(e) =>
+                            setProfileForm({ ...profileForm, email: e.target.value })
+                          }
+                          required
+                          className="pl-10 rounded-xl"
+                        />
+                      </div>
                     </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email Address</Label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="email"
-                        type="email"
-                        placeholder="admin@example.com"
-                        value={profileForm.email}
-                        onChange={(e) =>
-                          setProfileForm({ ...profileForm, email: e.target.value })
-                        }
-                        required
-                        className="pl-10 rounded-xl"
-                      />
+                    <div className="flex justify-end">
+                      <Button
+                        type="submit"
+                        disabled={isProfileLoading}
+                        className="rounded-xl min-w-[140px]"
+                      >
+                        {isProfileLoading ? (
+                          'Saving...'
+                        ) : (
+                          <>
+                            <Save className="mr-2 h-4 w-4" />
+                            Save Changes
+                          </>
+                        )}
+                      </Button>
                     </div>
-                  </div>
-                  <Button
-                    type="submit"
-                    disabled={isProfileLoading}
-                    className="rounded-xl"
-                  >
-                    {isProfileLoading ? (
-                      'Saving...'
-                    ) : (
-                      <>
-                        <Save className="mr-2 h-4 w-4" />
-                        Save Changes
-                      </>
-                    )}
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
-          </motion.div>
+                  </form>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </TabsContent>
 
-          <Separator />
-
-          {/* Change Password */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-          >
-            <Card className="rounded-2xl">
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <KeyRound className="h-5 w-5 text-primary" />
+          <TabsContent value="security">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+            >
+              <Card className="rounded-2xl border-none shadow-sm">
+                <CardHeader>
                   <CardTitle>Change Password</CardTitle>
-                </div>
-                <CardDescription>
-                  Ensure your account is using a strong password
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handlePasswordChange} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="currentPassword">Current Password</Label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="currentPassword"
-                        type="password"
-                        placeholder="Enter current password"
-                        value={passwordForm.currentPassword}
-                        onChange={(e) =>
-                          setPasswordForm({
-                            ...passwordForm,
-                            currentPassword: e.target.value,
-                          })
-                        }
-                        required
-                        className="pl-10 rounded-xl"
-                      />
+                  <CardDescription>
+                    Ensure your account is using a strong password
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <form onSubmit={handlePasswordChange} className="space-y-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="currentPassword">Current Password</Label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="currentPassword"
+                          type="password"
+                          placeholder="Enter current password"
+                          value={passwordForm.currentPassword}
+                          onChange={(e) =>
+                            setPasswordForm({
+                              ...passwordForm,
+                              currentPassword: e.target.value,
+                            })
+                          }
+                          required
+                          className="pl-10 rounded-xl"
+                        />
+                      </div>
                     </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="newPassword">New Password</Label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="newPassword"
-                        type="password"
-                        placeholder="Enter new password"
-                        value={passwordForm.newPassword}
-                        onChange={(e) =>
-                          setPasswordForm({
-                            ...passwordForm,
-                            newPassword: e.target.value,
-                          })
-                        }
-                        required
-                        className="pl-10 rounded-xl"
-                      />
+                    <div className="space-y-2">
+                      <Label htmlFor="newPassword">New Password</Label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="newPassword"
+                          type="password"
+                          placeholder="Enter new password"
+                          value={passwordForm.newPassword}
+                          onChange={(e) =>
+                            setPasswordForm({
+                              ...passwordForm,
+                              newPassword: e.target.value,
+                            })
+                          }
+                          required
+                          className="pl-10 rounded-xl"
+                        />
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Password must be at least 6 characters long
+                      </p>
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      Password must be at least 6 characters long
-                    </p>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="confirmPassword">Confirm New Password</Label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="confirmPassword"
-                        type="password"
-                        placeholder="Confirm new password"
-                        value={passwordForm.confirmPassword}
-                        onChange={(e) =>
-                          setPasswordForm({
-                            ...passwordForm,
-                            confirmPassword: e.target.value,
-                          })
-                        }
-                        required
-                        className="pl-10 rounded-xl"
-                      />
+                    <div className="space-y-2">
+                      <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="confirmPassword"
+                          type="password"
+                          placeholder="Confirm new password"
+                          value={passwordForm.confirmPassword}
+                          onChange={(e) =>
+                            setPasswordForm({
+                              ...passwordForm,
+                              confirmPassword: e.target.value,
+                            })
+                          }
+                          required
+                          className="pl-10 rounded-xl"
+                        />
+                      </div>
                     </div>
-                  </div>
-                  <Button
-                    type="submit"
-                    disabled={isPasswordLoading}
-                    className="rounded-xl"
-                  >
-                    {isPasswordLoading ? (
-                      'Changing Password...'
-                    ) : (
-                      <>
-                        <Lock className="mr-2 h-4 w-4" />
-                        Change Password
-                      </>
-                    )}
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
-          </motion.div>
-        </div>
+                    <div className="flex justify-end">
+                      <Button
+                        type="submit"
+                        disabled={isPasswordLoading}
+                        className="rounded-xl min-w-[180px]"
+                      >
+                        {isPasswordLoading ? (
+                          'Changing Password...'
+                        ) : (
+                          <>
+                            <Lock className="mr-2 h-4 w-4" />
+                            Change Password
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </form>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </TabsContent>
+        </Tabs>
       </div>
     </AdminLayout>
   );

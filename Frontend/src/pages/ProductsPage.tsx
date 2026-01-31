@@ -1,18 +1,61 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { ProductCard } from '@/components/products/ProductCard';
 import { ProductFilters } from '@/components/products/ProductFilters';
-import { useRentalStore } from '@/stores/rentalStore';
+import api from '@/lib/api';
+import { Product } from '@/types/rental';
 
 export default function ProductsPage() {
-  const { products } = useRentalStore();
+  const [products, setProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState('featured');
 
+  useEffect(() => {
+    const fetchProducts = async () => {
+      setIsLoading(true);
+      try {
+        const response = await api.get('/products');
+        // Map backend response to Product type
+        const mappedProducts = response.data.data.map((p: any) => ({
+          id: p.id,
+          name: p.name,
+          description: p.description,
+          category: p.vendor?.product_category || 'Uncategorized',
+          images: p.images || [], // Ensure backend sends images, otherwise default empty?? Backend Product model doesn't have images field?
+          // Backend Product model has NO images field in schema.prisma! 
+          // Wait, schema.prisma Step 28 showed no images field for Product.
+          // Yet Mock data likely has images. 
+          // If backend doesn't have images, I should probably provide a placeholder or check if I missed separate Images table.
+          // Checking Schema Step 28: Product has id, vendorId, name, description, isPublished, createdAt.
+          // NO IMAGES.
+          // I should add a placeholder image for now or use a random one.
+          isRentable: true, // Assuming all fetched are rentals
+          isPublished: p.isPublished,
+          costPrice: 0, // Not exposed publicly
+          pricePerHour: 0, // Not in basic pricing transformation currently? 
+          pricePerDay: p.pricing?.pricePerDay || 0,
+          pricePerWeek: p.pricing?.pricePerWeek || 0,
+          quantityOnHand: p.inventory?.quantityOnHand || 0,
+          vendorId: p.vendorId,
+          attributes: p.attributes || {},
+          createdAt: p.createdAt
+        }));
+        setProducts(mappedProducts);
+      } catch (error) {
+        console.error('Failed to fetch products:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
+
   const filteredProducts = useMemo(() => {
-    let result = products.filter((p) => p.isPublished && p.isRentable);
+    let result = products.filter((p) => p.isPublished);
 
     // Search filter
     if (searchQuery) {

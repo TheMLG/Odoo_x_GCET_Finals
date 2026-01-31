@@ -28,6 +28,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -90,6 +91,49 @@ export default function ManageProducts() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [deletingProduct, setDeletingProduct] = useState<Product | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [isUpdating, setIsUpdating] = useState(false);
+
+  // ... (fetchProducts)
+
+  const handleUpdateProduct = async () => {
+    if (!editingProduct) return;
+
+    setIsUpdating(true);
+    try {
+      const response = await api.put(`/admin/products/${editingProduct.id}`, {
+        name: editingProduct.name,
+        description: editingProduct.description,
+        isPublished: editingProduct.isPublished,
+        inventory: {
+          quantityOnHand: editingProduct.inventory?.quantityOnHand
+        },
+        pricing: {
+          pricePerDay: editingProduct.pricing?.pricePerDay,
+          pricePerWeek: editingProduct.pricing?.pricePerWeek,
+          pricePerMonth: editingProduct.pricing?.pricePerMonth
+        }
+      });
+
+      setProducts(prevProducts => prevProducts.map(p =>
+        p.id === editingProduct.id ? response.data.data : p
+      ));
+
+      toast({
+        title: 'Success',
+        description: 'Product updated successfully',
+      });
+      setEditingProduct(null);
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.response?.data?.message || 'Failed to update product',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsUpdating(false);
+    }
+  };
 
   useEffect(() => {
     fetchProducts();
@@ -408,6 +452,7 @@ export default function ManageProducts() {
                                 variant="ghost"
                                 size="icon"
                                 className="h-8 w-8"
+                                onClick={() => setEditingProduct(product)}
                               >
                                 <Edit className="h-4 w-4" />
                               </Button>
@@ -506,6 +551,152 @@ export default function ManageProducts() {
           )}
           <DialogFooter>
             <Button onClick={() => setIsViewDialogOpen(false)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Product Dialog */}
+      <Dialog open={!!editingProduct} onOpenChange={(open) => !open && setEditingProduct(null)}>
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Product</DialogTitle>
+            <DialogDescription>
+              Update product details. Click save when you're done.
+            </DialogDescription>
+          </DialogHeader>
+
+          {editingProduct && (
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="name">Product Name</Label>
+                <Input
+                  id="name"
+                  value={editingProduct.name}
+                  onChange={(e) => setEditingProduct({ ...editingProduct, name: e.target.value })}
+                />
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="description">Description</Label>
+                <textarea
+                  id="description"
+                  className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  value={editingProduct.description}
+                  onChange={(e) => setEditingProduct({ ...editingProduct, description: e.target.value })}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="status">Status</Label>
+                  <Select
+                    value={editingProduct.isPublished ? 'published' : 'unpublished'}
+                    onValueChange={(value) => setEditingProduct({ ...editingProduct, isPublished: value === 'published' })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="published">Published</SelectItem>
+                      <SelectItem value="unpublished">Unpublished</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="stock">Stock Quantity</Label>
+                  <Input
+                    id="stock"
+                    type="number"
+                    value={editingProduct.inventory?.quantityOnHand}
+                    onChange={(e) => setEditingProduct({
+                      ...editingProduct,
+                      inventory: {
+                        ...editingProduct.inventory!,
+                        quantityOnHand: parseInt(e.target.value) || 0
+                      }
+                    })}
+                  />
+                </div>
+              </div>
+
+              <div className="grid gap-2">
+                <Label>Pricing</Label>
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="grid gap-1.5">
+                    <Label htmlFor="priceDay" className="text-xs">Per Day</Label>
+                    <div className="relative">
+                      <IndianRupee className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="priceDay"
+                        className="pl-9"
+                        type="number"
+                        value={editingProduct.pricing?.pricePerDay}
+                        onChange={(e) => setEditingProduct({
+                          ...editingProduct,
+                          pricing: {
+                            ...editingProduct.pricing!,
+                            pricePerDay: parseInt(e.target.value) || 0,
+                            pricePerWeek: editingProduct.pricing?.pricePerWeek || 0,
+                            pricePerMonth: editingProduct.pricing?.pricePerMonth || 0
+                          }
+                        })}
+                      />
+                    </div>
+                  </div>
+                  <div className="grid gap-1.5">
+                    <Label htmlFor="priceWeek" className="text-xs">Per Week</Label>
+                    <div className="relative">
+                      <IndianRupee className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="priceWeek"
+                        className="pl-9"
+                        type="number"
+                        value={editingProduct.pricing?.pricePerWeek}
+                        onChange={(e) => setEditingProduct({
+                          ...editingProduct,
+                          pricing: {
+                            ...editingProduct.pricing!,
+                            pricePerDay: editingProduct.pricing?.pricePerDay || 0,
+                            pricePerWeek: parseInt(e.target.value) || 0,
+                            pricePerMonth: editingProduct.pricing?.pricePerMonth || 0
+                          }
+                        })}
+                      />
+                    </div>
+                  </div>
+                  <div className="grid gap-1.5">
+                    <Label htmlFor="priceMonth" className="text-xs">Per Month</Label>
+                    <div className="relative">
+                      <IndianRupee className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="priceMonth"
+                        className="pl-9"
+                        type="number"
+                        value={editingProduct.pricing?.pricePerMonth}
+                        onChange={(e) => setEditingProduct({
+                          ...editingProduct,
+                          pricing: {
+                            ...editingProduct.pricing!,
+                            pricePerDay: editingProduct.pricing?.pricePerDay || 0,
+                            pricePerWeek: editingProduct.pricing?.pricePerWeek || 0,
+                            pricePerMonth: parseInt(e.target.value) || 0
+                          }
+                        })}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditingProduct(null)}>
+              Cancel
+            </Button>
+            <Button onClick={handleUpdateProduct} disabled={isUpdating}>
+              {isUpdating ? 'Saving...' : 'Save Changes'}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

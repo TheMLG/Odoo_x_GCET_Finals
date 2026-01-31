@@ -101,7 +101,7 @@ export function RentalConfigurator({ product }: RentalConfiguratorProps) {
         <div className="text-4xl font-bold">{formatPrice(totalPrice)}</div>
         <div className="flex items-center gap-1.5 text-sm text-pink-600 font-medium">
           <Tag className="h-4 w-4" />
-          Additional day at ₹108 only
+          Additional day at {'\u20B9'}108 only
         </div>
         <div className="text-xs text-muted-foreground">Price incl. of all taxes</div>
       </div>
@@ -131,7 +131,7 @@ export function RentalConfigurator({ product }: RentalConfiguratorProps) {
             <div className="flex-1">
               <div className="font-medium">SHAREPAL</div>
               <div className="text-sm text-muted-foreground">
-                Use code SHAREPAL & get 10% off on orders above ₹1500. Maximum discount: ₹300
+                Use code SHAREPAL & get 10% off on orders above {'\u20B9'}1500. Maximum discount: {'\u20B9'}300
               </div>
             </div>
           </div>
@@ -142,7 +142,7 @@ export function RentalConfigurator({ product }: RentalConfiguratorProps) {
             <div className="flex-1">
               <div className="font-medium">EARLYE</div>
               <div className="text-sm text-muted-foreground">
-                Use code EARLYE & get 15% off on orders above ₹2000
+                Use code EARLYE & get 15% off on orders above {'\u20B9'}2000
               </div>
             </div>
           </div>

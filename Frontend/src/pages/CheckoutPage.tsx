@@ -26,7 +26,7 @@ export default function CheckoutPage() {
   const { items, getTotalAmount } = useCartStore();
   const [currentStep, setCurrentStep] = useState(1);
   const [showCoupons, setShowCoupons] = useState(false);
-  
+
   // Form state
   const [formData, setFormData] = useState({
     firstName: 'Ronit',
@@ -105,8 +105,8 @@ export default function CheckoutPage() {
                       step.id === currentStep
                         ? 'bg-blue-600 text-white'
                         : step.id < currentStep
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-200 text-gray-600'
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-200 text-gray-600'
                     )}
                   >
                     {step.id}
@@ -307,9 +307,8 @@ export default function CheckoutPage() {
                   >
                     View Coupons
                     <ChevronDown
-                      className={`h-4 w-4 transition-transform ${
-                        showCoupons ? 'rotate-180' : ''
-                      }`}
+                      className={`h-4 w-4 transition-transform ${showCoupons ? 'rotate-180' : ''
+                        }`}
                     />
                   </button>
                 </div>
@@ -330,7 +329,7 @@ export default function CheckoutPage() {
                 <div className="mb-6 flex items-center gap-2 rounded-xl bg-green-50 p-4">
                   <Zap className="h-5 w-5 fill-green-600 text-green-600" />
                   <p className="text-sm font-medium text-green-800">
-                    Yay! You're saving ₹41,500 by choosing to rent.
+                    Yay! You're saving {'\u20B9'}41,500 by choosing to rent.
                   </p>
                 </div>
 

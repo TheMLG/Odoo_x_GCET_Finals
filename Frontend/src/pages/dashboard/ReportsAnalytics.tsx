@@ -38,6 +38,8 @@ import {
   Area,
   AreaChart,
 } from 'recharts';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import api from '@/lib/api';
@@ -70,6 +72,142 @@ export default function ReportsAnalytics() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const formatCurrencyValue = (value: any) => {
+    if (typeof value === 'number') return value.toLocaleString();
+    if (typeof value === 'string') {
+      // Remove ₹ symbol, commas and whitespace
+      const clean = value.replace(/[₹,]/g, '').trim();
+      const lower = clean.toLowerCase();
+
+      if (lower.endsWith('k')) {
+        const num = parseFloat(lower.replace('k', ''));
+        return (num * 1000).toLocaleString();
+      }
+      if (lower.endsWith('m')) {
+        const num = parseFloat(lower.replace('m', ''));
+        return (num * 1000000).toLocaleString();
+      }
+
+      const num = parseFloat(clean);
+      return !isNaN(num) ? num.toLocaleString() : clean;
+    }
+    return value;
+  };
+
+  const handleExport = () => {
+    if (!analyticsData) return;
+
+    const doc = new jsPDF();
+    const date = new Date().toLocaleDateString();
+
+    // Title
+    doc.setFontSize(20);
+    doc.text('SharePal Analytics Report', 14, 22);
+
+    doc.setFontSize(10);
+    doc.text(`Generated on: ${date}`, 14, 30);
+    doc.text(`Time Range: ${timeRange.charAt(0).toUpperCase() + timeRange.slice(1)}`, 14, 35);
+
+    // Summary Stats
+    doc.setFontSize(14);
+    doc.text('Summary Statistics', 14, 45);
+
+    const summaryData = [
+      ['Total Revenue', `Rs. ${formatCurrencyValue(analyticsData.stats.totalRevenue)}`],
+      ['Total Orders', analyticsData.stats.totalOrders.toString()],
+      ['Active Users', analyticsData.stats.activeUsers.toString()],
+      ['Products Listed', analyticsData.stats.productsListed.toString()],
+    ];
+
+    autoTable(doc, {
+      startY: 50,
+      head: [['Metric', 'Value']],
+      body: summaryData,
+      theme: 'grid',
+      headStyles: { fillColor: [59, 130, 246] }, // Blue color
+    });
+
+    // Revenue Trends
+    let lastY = (doc as any).lastAutoTable.finalY + 15;
+    doc.setFontSize(14);
+    doc.text('Revenue & Order Trends', 14, lastY);
+
+    const revenueTableData = analyticsData.revenueData.map((item: any) => [
+      item.month,
+      `Rs. ${formatCurrencyValue(item.revenue)}`,
+      item.orders,
+      item.users
+    ]);
+
+    autoTable(doc, {
+      startY: lastY + 5,
+      head: [['Month/Period', 'Revenue', 'Orders', 'New Users']],
+      body: revenueTableData,
+      theme: 'striped',
+      headStyles: { fillColor: [16, 185, 129] }, // Emerald color
+    });
+
+    // Top Products
+    lastY = (doc as any).lastAutoTable.finalY + 15;
+
+    // Check if we need a new page
+    if (lastY > 250) {
+      doc.addPage();
+      lastY = 20;
+    }
+
+    doc.setFontSize(14);
+    doc.text('Top Performing Products', 14, lastY);
+
+    const productTableData = analyticsData.topProducts.map((item: any) => [
+      item.name,
+      item.rentals,
+      `Rs. ${formatCurrencyValue(item.revenue)}`
+    ]);
+
+    autoTable(doc, {
+      startY: lastY + 5,
+      head: [['Product Name', 'Rentals', 'Revenue']],
+      body: productTableData,
+      theme: 'striped',
+      headStyles: { fillColor: [249, 115, 22] }, // Orange color
+    });
+
+    // Vendor Performance
+    lastY = (doc as any).lastAutoTable.finalY + 15;
+
+    // Check if we need a new page
+    if (lastY > 250) {
+      doc.addPage();
+      lastY = 20;
+    }
+
+    doc.setFontSize(14);
+    doc.text('Vendor Performance', 14, lastY);
+
+    const vendorTableData = analyticsData.vendorPerformance.map((item: any) => [
+      item.name,
+      item.orders,
+      `Rs. ${formatCurrencyValue(item.revenue)}`
+    ]);
+
+    autoTable(doc, {
+      startY: lastY + 5,
+      head: [['Vendor Name', 'Orders', 'Revenue']],
+      body: vendorTableData,
+      theme: 'striped',
+      headStyles: { fillColor: [139, 92, 246] }, // Purple color
+    });
+
+    // Save PDF
+    doc.save(`sharepal_analytics_${timeRange}_${new Date().toISOString().split('T')[0]}.pdf`);
+
+    toast({
+      title: 'Success',
+      description: 'Report downloaded successfully',
+    });
   };
 
   if (isLoading || !analyticsData) {
@@ -155,9 +293,9 @@ export default function ReportsAnalytics() {
                   <SelectItem value="year">Last Year</SelectItem>
                 </SelectContent>
               </Select>
-              <Button className="rounded-xl">
+              <Button className="rounded-xl" onClick={handleExport}>
                 <Download className="mr-2 h-4 w-4" />
-                Export
+                Export PDF
               </Button>
             </div>
           </div>
