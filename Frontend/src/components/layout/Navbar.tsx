@@ -32,8 +32,8 @@ import { CartSheet } from "../products/CartSheet";
 
 export function Navbar() {
   const location = useLocation();
-  const { user, isAuthenticated, logout, getUserRole } = useAuthStore();
-  const { items } = useCartStore();
+  const { user, isAuthenticated, logout: authLogout, getUserRole } = useAuthStore();
+  const { items, fetchCart } = useCartStore();
   const {
     items: wishlistItems,
     fetchWishlist,
@@ -45,10 +45,11 @@ export function Navbar() {
 
   // Fetch wishlist when user is authenticated
   useEffect(() => {
-    if (isAuthenticated && !isInitialized) {
+    if (isAuthenticated) {
       fetchWishlist();
+      fetchCart();
     }
-  }, [isAuthenticated, isInitialized, fetchWishlist]);
+  }, [isAuthenticated, fetchWishlist, fetchCart]);
 
   const navLinks = [
     { href: "/", label: "Home" },
@@ -61,18 +62,18 @@ export function Navbar() {
 
   const dashboardLink =
     userRole === "ADMIN" ? "/admin/dashboard"
-    : userRole === "VENDOR" ? "/vendor/dashboard"
-    : "/dashboard";
+      : userRole === "VENDOR" ? "/vendor/dashboard"
+        : "/dashboard";
 
   const settingsLink =
     userRole === "ADMIN" ? "/admin/settings"
-    : userRole === "VENDOR" ? "/vendor/settings"
-    : "/settings";
+      : userRole === "VENDOR" ? "/vendor/settings"
+        : "/settings";
 
   const ordersLink =
     userRole === "ADMIN" ? "/admin/orders"
-    : userRole === "VENDOR" ? "/vendor/orders"
-    : "/orders";
+      : userRole === "VENDOR" ? "/vendor/orders"
+        : "/orders";
 
   const isCustomer =
     !isAuthenticated || (userRole !== "ADMIN" && userRole !== "VENDOR");
@@ -203,13 +204,16 @@ export function Navbar() {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={logout} className="text-destructive">
+                <DropdownMenuItem
+                  className="text-red-500 cursor-pointer focus:text-red-500"
+                  onClick={() => authLogout()}
+                >
                   <LogOut className="mr-2 h-4 w-4" />
                   Logout
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-          : <div className="hidden items-center gap-2 md:flex">
+            : <div className="hidden items-center gap-2 md:flex">
               <Button variant="ghost" asChild className="rounded-xl">
                 <Link to="/login">Login</Link>
               </Button>
@@ -228,7 +232,7 @@ export function Navbar() {
           >
             {isMobileMenuOpen ?
               <X className="h-5 w-5" />
-            : <Menu className="h-5 w-5" />}
+              : <Menu className="h-5 w-5" />}
           </Button>
         </div>
       </div>
@@ -251,7 +255,7 @@ export function Navbar() {
                   "rounded-xl px-4 py-2 text-sm font-medium transition-colors",
                   location.pathname === link.href ?
                     "bg-primary text-primary-foreground"
-                  : "hover:bg-muted",
+                    : "hover:bg-muted",
                 )}
               >
                 {link.label}

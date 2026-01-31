@@ -31,10 +31,10 @@ export default function CartPage() {
     }).format(price);
   };
 
-  const subtotal = getTotalAmount();
-  const gstRate = 0.18;
-  const gstAmount = subtotal * gstRate;
-  const total = subtotal + gstAmount;
+  // item.totalPrice already includes GST in the store
+  const total = getTotalAmount();
+  const baseAmount = total / 1.18;
+  const gstAmount = total - baseAmount;
 
   const handleCheckout = () => {
     if (!isAuthenticated) {
@@ -53,7 +53,7 @@ export default function CartPage() {
       toast.error(`Only ${maxQuantity} units available`);
       return;
     }
-    
+
     const item = items.find((i) => i.id === itemId);
     if (item) {
       const pricePerUnit = item.totalPrice / item.quantity;
@@ -200,7 +200,15 @@ export default function CartPage() {
 
                           {/* Price & Remove */}
                           <div className="flex items-center gap-4">
-                            <span className="font-semibold">{formatPrice(item.totalPrice)}</span>
+                            <div className="text-right">
+                              <span className="block font-semibold">{formatPrice(item.totalPrice)}</span>
+                              <span className="text-xs text-muted-foreground">
+                                Base: {formatPrice(item.totalPrice / 1.18)}
+                              </span>
+                              <span className="text-xs text-muted-foreground">
+                                + GST: {formatPrice(item.totalPrice - (item.totalPrice / 1.18))}
+                              </span>
+                            </div>
                             <Button
                               variant="ghost"
                               size="icon"
@@ -234,8 +242,8 @@ export default function CartPage() {
 
                 <div className="space-y-3">
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Subtotal</span>
-                    <span>{formatPrice(subtotal)}</span>
+                    <span className="text-muted-foreground">Base Amount</span>
+                    <span>{formatPrice(baseAmount)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">GST (18%)</span>
@@ -243,7 +251,7 @@ export default function CartPage() {
                   </div>
                   <Separator />
                   <div className="flex justify-between font-semibold">
-                    <span>Total</span>
+                    <span>Total Amount</span>
                     <span className="text-lg text-primary">{formatPrice(total)}</span>
                   </div>
                 </div>

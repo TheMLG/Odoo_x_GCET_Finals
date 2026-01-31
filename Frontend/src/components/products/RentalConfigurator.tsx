@@ -88,7 +88,8 @@ export function RentalConfigurator({ product }: RentalConfiguratorProps) {
 
     try {
       setIsAddingToCart(true);
-      await addItem(product, quantity, duration, deliveryDate);
+      // Pass pickupDate as endDate
+      await addItem(product, quantity, duration, deliveryDate, pickupDate || undefined);
       toast.success('Added to cart!', {
         description: `${product.name} x${quantity} - ${duration}`,
       });
