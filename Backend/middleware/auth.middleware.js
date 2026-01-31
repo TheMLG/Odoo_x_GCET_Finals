@@ -49,6 +49,49 @@ export const verifyJWT = asyncHandler(async (req, res, next) => {
     }
 })
 
+// Optional JWT verification - for endpoints that work with or without auth
+export const optionalJWT = asyncHandler(async (req, res, next) => {
+    try {
+        const token = req.header("Authorization")?.replace("Bearer ", "") || req.cookies?.accessToken;
+
+        if (!token) {
+            // No token provided, continue without user
+            req.user = null;
+            return next();
+        }
+
+        const decodeToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+
+        const user = await prisma.user.findUnique({
+            where: { id: decodeToken?._id },
+            select: {
+                id: true,
+                email: true,
+                firstName: true,
+                lastName: true,
+                createdAt: true,
+                roles: {
+                    include: {
+                        role: true
+                    }
+                }
+            }
+        });
+
+        if (user) {
+            req.user = user;
+        } else {
+            req.user = null;
+        }
+
+        next();
+    } catch (err) {
+        // If token is invalid, just continue without user
+        req.user = null;
+        next();
+    }
+});
+
 export const verifyAdminJWT = asyncHandler(async (req, res, next) => {
     try {
         // Prioritize Authorization header over cookies

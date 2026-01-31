@@ -4,12 +4,14 @@ import {
     validateCoupon,
     applyCoupon,
 } from "../controllers/coupon.controller.js";
-import { verifyJWT } from "../middleware/auth.middleware.js";
+import { verifyJWT, optionalJWT } from "../middleware/auth.middleware.js";
 
 const router = Router();
 
-// Protected routes - require authentication for user-specific coupons
-router.route("/available").get(verifyJWT, getAvailableCoupons);
+// GET /available - works with or without auth (shows global + user-specific coupons if authenticated)
+router.route("/available").get(optionalJWT, getAvailableCoupons);
+
+// POST /validate and /apply - require authentication
 router.route("/validate").post(verifyJWT, validateCoupon);
 router.route("/apply").post(verifyJWT, applyCoupon);
 

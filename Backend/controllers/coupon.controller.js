@@ -68,11 +68,37 @@ export const getAvailableCoupons = asyncHandler(async (req, res) => {
         },
     });
 
-    // Filter out coupons that have reached max usage
-    const availableCoupons = coupons.filter((coupon) => {
-        if (coupon.maxUsageCount === null) return true;
-        return coupon.currentUsageCount < coupon.maxUsageCount;
-    });
+    // Get user's order count for welcome coupon validation
+    let userOrderCount = 0;
+    if (userId) {
+        userOrderCount = await prisma.order.count({
+            where: { userId: userId },
+        });
+    }
+
+    // Filter out coupons that have reached max usage and add isApplicable flag
+    const availableCoupons = coupons
+        .filter((coupon) => {
+            if (coupon.maxUsageCount === null) return true;
+            return coupon.currentUsageCount < coupon.maxUsageCount;
+        })
+        .map((coupon) => {
+            // Determine if coupon is applicable
+            let isApplicable = true;
+            let notApplicableReason = null;
+
+            // Check if it's a welcome coupon and user has orders
+            if (coupon.isWelcomeCoupon && userId && userOrderCount > 0) {
+                isApplicable = false;
+                notApplicableReason = "Valid for first order only";
+            }
+
+            return {
+                ...coupon,
+                isApplicable,
+                notApplicableReason,
+            };
+        });
 
     res
         .status(200)

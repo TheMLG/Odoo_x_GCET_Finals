@@ -12,6 +12,8 @@ export interface Coupon {
     expiryDate: string | null;
     isWelcomeCoupon?: boolean;
     userId?: string | null;
+    isApplicable?: boolean;
+    notApplicableReason?: string | null;
 }
 
 export interface ValidateCouponResponse {
