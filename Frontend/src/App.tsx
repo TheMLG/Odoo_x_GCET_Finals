@@ -33,6 +33,7 @@ import VendorEditProduct from "./pages/dashboard/VendorEditProduct";
 import VendorInvoices from "./pages/dashboard/VendorInvoices";
 import VendorOrders from "./pages/dashboard/VendorOrders";
 import VendorProducts from "./pages/dashboard/VendorProducts";
+import VendorReportsAnalytics from "./pages/dashboard/VendorReportsAnalytics";
 import VendorSettings from "./pages/dashboard/VendorSettings";
 import HomePage from "./pages/HomePage";
 import InvoicePage from "./pages/InvoicePage";
@@ -289,6 +290,14 @@ const App = () => (
             element={
               <ProtectedRoute allowedRoles={["VENDOR", "ADMIN"]}>
                 <VendorSettings />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/vendor/reports"
+            element={
+              <ProtectedRoute allowedRoles={["VENDOR", "ADMIN"]}>
+                <VendorReportsAnalytics />
               </ProtectedRoute>
             }
           />

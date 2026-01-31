@@ -5,6 +5,7 @@ import {
   deleteProduct,
   deleteVendorOrder,
   generateVendorInvoicePDF,
+  getVendorAnalytics,
   getVendorInvoices,
   getVendorOrders,
   getVendorProduct,
@@ -53,5 +54,8 @@ router.route("/invoices/:orderId/pdf").get(generateVendorInvoicePDF);
 
 // Vendor dashboard stats
 router.route("/stats").get(getVendorStats);
+
+// Vendor analytics (reports)
+router.route("/analytics").get(getVendorAnalytics);
 
 export default router;

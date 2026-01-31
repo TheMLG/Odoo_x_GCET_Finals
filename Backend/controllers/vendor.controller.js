@@ -1170,3 +1170,165 @@ export const deleteVendorOrder = asyncHandler(async (req, res) => {
 
   res.status(200).json(new ApiResponse(200, {}, "Order deleted successfully"));
 });
+
+// Get vendor analytics data
+export const getVendorAnalytics = asyncHandler(async (req, res) => {
+  const { timeRange = "year" } = req.query;
+
+  const vendor = await prisma.vendor.findUnique({
+    where: { userId: req.user.id },
+  });
+
+  if (!vendor) {
+    throw new ApiError(404, "Vendor profile not found");
+  }
+
+  // Calculate date range
+  const now = new Date();
+  let startDate = new Date();
+
+  switch (timeRange) {
+    case "week":
+      startDate.setDate(now.getDate() - 7);
+      break;
+    case "month":
+      startDate.setMonth(now.getMonth() - 1);
+      break;
+    case "quarter":
+      startDate.setMonth(now.getMonth() - 3);
+      break;
+    case "year":
+    default:
+      startDate.setFullYear(now.getFullYear() - 1);
+      break;
+  }
+
+  // Get all vendor orders within date range
+  const orders = await prisma.order.findMany({
+    where: {
+      vendorId: vendor.id,
+      createdAt: {
+        gte: startDate,
+      },
+    },
+    include: {
+      items: {
+        include: {
+          product: {
+            select: {
+              name: true,
+              category: true,
+            },
+          },
+        },
+      },
+      invoice: {
+        include: {
+          payments: {
+            where: { status: "SUCCESS" },
+          },
+        },
+      },
+    },
+  });
+
+  // Calculate monthly revenue data
+  const monthlyData = {};
+  orders.forEach((order) => {
+    const month = new Date(order.createdAt).toLocaleDateString("en-US", {
+      month: "short",
+    });
+    if (!monthlyData[month]) {
+      monthlyData[month] = { month, revenue: 0, orders: 0 };
+    }
+    // Use paid amount from successful payments
+    const paidAmount =
+      order.invoice?.payments?.reduce(
+        (sum, payment) => sum + parseFloat(payment.amount),
+        0,
+      ) || 0;
+    monthlyData[month].revenue += paidAmount;
+    monthlyData[month].orders += 1;
+  });
+
+  const revenueData = Object.values(monthlyData);
+
+  // Calculate category distribution
+  const categoryCount = {};
+  orders.forEach((order) => {
+    order.items.forEach((item) => {
+      const category = item.product?.category || "Uncategorized";
+      categoryCount[category] = (categoryCount[category] || 0) + 1;
+    });
+  });
+
+  const categoryData = Object.keys(categoryCount).map((category) => ({
+    name: category,
+    value: categoryCount[category],
+  }));
+
+  // Calculate top products
+  const productRentals = {};
+  const productRevenue = {};
+  orders.forEach((order) => {
+    order.items.forEach((item) => {
+      const productName = item.product?.name || "Unknown";
+      productRentals[productName] =
+        (productRentals[productName] || 0) + item.quantity;
+      productRevenue[productName] =
+        (productRevenue[productName] || 0) +
+        Number(item.unitPrice || 0) * item.quantity;
+    });
+  });
+
+  const topProducts = Object.keys(productRentals)
+    .map((name) => ({
+      name,
+      rentals: productRentals[name],
+      revenue: productRevenue[name],
+    }))
+    .sort((a, b) => b.rentals - a.rentals)
+    .slice(0, 5);
+
+  // Calculate summary stats
+  const totalRevenue = orders.reduce((sum, order) => {
+    const paidAmount =
+      order.invoice?.payments?.reduce(
+        (pSum, payment) => pSum + parseFloat(payment.amount),
+        0,
+      ) || 0;
+    return sum + paidAmount;
+  }, 0);
+
+  const totalOrders = orders.length;
+  const activeRentals = orders.filter((o) => o.status === "INVOICED").length;
+
+  const [totalProducts, publishedProducts] = await Promise.all([
+    prisma.product.count({
+      where: { vendorId: vendor.id },
+    }),
+    prisma.product.count({
+      where: { vendorId: vendor.id, isPublished: true },
+    }),
+  ]);
+
+  const stats = {
+    totalRevenue: `₹${(totalRevenue / 1000).toFixed(1)}k`,
+    totalOrders: totalOrders.toString(),
+    activeRentals: activeRentals.toString(),
+    productsListed: totalProducts.toString(),
+  };
+
+  res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        stats,
+        revenueData,
+        categoryData,
+        topProducts,
+      },
+      "Vendor analytics data fetched successfully",
+    ),
+  );
+});
