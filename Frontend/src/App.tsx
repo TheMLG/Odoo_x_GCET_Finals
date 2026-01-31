@@ -13,6 +13,7 @@ import CartPage from "./pages/CartPage";
 import CheckoutPage from "./pages/CheckoutPage";
 import OrdersPage from "./pages/OrdersPage";
 import InvoicePage from "./pages/InvoicePage";
+import WishlistPage from "./pages/WishlistPage";
 import LoginPage from "./pages/auth/LoginPage";
 import SignupPage from "./pages/auth/SignupPage";
 import UserSignupPage from "./pages/auth/UserSignupPage";
@@ -88,6 +89,7 @@ const App = () => (
           <Route path="/products" element={<ProductsPage />} />
           <Route path="/products/:id" element={<ProductDetailPage />} />
           <Route path="/cart" element={<CartPage />} />
+          <Route path="/wishlist" element={<WishlistPage />} />
           
           {/* Auth Routes - Only accessible when not authenticated */}
           <Route 

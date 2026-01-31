@@ -11,7 +11,8 @@ import {
   FileText,
   Settings,
   Search,
-  MapPin
+  MapPin,
+  Heart
 } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -25,6 +26,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useAuthStore } from '@/stores/authStore';
 import { useCartStore } from '@/stores/cartStore';
+import { useRentalStore } from '@/stores/rentalStore';
+import { useWishlistStore } from '@/stores/wishlistStore';
 import { CartSheet } from '@/components/products/CartSheet';
 import { cn } from '@/lib/utils';
 
@@ -32,6 +35,8 @@ export function Navbar() {
   const location = useLocation();
   const { user, isAuthenticated, logout } = useAuthStore();
   const { items } = useCartStore();
+  const { items: wishlistItems } = useWishlistStore();
+  const { location: rentalLocation } = useRentalStore();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
 
@@ -67,7 +72,7 @@ export function Navbar() {
           {/* Location */}
           <button className="flex items-center gap-2 rounded-lg px-3 py-2 hover:bg-muted">
             <MapPin className="h-5 w-5" />
-            <span className="text-sm font-medium">Mumbai</span>
+            <span className="text-sm font-medium">{rentalLocation}</span>
           </button>
 
           {/* Search Bar */}
@@ -87,6 +92,20 @@ export function Navbar() {
           <Button variant="ghost" size="icon" className="rounded-xl md:hidden">
             <Search className="h-5 w-5" />
           </Button>
+
+          {/* Wishlist */}
+          <Link to="/wishlist" className="relative">
+            <Button variant="ghost" size="icon" className="rounded-xl">
+              <Heart className="h-5 w-5" />
+              {wishlistItems.length > 0 && (
+                <Badge 
+                  className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-pink-500 p-0 text-xs text-white"
+                >
+                  {wishlistItems.length}
+                </Badge>
+              )}
+            </Button>
+          </Link>
 
           {/* Cart */}
           <button onClick={() => setIsCartOpen(true)} className="relative">

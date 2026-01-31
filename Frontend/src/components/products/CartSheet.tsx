@@ -11,7 +11,8 @@ import {
 } from '@/components/ui/sheet';
 import { Input } from '@/components/ui/input';
 import { useCartStore } from '@/stores/cartStore';
-import { DateSelectionModal } from './DateSelectionModal';
+import { useRentalStore } from '@/stores/rentalStore';
+import { DatePickerDialog } from '@/components/DatePickerDialog';
 import { toast } from 'sonner';
 
 interface CartSheetProps {
@@ -22,13 +23,14 @@ interface CartSheetProps {
 export function CartSheet({ open, onClose }: CartSheetProps) {
   const navigate = useNavigate();
   const { items, removeItem, updateItem, getTotalAmount } = useCartStore();
+  const { deliveryDate, pickupDate } = useRentalStore();
   const [showDateModal, setShowDateModal] = useState(false);
   const [couponCode, setCouponCode] = useState('');
   const [showCoupons, setShowCoupons] = useState(false);
 
   // Default dates for display
-  const defaultDeliveryDate = new Date(2026, 1, 10); // Feb 10, 2026
-  const defaultPickupDate = new Date(2026, 1, 13); // Feb 13, 2026
+  const defaultDeliveryDate = deliveryDate || new Date(2026, 1, 10); // Feb 10, 2026
+  const defaultPickupDate = pickupDate || new Date(2026, 1, 13); // Feb 13, 2026
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-IN', {
@@ -67,15 +69,7 @@ export function CartSheet({ open, onClose }: CartSheetProps) {
       <Sheet open={open} onOpenChange={onClose}>
         <SheetContent className="w-full sm:max-w-lg">
           <SheetHeader>
-            <div className="flex items-center justify-between">
-              <SheetTitle className="text-2xl font-bold">Cart Items</SheetTitle>
-              <button
-                onClick={onClose}
-                className="rounded-full p-1 hover:bg-muted"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
+            <SheetTitle className="text-2xl font-bold">Cart Items</SheetTitle>
             <div className="text-sm text-muted-foreground">
               {items.length} item{items.length !== 1 ? 's' : ''} added
             </div>
@@ -267,14 +261,9 @@ export function CartSheet({ open, onClose }: CartSheetProps) {
         </SheetContent>
       </Sheet>
 
-      <DateSelectionModal
+      <DatePickerDialog
         open={showDateModal}
         onClose={() => setShowDateModal(false)}
-        onConfirm={(delivery, pickup) => {
-          toast.success(`Dates updated: ${format(delivery, 'MMM dd')} - ${format(pickup, 'MMM dd')}`);
-        }}
-        initialDeliveryDate={defaultDeliveryDate}
-        initialPickupDate={defaultPickupDate}
       />
     </>
   );

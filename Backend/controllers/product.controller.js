@@ -40,14 +40,14 @@ export const getAllProducts = asyncHandler(async (req, res) => {
             },
             attributes: {
                 include: {
-                    attribute: {
-                        select: {
-                            name: true
-                        }
-                    },
                     attributeValue: {
                         select: {
-                            value: true
+                            value: true,
+                            attribute: {
+                                select: {
+                                    name: true
+                                }
+                            }
                         }
                     }
                 }
@@ -155,8 +155,11 @@ export const createRentalProduct = asyncHandler(async (req, res) => {
                 pricing: true,
                 attributes: {
                     include: {
-                        attribute: true,
-                        attributeValue: true
+                        attributeValue: {
+                            include: {
+                                attribute: true
+                            }
+                        }
                     }
                 }
             }

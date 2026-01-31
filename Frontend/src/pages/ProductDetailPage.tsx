@@ -7,12 +7,30 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useRentalStore } from '@/stores/rentalStore';
+import { useWishlistStore } from '@/stores/wishlistStore';
+import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 
 export default function ProductDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { products } = useRentalStore();
+  const { addItem, removeItem, isInWishlist } = useWishlistStore();
   const product = products.find((p) => p.id === id);
+  
+  const inWishlist = product ? isInWishlist(product.id) : false;
+
+  const handleWishlistToggle = () => {
+    if (!product) return;
+    
+    if (inWishlist) {
+      removeItem(product.id);
+      toast.success('Removed from wishlist');
+    } else {
+      addItem(product);
+      toast.success('Added to wishlist');
+    }
+  };
 
   if (!product) {
     return (
@@ -83,6 +101,15 @@ export default function ProductDetailPage() {
             {/* Main Image */}
             <div className="relative flex-1">
               <div className="absolute right-4 top-4 z-10 flex gap-2">
+                <button 
+                  onClick={handleWishlistToggle}
+                  className={cn(
+                    "flex h-10 w-10 items-center justify-center rounded-full shadow-lg transition-all hover:scale-110",
+                    inWishlist ? "bg-pink-500 text-white hover:bg-pink-600" : "bg-white hover:bg-gray-50"
+                  )}
+                >
+                  <Heart className={cn("h-5 w-5", inWishlist && "fill-current")} />
+                </button>
                 <button className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-lg hover:bg-gray-50">
                   <Share2 className="h-5 w-5" />
                 </button>
