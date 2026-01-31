@@ -38,6 +38,7 @@ model User {
   carts      Cart[]
   orders     Order[]
   wishlists  Wishlist[]
+  addresses  Address[]
 }
 
 model Role {
@@ -165,13 +166,15 @@ model Order {
   id        String      @id @default(uuid())
   userId    String
   vendorId  String
+  deliveryAddressId String?
   status    String      // Valid: CONFIRMED, INVOICED, RETURNED, CANCELLED
   createdAt DateTime    @default(now())
 
-  user    User        @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  vendor  Vendor      @relation(fields: [vendorId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  items   OrderItem[]
-  invoice Invoice?
+  user            User        @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  vendor          Vendor      @relation(fields: [vendorId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  deliveryAddress Address?    @relation(fields: [deliveryAddressId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  items           OrderItem[]
+  invoice         Invoice?
 }
 
 model OrderItem {
@@ -244,4 +247,22 @@ model WishlistItem {
   product  Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@unique([wishlistId, productId])
+}
+
+model Address {
+  id          String   @id @default(uuid())
+  userId      String
+  fullName    String
+  phoneNumber String
+  addressLine1 String
+  addressLine2 String?
+  city        String
+  state       String
+  postalCode  String
+  country     String   @default("India")
+  isDefault   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orders Order[]
 }

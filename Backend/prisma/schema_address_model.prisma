@@ -1,0 +1,19 @@
+// Add this Address model to your schema.prisma file after the User model
+
+model Address {
+  id          String   @id @default(uuid())
+  userId      String
+  fullName    String
+  phoneNumber String
+  addressLine1 String
+  addressLine2 String?
+  city        String
+  state       String
+  postalCode  String
+  country     String   @default("India")
+  isDefault   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orders Order[]
+}

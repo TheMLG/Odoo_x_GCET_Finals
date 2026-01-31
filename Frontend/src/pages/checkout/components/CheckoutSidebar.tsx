@@ -61,13 +61,6 @@ export function CheckoutSidebar({ currentStep, deliveryCost = 0 }: CheckoutSideb
           {items.length} {items.length === 1 ? 'item' : 'items'} in your cart
         </div>
 
-        {/* GST Credit */}
-        <div className="mb-6 flex items-center gap-2">
-          <Checkbox id="gst" />
-          <Label htmlFor="gst" className="text-sm font-normal">
-            Claim GST credit up to 18% on this order
-          </Label>
-        </div>
 
         {/* Coupon Code */}
         <div className="mb-6 space-y-2">

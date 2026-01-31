@@ -9,7 +9,7 @@ interface Step {
 const steps: Step[] = [
   { id: 1, name: 'Contact Details' },
   { id: 2, name: 'Address' },
-  { id: 3, name: 'Delivery Time' },
+  { id: 3, name: 'Delivery Method' },
   { id: 4, name: 'Payment' },
 ];
 
@@ -29,8 +29,8 @@ export function CheckoutSteps({ currentStep }: CheckoutStepsProps) {
                 step.id === currentStep
                   ? 'bg-blue-600 text-white'
                   : step.id < currentStep
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-200 text-gray-600'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-200 text-gray-600'
               )}
             >
               {step.id}
