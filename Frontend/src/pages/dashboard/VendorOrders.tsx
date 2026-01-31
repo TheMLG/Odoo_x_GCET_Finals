@@ -1,11 +1,29 @@
 import { VendorLayout } from "@/components/layout/VendorLayout";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
@@ -16,7 +34,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
 import {
+  deleteVendorOrder,
   getVendorOrders,
   updateOrderStatus,
   VendorOrder,
@@ -24,6 +44,7 @@ import {
 import { format } from "date-fns";
 import { motion } from "framer-motion";
 import {
+  Calendar,
   CheckCircle2,
   Clock,
   Eye,
@@ -32,6 +53,8 @@ import {
   MoreHorizontal,
   Package,
   Search,
+  Trash2,
+  User,
   XCircle,
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -90,6 +113,11 @@ export default function VendorOrders() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [selectedOrder, setSelectedOrder] = useState<VendorOrder | null>(null);
+  const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [orderToDelete, setOrderToDelete] = useState<VendorOrder | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     fetchOrders();
@@ -116,6 +144,57 @@ export default function VendorOrders() {
       console.error("Failed to update order status:", error);
       toast.error("Failed to update status");
     }
+  };
+
+  const handleViewOrder = (order: VendorOrder) => {
+    setSelectedOrder(order);
+    setDetailsDialogOpen(true);
+  };
+
+  const handleDeleteClick = (order: VendorOrder) => {
+    setOrderToDelete(order);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteOrder = async () => {
+    if (!orderToDelete) return;
+
+    try {
+      setIsDeleting(true);
+      await deleteVendorOrder(orderToDelete.id);
+      // Remove the order from local state immediately for instant feedback
+      setOrders((prevOrders) =>
+        prevOrders.filter((order) => order.id !== orderToDelete.id),
+      );
+      toast.success("Order deleted successfully");
+      setDeleteDialogOpen(false);
+      setOrderToDelete(null);
+    } catch (error) {
+      console.error("Failed to delete order:", error);
+      toast.error("Failed to delete order");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const formatPrice = (price: number | string) => {
+    const numPrice = typeof price === "string" ? parseFloat(price) : price;
+    return new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
+      maximumFractionDigits: 0,
+    }).format(numPrice);
+  };
+
+  const calculateOrderTotal = (order: VendorOrder) => {
+    return order.items.reduce((total, item) => {
+      const days = Math.ceil(
+        (new Date(item.rentalEnd).getTime() -
+          new Date(item.rentalStart).getTime()) /
+          (1000 * 60 * 60 * 24),
+      );
+      return total + Number(item.unitPrice) * item.quantity * Math.max(days, 1);
+    }, 0);
   };
 
   const filteredOrders = orders.filter((order) => {
@@ -270,7 +349,9 @@ export default function VendorOrders() {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              <DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => handleViewOrder(order)}
+                              >
                                 <Eye className="mr-2 h-4 w-4" />
                                 View Details
                               </DropdownMenuItem>
@@ -294,6 +375,14 @@ export default function VendorOrders() {
                                   Mark as Returned
                                 </DropdownMenuItem>
                               )}
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                onClick={() => handleDeleteClick(order)}
+                                className="text-red-600 focus:text-red-600"
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Delete Order
+                              </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </td>
@@ -325,6 +414,245 @@ export default function VendorOrders() {
           </motion.div>
         )}
       </div>
+
+      {/* Order Details Dialog */}
+      <Dialog open={detailsDialogOpen} onOpenChange={setDetailsDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5" />
+              Order Details
+            </DialogTitle>
+            <DialogDescription>
+              Complete details for order #
+              {selectedOrder?.id.slice(-8).toUpperCase()}
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedOrder && (
+            <div className="space-y-6">
+              {/* Order Info */}
+              <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
+                <div>
+                  <p className="text-sm text-muted-foreground">Order ID</p>
+                  <p className="font-semibold">
+                    #{selectedOrder.id.slice(-8).toUpperCase()}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Order Date</p>
+                  <p className="font-semibold">
+                    {format(new Date(selectedOrder.createdAt), "PPP")}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Status</p>
+                  <Badge
+                    variant={getStatusConfig(selectedOrder.status).variant}
+                  >
+                    {selectedOrder.status}
+                  </Badge>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">
+                    Invoice Status
+                  </p>
+                  <Badge
+                    variant={
+                      selectedOrder.invoice?.status === "PAID" ?
+                        "default"
+                      : "secondary"
+                    }
+                  >
+                    {selectedOrder.invoice?.status || "No Invoice"}
+                  </Badge>
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Customer Details */}
+              <div>
+                <h4 className="font-semibold mb-3 flex items-center gap-2">
+                  <User className="h-4 w-4" />
+                  Customer Information
+                </h4>
+                <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Name</p>
+                    <p className="font-medium">
+                      {selectedOrder.user ?
+                        `${selectedOrder.user.firstName} ${selectedOrder.user.lastName}`
+                      : "N/A"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Email</p>
+                    <p className="font-medium">
+                      {selectedOrder.user?.email || "N/A"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Rental Period */}
+              {selectedOrder.items.length > 0 && (
+                <>
+                  <Separator />
+                  <div>
+                    <h4 className="font-semibold mb-3 flex items-center gap-2">
+                      <Calendar className="h-4 w-4" />
+                      Rental Period
+                    </h4>
+                    <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
+                      <div>
+                        <p className="text-sm text-muted-foreground">
+                          Start Date
+                        </p>
+                        <p className="font-medium">
+                          {selectedOrder.items[0]?.rentalStart ?
+                            format(
+                              new Date(selectedOrder.items[0].rentalStart),
+                              "PPP",
+                            )
+                          : "N/A"}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">
+                          End Date
+                        </p>
+                        <p className="font-medium">
+                          {selectedOrder.items[0]?.rentalEnd ?
+                            format(
+                              new Date(selectedOrder.items[0].rentalEnd),
+                              "PPP",
+                            )
+                          : "N/A"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              <Separator />
+
+              {/* Order Items */}
+              <div>
+                <h4 className="font-semibold mb-3 flex items-center gap-2">
+                  <Package className="h-4 w-4" />
+                  Order Items
+                </h4>
+                <div className="border rounded-lg overflow-hidden">
+                  <table className="w-full">
+                    <thead className="bg-muted">
+                      <tr>
+                        <th className="px-4 py-2 text-left text-sm font-medium">
+                          Product
+                        </th>
+                        <th className="px-4 py-2 text-center text-sm font-medium">
+                          Qty
+                        </th>
+                        <th className="px-4 py-2 text-right text-sm font-medium">
+                          Price
+                        </th>
+                        <th className="px-4 py-2 text-right text-sm font-medium">
+                          Total
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {selectedOrder.items?.map((item, index) => (
+                        <tr key={index} className="border-t">
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-3">
+                              {item.product?.images?.[0] && (
+                                <img
+                                  src={item.product.images[0]}
+                                  alt={item.product.name}
+                                  className="h-10 w-10 rounded object-cover"
+                                />
+                              )}
+                              <span className="font-medium">
+                                {item.product?.name}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 text-center">
+                            {item.quantity}
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            {formatPrice(item.unitPrice)}
+                          </td>
+                          <td className="px-4 py-3 text-right font-medium">
+                            {formatPrice(
+                              Number(item.unitPrice) * item.quantity,
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Order Summary */}
+              <div className="space-y-2 p-4 bg-muted/50 rounded-lg">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Subtotal</span>
+                  <span>{formatPrice(calculateOrderTotal(selectedOrder))}</span>
+                </div>
+                {selectedOrder.invoice?.gstAmount &&
+                  Number(selectedOrder.invoice.gstAmount) > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">GST</span>
+                      <span>
+                        {formatPrice(selectedOrder.invoice.gstAmount)}
+                      </span>
+                    </div>
+                  )}
+                <Separator className="my-2" />
+                <div className="flex justify-between font-bold text-lg">
+                  <span>Total</span>
+                  <span>
+                    {formatPrice(
+                      selectedOrder.invoice?.totalAmount ||
+                        calculateOrderTotal(selectedOrder),
+                    )}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Order</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete order #
+              {orderToDelete?.id.slice(-8).toUpperCase()}? This action cannot be
+              undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteOrder}
+              disabled={isDeleting}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {isDeleting ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </VendorLayout>
   );
 }

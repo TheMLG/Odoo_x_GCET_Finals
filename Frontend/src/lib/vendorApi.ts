@@ -165,6 +165,12 @@ export const updateOrderStatus = async (orderId: string, status: string) => {
   return response.data.data;
 };
 
+// Delete Order
+export const deleteVendorOrder = async (orderId: string) => {
+  const response = await api.delete(`/vendor/orders/${orderId}`);
+  return response.data.data;
+};
+
 // Create Product
 export const createProduct = async (
   formData: FormData,

@@ -2,6 +2,7 @@ import { Router } from "express";
 import {
   createProduct,
   deleteProduct,
+  deleteVendorOrder,
   getVendorInvoices,
   getVendorOrders,
   getVendorProduct,
@@ -39,6 +40,7 @@ router
 // Vendor orders routes
 router.route("/orders").get(getVendorOrders);
 router.route("/orders/:orderId/status").patch(updateOrderStatus);
+router.route("/orders/:orderId").delete(deleteVendorOrder);
 
 // Vendor invoices routes
 router.route("/invoices").get(getVendorInvoices);

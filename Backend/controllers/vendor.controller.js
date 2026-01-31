@@ -697,3 +697,65 @@ export const deleteProduct = asyncHandler(async (req, res) => {
     throw error;
   }
 });
+
+// Delete vendor order
+export const deleteVendorOrder = asyncHandler(async (req, res) => {
+  const { orderId } = req.params;
+
+  // Get vendor from user
+  const vendor = await prisma.vendor.findUnique({
+    where: { userId: req.user.id },
+  });
+
+  if (!vendor) {
+    throw new ApiError(404, "Vendor not found");
+  }
+
+  // Find the order and verify it belongs to this vendor
+  const order = await prisma.order.findFirst({
+    where: {
+      id: orderId,
+      vendorId: vendor.id,
+    },
+    include: {
+      invoice: true,
+      items: true,
+    },
+  });
+
+  if (!order) {
+    throw new ApiError(404, "Order not found or doesn't belong to this vendor");
+  }
+
+  // Delete in a transaction
+  await prisma.$transaction(async (tx) => {
+    // Delete invoice and payments if exists
+    if (order.invoice) {
+      await tx.payment.deleteMany({
+        where: { invoiceId: order.invoice.id },
+      });
+      await tx.invoice.delete({
+        where: { id: order.invoice.id },
+      });
+    }
+
+    // Delete reservations through order items
+    for (const item of order.items) {
+      await tx.reservation.deleteMany({
+        where: { orderItemId: item.id },
+      });
+    }
+
+    // Delete order items
+    await tx.orderItem.deleteMany({
+      where: { orderId: order.id },
+    });
+
+    // Delete the order
+    await tx.order.delete({
+      where: { id: order.id },
+    });
+  });
+
+  res.status(200).json(new ApiResponse(200, {}, "Order deleted successfully"));
+});
