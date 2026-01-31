@@ -235,25 +235,6 @@ model Address {
 }
 
 model Coupon {
-<<<<<<< HEAD
-  id               String   @id @default(uuid())
-  code             String   @unique
-  description      String
-  discountType     String   // Valid: PERCENTAGE, FIXED_AMOUNT
-  discountValue    Decimal
-  minOrderAmount   Decimal? // Minimum order required to apply coupon
-  maxUsageCount    Int?     // Max total uses (null = unlimited)
-  currentUsageCount Int     @default(0)
-  expiryDate       DateTime?
-  isActive         Boolean  @default(true)
-  userId           String?  // For user-specific coupons (e.g., welcome coupons)
-  isWelcomeCoupon  Boolean  @default(false) // Flag to identify welcome coupons
-  createdAt        DateTime @default(now())
-
-  user   User?   @relation(fields: [userId], references: [id])
-  orders Order[]
-}
-=======
   id                String    @id @default(uuid())
   code              String    @unique
   description       String
@@ -267,4 +248,3 @@ model Coupon {
   createdAt         DateTime  @default(now())
   orders            Order[]
 }
->>>>>>> 5bc9261d88d8f2cd7dc4a7dbf6b8b729df72caf0
