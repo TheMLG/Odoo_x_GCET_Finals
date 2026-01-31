@@ -16,9 +16,10 @@ interface SignupData {
   name: string;
   email: string;
   password: string;
-  companyName: string;
-  gstin: string;
-  couponCode?: string;
+  role: 'customer' | 'vendor';
+  companyName?: string;
+  gstNo?: string;
+  productCategory?: string;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -47,9 +48,9 @@ export const useAuthStore = create<AuthState>()(
           id: `user-${Date.now()}`,
           email: data.email,
           name: data.name,
-          companyName: data.companyName,
-          gstin: data.gstin,
-          role: 'customer' as UserRole,
+          companyName: data.companyName || '',
+          gstin: data.gstNo || '',
+          role: data.role as UserRole,
           createdAt: new Date().toISOString(),
         };
         

@@ -10,8 +10,12 @@ import HomePage from "./pages/HomePage";
 import ProductsPage from "./pages/ProductsPage";
 import ProductDetailPage from "./pages/ProductDetailPage";
 import CartPage from "./pages/CartPage";
+import CheckoutPage from "./pages/CheckoutPage";
+import OrdersPage from "./pages/OrdersPage";
+import InvoicePage from "./pages/InvoicePage";
 import LoginPage from "./pages/auth/LoginPage";
-import SignupPage from "./pages/auth/SignupPage";
+import UserSignupPage from "./pages/auth/UserSignupPage";
+import VendorSignupPage from "./pages/auth/VendorSignupPage";
 import CustomerDashboard from "./pages/dashboard/CustomerDashboard";
 import VendorDashboard from "./pages/dashboard/VendorDashboard";
 import AdminDashboard from "./pages/dashboard/AdminDashboard";
@@ -30,10 +34,23 @@ function ProtectedRoute({
   const { isAuthenticated, user } = useAuthStore();
   
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/login" replace state={{ from: window.location.pathname }} />;
   }
   
   if (allowedRoles && user && !allowedRoles.includes(user.role)) {
+    // Redirect to appropriate dashboard based on role
+    const redirectPath = user.role === 'admin' ? '/admin' : user.role === 'vendor' ? '/vendor' : '/dashboard';
+    return <Navigate to={redirectPath} replace />;
+  }
+  
+  return <>{children}</>;
+}
+
+// Public Route - redirects authenticated users away from auth pages
+function PublicRoute({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated } = useAuthStore();
+  
+  if (isAuthenticated) {
     return <Navigate to="/" replace />;
   }
   
@@ -65,8 +82,42 @@ const App = () => (
           <Route path="/products" element={<ProductsPage />} />
           <Route path="/products/:id" element={<ProductDetailPage />} />
           <Route path="/cart" element={<CartPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/signup" element={<SignupPage />} />
+          
+          {/* Auth Routes - Only accessible when not authenticated */}
+          <Route 
+            path="/login" 
+            element={
+              <PublicRoute>
+                <LoginPage />
+              </PublicRoute>
+            } 
+          />
+          <Route 
+            path="/signup/user" 
+            element={
+              <PublicRoute>
+                <UserSignupPage />
+              </PublicRoute>
+            } 
+          />
+          <Route 
+            path="/signup/vendor" 
+            element={
+              <PublicRoute>
+                <VendorSignupPage />
+              </PublicRoute>
+            } 
+          />
+          
+          {/* Protected Routes - Require Authentication */}
+          <Route 
+            path="/checkout" 
+            element={
+              <ProtectedRoute>
+                <CheckoutPage />
+              </ProtectedRoute>
+            } 
+          />
           
           {/* Protected Routes */}
           <Route 
@@ -83,7 +134,15 @@ const App = () => (
             path="/orders" 
             element={
               <ProtectedRoute>
-                <CustomerDashboard />
+                <OrdersPage />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/invoice/:id" 
+            element={
+              <ProtectedRoute>
+                <InvoicePage />
               </ProtectedRoute>
             } 
           />
