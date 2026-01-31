@@ -47,7 +47,7 @@ async function createTestCoupon() {
         const coupon = await prisma.coupon.create({
             data: {
                 code: couponCode,
-                description: "Welcome to SharePal! Enjoy 10% off on your first order.",
+                description: "Welcome to RentX! Enjoy 10% off on your first order.",
                 discountType: "PERCENTAGE",
                 discountValue: 10,
                 minOrderAmount: null,

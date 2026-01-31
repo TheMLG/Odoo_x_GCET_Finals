@@ -57,13 +57,14 @@ export function WelcomeCouponDialog() {
                 <div className="absolute -top-20 -right-20 w-40 h-40 bg-blue-200 rounded-full blur-3xl opacity-20" />
                 <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-blue-200 rounded-full blur-3xl opacity-20" />
 
-                <div className="relative p-6">
+                <div className="relative p-8">
                     {/* Close button */}
                     <button
                         onClick={() => setIsOpen(false)}
-                        className="absolute right-4 top-4 rounded-full p-1 hover:bg-gray-100 transition-colors"
+                        className="absolute right-4 top-4 rounded-full p-1.5 hover:bg-gray-200 transition-colors z-10"
+                        aria-label="Close"
                     >
-                        <X className="h-4 w-4 text-gray-500" />
+                        <X className="h-5 w-5 text-gray-600 hover:text-gray-900" />
                     </button>
 
                     {/* Animated gift icon */}
@@ -71,7 +72,7 @@ export function WelcomeCouponDialog() {
                         initial={{ scale: 0, rotate: -180 }}
                         animate={{ scale: 1, rotate: 0 }}
                         transition={{ type: 'spring', duration: 0.6 }}
-                        className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-blue-500 shadow-lg"
+                        className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-blue-500 shadow-lg"
                     >
                         <Gift className="h-10 w-10 text-white" />
                     </motion.div>
@@ -98,13 +99,13 @@ export function WelcomeCouponDialog() {
                         </AnimatePresence>
                     </div>
 
-                    <DialogHeader className="text-center space-y-2">
+                    <DialogHeader className="text-center space-y-3 mb-6">
                         <motion.div
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.2 }}
                         >
-                            <DialogTitle className="text-2xl font-bold text-blue-600">
+                            <DialogTitle className="text-2xl font-bold text-blue-600 flex items-center justify-center gap-2">
                                 🎉 Congratulations!
                             </DialogTitle>
                         </motion.div>
@@ -114,7 +115,7 @@ export function WelcomeCouponDialog() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.3 }}
-                        className="mt-4 text-center space-y-4"
+                        className="text-center space-y-5"
                     >
                         <p className="text-lg font-semibold text-gray-900">
                             You've got a <span className="text-blue-600 text-xl font-bold">{welcomeCoupon.discountValue}% discount</span>!
@@ -124,12 +125,12 @@ export function WelcomeCouponDialog() {
                         </p>
 
                         {/* Coupon code box */}
-                        <div className="relative mt-6 rounded-xl border-2 border-dashed border-blue-300 bg-blue-50 p-4">
-                            <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-white px-2">
-                                <span className="text-xs font-semibold text-blue-600 uppercase">Your Code</span>
+                        <div className="relative mt-6 rounded-xl border-2 border-dashed border-blue-300 bg-blue-50 p-5">
+                            <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-white px-3">
+                                <span className="text-xs font-semibold text-blue-600 uppercase tracking-wide">Your Code</span>
                             </div>
 
-                            <div className="flex items-center justify-center gap-2 mt-1">
+                            <div className="flex items-center justify-center gap-3 mt-1">
                                 <code className="text-2xl font-bold tracking-wider text-blue-700">
                                     {welcomeCoupon.code}
                                 </code>
@@ -137,7 +138,7 @@ export function WelcomeCouponDialog() {
                                     size="sm"
                                     variant="ghost"
                                     onClick={handleCopy}
-                                    className="h-8 w-8 p-0 rounded-full hover:bg-blue-100"
+                                    className="h-8 w-8 p-0 rounded-full hover:bg-blue-200 transition-colors"
                                 >
                                     {copied ? (
                                         <Check className="h-4 w-4 text-green-600" />
@@ -150,7 +151,7 @@ export function WelcomeCouponDialog() {
 
                         {/* Expiry info */}
                         {welcomeCoupon.expiryDate && (
-                            <p className="text-xs text-gray-500">
+                            <p className="text-xs text-gray-500 mt-3">
                                 Valid until {new Date(welcomeCoupon.expiryDate).toLocaleDateString('en-IN', {
                                     day: 'numeric',
                                     month: 'short',
@@ -162,14 +163,14 @@ export function WelcomeCouponDialog() {
                         {/* CTA Button */}
                         <Button
                             onClick={() => setIsOpen(false)}
-                            className="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-lg"
+                            className="w-full mt-5 bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-lg rounded-lg py-6"
                             size="lg"
                         >
                             Start Shopping
                             <Sparkles className="ml-2 h-4 w-4" />
                         </Button>
 
-                        <p className="text-xs text-gray-500 mt-2">
+                        <p className="text-xs text-gray-500 mt-3">
                             This coupon is valid on your first order only
                         </p>
                     </motion.div>

@@ -131,7 +131,10 @@ export function CouponSelector({ totalAmount, onCouponApplied, appliedCouponCode
                                 </div>
                             ) : (
                                 coupons.map((coupon) => {
-                                    const isApplicable = !coupon.minOrderAmount || totalAmount >= coupon.minOrderAmount;
+                                    // Check backend's isApplicable flag first, then fall back to minOrderAmount check
+                                    const backendApplicable = coupon.isApplicable !== false;
+                                    const meetsMinOrder = !coupon.minOrderAmount || totalAmount >= coupon.minOrderAmount;
+                                    const isApplicable = backendApplicable && meetsMinOrder;
                                     const amountShort = coupon.minOrderAmount ? coupon.minOrderAmount - totalAmount : 0;
 
                                     return (
@@ -202,11 +205,19 @@ export function CouponSelector({ totalAmount, onCouponApplied, appliedCouponCode
                                                         </div>
                                                     </div>
 
-                                                    {!isApplicable && coupon.minOrderAmount && (
+                                                    {/* Show backend's reason if not applicable */}
+                                                    {!backendApplicable && coupon.notApplicableReason && (
+                                                        <p className="mt-2 text-xs text-red-500 font-medium">
+                                                            {coupon.notApplicableReason}
+                                                        </p>
+                                                    )}
+                                                    {/* Show min order message if backend says applicable but doesn't meet min order */}
+                                                    {backendApplicable && !meetsMinOrder && coupon.minOrderAmount && (
                                                         <p className="mt-2 text-xs text-red-500 font-medium">
                                                             Add ₹{amountShort} more to unlock this coupon
                                                         </p>
                                                     )}
+                                                    {/* Show min order info if applicable */}
                                                     {isApplicable && coupon.minOrderAmount && (
                                                         <p className="mt-2 text-xs text-gray-500">
                                                             Min. order: ₹{coupon.minOrderAmount}

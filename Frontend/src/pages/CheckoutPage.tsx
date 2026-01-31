@@ -126,12 +126,7 @@ export default function CheckoutPage() {
               <ChevronLeft className="h-5 w-5" />
             </button>
             <div className="flex items-center gap-2">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-blue-700">
-                <span className="text-xl font-bold text-white">Q</span>
-              </div>
-              <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">
-                SharePal
-              </span>
+              <img src="/RentX.png" alt="RentX Logo" className="h-10 w-auto" />
             </div>
           </div>
           <ShieldCheck className="h-6 w-6 text-gray-400" />
@@ -599,7 +594,7 @@ export default function CheckoutPage() {
               </Button>
 
               <p className="mt-4 text-center text-xs text-muted-foreground">
-                By placing your order, you agree to SharePal's privacy notice and conditions of
+                By placing your order, you agree to RentX's privacy notice and conditions of
                 use.
               </p>
             </motion.div>
