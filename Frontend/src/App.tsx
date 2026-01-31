@@ -67,7 +67,7 @@ function ProtectedRoute({
     const redirectPath =
       userRole === "ADMIN" ? "/admin/dashboard"
         : userRole === "VENDOR" ? "/vendor/dashboard"
-          : "/orders";
+          : "/";
     return <Navigate to={redirectPath} replace />;
   }
 
