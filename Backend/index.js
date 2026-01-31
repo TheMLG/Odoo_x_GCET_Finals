@@ -9,9 +9,10 @@ import cartRoutes from "./routes/cart.routes.js";
 import couponRoutes from "./routes/coupon.routes.js";
 import orderRoutes from "./routes/order.routes.js";
 import productRoutes from "./routes/product.routes.js";
+import reviewRoutes from "./routes/review.routes.js";
 import vendorRoutes from "./routes/vendor.routes.js";
 import wishlistRoutes from "./routes/wishlist.routes.js";
-import reviewRoutes from "./routes/review.routes.js";
+import { initRentalReminderCron } from "./services/rentalReminderCron.js";
 
 // Restart trigger
 dotenv.config();
@@ -78,4 +79,7 @@ app.use((err, req, res, next) => {
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
+
+  // Initialize cron jobs
+  initRentalReminderCron();
 });

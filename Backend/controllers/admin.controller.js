@@ -1,8 +1,9 @@
+import bcrypt from "bcryptjs";
 import prisma from "../config/prisma.js";
-import asyncHandler from "../utils/asyncHandler.js";
+import { triggerRentalReminder } from "../services/rentalReminderCron.js";
 import ApiError from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
-import bcrypt from "bcryptjs";
+import asyncHandler from "../utils/asyncHandler.js";
 
 // Get all users
 export const getAllUsers = asyncHandler(async (req, res) => {
@@ -10,16 +11,17 @@ export const getAllUsers = asyncHandler(async (req, res) => {
 
   const skip = (parseInt(page) - 1) * parseInt(limit);
 
-  const where = role
-    ? {
-      roles: {
-        some: {
-          role: {
-            name: role.toUpperCase(),
+  const where =
+    role ?
+      {
+        roles: {
+          some: {
+            role: {
+              name: role.toUpperCase(),
+            },
           },
         },
-      },
-    }
+      }
     : {};
 
   const [users, total] = await Promise.all([
@@ -57,8 +59,8 @@ export const getAllUsers = asyncHandler(async (req, res) => {
           totalPages: Math.ceil(total / parseInt(limit)),
         },
       },
-      "Users fetched successfully"
-    )
+      "Users fetched successfully",
+    ),
   );
 });
 
@@ -93,9 +95,7 @@ export const getUserById = asyncHandler(async (req, res) => {
     throw new ApiError(404, "User not found");
   }
 
-  res
-    .status(200)
-    .json(new ApiResponse(200, user, "User fetched successfully"));
+  res.status(200).json(new ApiResponse(200, user, "User fetched successfully"));
 });
 
 // Create user (admin only)
@@ -150,7 +150,7 @@ export const createUser = asyncHandler(async (req, res) => {
   res
     .status(201)
     .json(
-      new ApiResponse(201, userWithoutPassword, "User created successfully")
+      new ApiResponse(201, userWithoutPassword, "User created successfully"),
     );
 });
 
@@ -180,9 +180,7 @@ export const updateUser = asyncHandler(async (req, res) => {
     },
   });
 
-  res
-    .status(200)
-    .json(new ApiResponse(200, user, "User updated successfully"));
+  res.status(200).json(new ApiResponse(200, user, "User updated successfully"));
 });
 
 // Delete user
@@ -212,7 +210,7 @@ export const deleteUser = asyncHandler(async (req, res) => {
 
     // Delete carts and cart items
     if (user.carts.length > 0) {
-      const cartIds = user.carts.map(cart => cart.id);
+      const cartIds = user.carts.map((cart) => cart.id);
       await tx.cartItem.deleteMany({
         where: { cartId: { in: cartIds } },
       });
@@ -230,7 +228,7 @@ export const deleteUser = asyncHandler(async (req, res) => {
         where: { vendorId },
         select: { id: true },
       });
-      const productIds = products.map(p => p.id);
+      const productIds = products.map((p) => p.id);
 
       if (productIds.length > 0) {
         // Delete product-related data
@@ -366,7 +364,8 @@ export const getAllProducts = asyncHandler(async (req, res) => {
 
   const skip = (parseInt(page) - 1) * parseInt(limit);
 
-  const where = isPublished !== undefined ? { isPublished: isPublished === "true" } : {};
+  const where =
+    isPublished !== undefined ? { isPublished: isPublished === "true" } : {};
 
   const [products, total] = await Promise.all([
     prisma.product.findMany({
@@ -434,8 +433,8 @@ export const getAllProducts = asyncHandler(async (req, res) => {
           totalPages: Math.ceil(total / parseInt(limit)),
         },
       },
-      "Products fetched successfully"
-    )
+      "Products fetched successfully",
+    ),
   );
 });
 
@@ -490,10 +489,12 @@ export const getAllOrders = asyncHandler(async (req, res) => {
   // Transform orders to include totalAmount and paidAmount
   const transformedOrders = orders.map((order) => {
     const totalAmount = order.invoice?.totalAmount || 0;
-    const paidAmount = order.invoice?.payments?.reduce(
-      (sum, payment) => sum + (payment.status === "SUCCESS" ? Number(payment.amount) : 0),
-      0
-    ) || 0;
+    const paidAmount =
+      order.invoice?.payments?.reduce(
+        (sum, payment) =>
+          sum + (payment.status === "SUCCESS" ? Number(payment.amount) : 0),
+        0,
+      ) || 0;
 
     return {
       ...order,
@@ -514,61 +515,58 @@ export const getAllOrders = asyncHandler(async (req, res) => {
           totalPages: Math.ceil(total / parseInt(limit)),
         },
       },
-      "Orders fetched successfully"
-    )
+      "Orders fetched successfully",
+    ),
   );
 });
 
 // Get dashboard statistics
 export const getDashboardStats = asyncHandler(async (req, res) => {
-  const [
-    totalUsers,
-    totalVendors,
-    totalProducts,
-    totalOrders,
-    recentOrders,
-  ] = await Promise.all([
-    prisma.user.count(),
-    prisma.vendor.count(),
-    prisma.product.count(),
-    prisma.order.count(),
-    prisma.order.findMany({
-      take: 5,
-      orderBy: { createdAt: "desc" },
-      include: {
-        user: {
-          select: {
-            firstName: true,
-            lastName: true,
-            email: true,
+  const [totalUsers, totalVendors, totalProducts, totalOrders, recentOrders] =
+    await Promise.all([
+      prisma.user.count(),
+      prisma.vendor.count(),
+      prisma.product.count(),
+      prisma.order.count(),
+      prisma.order.findMany({
+        take: 5,
+        orderBy: { createdAt: "desc" },
+        include: {
+          user: {
+            select: {
+              firstName: true,
+              lastName: true,
+              email: true,
+            },
           },
-        },
-        vendor: {
-          include: {
-            user: {
-              select: {
-                firstName: true,
-                lastName: true,
+          vendor: {
+            include: {
+              user: {
+                select: {
+                  firstName: true,
+                  lastName: true,
+                },
               },
             },
           },
-        },
-        invoice: {
-          include: {
-            payments: true,
+          invoice: {
+            include: {
+              payments: true,
+            },
           },
         },
-      },
-    }),
-  ]);
+      }),
+    ]);
 
   // Transform recent orders to include totalAmount and paidAmount
   const transformedRecentOrders = recentOrders.map((order) => {
     const totalAmount = order.invoice?.totalAmount || 0;
-    const paidAmount = order.invoice?.payments?.reduce(
-      (sum, payment) => sum + (payment.status === "SUCCESS" ? Number(payment.amount) : 0),
-      0
-    ) || 0;
+    const paidAmount =
+      order.invoice?.payments?.reduce(
+        (sum, payment) =>
+          sum + (payment.status === "SUCCESS" ? Number(payment.amount) : 0),
+        0,
+      ) || 0;
 
     return {
       ...order,
@@ -714,7 +712,8 @@ export const getAnalytics = asyncHandler(async (req, res) => {
     order.items.forEach((item) => {
       const productName = item.product?.name || "Unknown";
       productRentals[productName] = (productRentals[productName] || 0) + 1;
-      productRevenue[productName] = (productRevenue[productName] || 0) + Number(item.unitPrice || 0);
+      productRevenue[productName] =
+        (productRevenue[productName] || 0) + Number(item.unitPrice || 0);
     });
   });
 
@@ -748,7 +747,10 @@ export const getAnalytics = asyncHandler(async (req, res) => {
     .slice(0, 5);
 
   // Calculate summary stats
-  const totalRevenue = orders.reduce((sum, order) => sum + Number(order.invoice?.totalAmount || 0), 0);
+  const totalRevenue = orders.reduce(
+    (sum, order) => sum + Number(order.invoice?.totalAmount || 0),
+    0,
+  );
   const totalOrders = orders.length;
   const activeUsers = await prisma.user.count();
   const totalProducts = await prisma.product.count();
@@ -770,8 +772,8 @@ export const getAnalytics = asyncHandler(async (req, res) => {
         topProducts,
         vendorPerformance,
       },
-      "Analytics data fetched successfully"
-    )
+      "Analytics data fetched successfully",
+    ),
   );
 });
 
@@ -1035,9 +1037,9 @@ export const updateProduct = asyncHandler(async (req, res) => {
     inventory: inventoryObj,
   };
 
-  return res.status(200).json(
-    new ApiResponse(200, finalResponse, "Product updated successfully")
-  );
+  return res
+    .status(200)
+    .json(new ApiResponse(200, finalResponse, "Product updated successfully"));
 });
 
 // Delete Product
@@ -1060,7 +1062,18 @@ export const deleteProduct = asyncHandler(async (req, res) => {
     await tx.product.delete({ where: { id: productId } });
   });
 
-  return res.status(200).json(
-    new ApiResponse(200, {}, "Product deleted successfully")
-  );
+  return res
+    .status(200)
+    .json(new ApiResponse(200, {}, "Product deleted successfully"));
+});
+
+// Manually trigger rental return reminder emails
+export const sendRentalReminders = asyncHandler(async (req, res) => {
+  await triggerRentalReminder();
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(200, {}, "Rental reminder emails triggered successfully"),
+    );
 });
