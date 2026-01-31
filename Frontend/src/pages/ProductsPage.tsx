@@ -1,69 +1,19 @@
-<<<<<<< HEAD
 import { MainLayout } from "@/components/layout/MainLayout";
 import { ProductCard } from "@/components/products/ProductCard";
 import { ProductFilters } from "@/components/products/ProductFilters";
-import api from "@/lib/api";
-import { Product } from "@/types/rental";
+import { useRentalStore } from "@/stores/rentalStore";
+
 import { motion } from "framer-motion";
 import { Loader2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-
-export default function ProductsPage() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState("");
-=======
-import { useState, useMemo, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { MainLayout } from '@/components/layout/MainLayout';
-import { ProductCard } from '@/components/products/ProductCard';
-import { ProductFilters } from '@/components/products/ProductFilters';
-import { useRentalStore } from '@/stores/rentalStore';
-import { Loader2 } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from "sonner";
 
 export default function ProductsPage() {
   const { products, isLoadingProducts, productsError, fetchProducts } = useRentalStore();
-  const [searchQuery, setSearchQuery] = useState('');
->>>>>>> 4968aec0092750d53f950ed54ee59be6aeadc6d8
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState("featured");
 
-<<<<<<< HEAD
-  useEffect(() => {
-    const fetchProducts = async () => {
-      setIsLoading(true);
-      try {
-        const response = await api.get("/products");
-        // Map backend response to Product type
-        const mappedProducts = response.data.data.map((p: any) => ({
-          id: p.id,
-          name: p.name,
-          description: p.description,
-          category: p.vendor?.product_category || "Uncategorized",
-          images: p.images || [],
-          isRentable: true,
-          isPublished: p.isPublished,
-          costPrice: 0,
-          pricePerHour: 0,
-          pricePerDay: p.pricing?.pricePerDay || 0,
-          pricePerWeek: p.pricing?.pricePerWeek || 0,
-          quantityOnHand: p.inventory?.quantityOnHand || 0,
-          vendorId: p.vendorId,
-          attributes: p.attributes || {},
-          createdAt: p.createdAt,
-        }));
-        setProducts(mappedProducts);
-      } catch (error) {
-        console.error("Failed to fetch products:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchProducts();
-  }, []);
-=======
   // Fetch products on mount
   useEffect(() => {
     fetchProducts();
@@ -77,7 +27,6 @@ export default function ProductsPage() {
       });
     }
   }, [productsError]);
->>>>>>> 4968aec0092750d53f950ed54ee59be6aeadc6d8
 
   const filteredProducts = useMemo(() => {
     let result = products.filter((p) => p.isPublished);
@@ -170,14 +119,14 @@ export default function ProductsPage() {
         </motion.p>
 
         {/* Loading state */}
-        {isLoading ?
+        {isLoadingProducts ?
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
             <span className="ml-3 text-muted-foreground">
               Loading products...
             </span>
           </div>
-        : <>
+          : <>
             {/* Products Grid */}
             {filteredProducts.length > 0 ?
               <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -189,7 +138,7 @@ export default function ProductsPage() {
                   />
                 ))}
               </div>
-            : <motion.div
+              : <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="flex flex-col items-center justify-center py-20 text-center"

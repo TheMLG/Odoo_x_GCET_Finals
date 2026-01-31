@@ -16,14 +16,8 @@ import {
   IndianRupee,
   Package,
   ShoppingCart,
-<<<<<<< HEAD
-=======
-  TrendingUp,
-  Settings,
->>>>>>> 4968aec0092750d53f950ed54ee59be6aeadc6d8
   Users,
-} from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
@@ -35,19 +29,7 @@ import {
   PieChart,
   XAxis,
   YAxis,
-<<<<<<< HEAD
 } from "recharts";
-=======
-} from 'recharts';
-import {
-  ChartConfig,
-  ChartContainer,
-  ChartLegend,
-  ChartLegendContent,
-  ChartTooltip,
-  ChartTooltipContent,
-} from '@/components/ui/chart';
->>>>>>> 4968aec0092750d53f950ed54ee59be6aeadc6d8
 
 const chartConfig = {
   orders: {
@@ -257,7 +239,6 @@ export default function AdminDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="h-[300px]">
-<<<<<<< HEAD
                   <ChartContainer
                     config={chartConfig}
                     className="h-full w-full"
@@ -266,18 +247,11 @@ export default function AdminDashboard() {
                       <CartesianGrid
                         strokeDasharray="3 3"
                         vertical={false}
-=======
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={ordersByMonth}>
-                      <CartesianGrid
-                        strokeDasharray="3 3"
->>>>>>> 4968aec0092750d53f950ed54ee59be6aeadc6d8
                         stroke="hsl(var(--border))"
                       />
                       <XAxis
                         dataKey="month"
                         stroke="hsl(var(--muted-foreground))"
-<<<<<<< HEAD
                         fontSize={12}
                         tickLine={false}
                         axisLine={false}
@@ -291,16 +265,6 @@ export default function AdminDashboard() {
                       <ChartTooltip
                         content={<ChartTooltipContent />}
                         cursor={{ fill: "hsl(var(--muted) / 0.4)" }}
-=======
-                      />
-                      <YAxis stroke="hsl(var(--muted-foreground))" />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: "hsl(var(--card))",
-                          border: "1px solid hsl(var(--border))",
-                          borderRadius: "12px",
-                        }}
->>>>>>> 4968aec0092750d53f950ed54ee59be6aeadc6d8
                       />
                       <Bar
                         dataKey="orders"
@@ -309,7 +273,7 @@ export default function AdminDashboard() {
                         maxBarSize={50}
                       />
                     </BarChart>
-                  </ResponsiveContainer>
+                  </ChartContainer>
                 </div>
               </CardContent>
             </Card>
@@ -347,17 +311,8 @@ export default function AdminDashboard() {
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
                       </Pie>
-<<<<<<< HEAD
                       <ChartTooltip
                         content={<ChartTooltipContent hideLabel />}
-=======
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: "hsl(var(--card))",
-                          border: "1px solid hsl(var(--border))",
-                          borderRadius: "12px",
-                        }}
->>>>>>> 4968aec0092750d53f950ed54ee59be6aeadc6d8
                       />
                     </PieChart>
                   </ChartContainer>

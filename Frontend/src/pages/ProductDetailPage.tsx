@@ -1,29 +1,4 @@
-<<<<<<< HEAD
-import { MainLayout } from "@/components/layout/MainLayout";
-import { RentalConfigurator } from "@/components/products/RentalConfigurator";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import api from "@/lib/api";
-import { cn } from "@/lib/utils";
-import { useWishlistStore } from "@/stores/wishlistStore";
-import { Product } from "@/types/rental";
-import { motion } from "framer-motion";
-import {
-  ArrowLeft,
-  Check,
-  Clock,
-  Heart,
-  Package,
-  Share2,
-  Shield,
-  Star,
-} from "lucide-react";
-import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { toast } from "sonner";
-=======
-import { useParams, useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Check, Star, Package, Shield, Clock, Share2, Heart } from 'lucide-react';
 import { MainLayout } from '@/components/layout/MainLayout';
@@ -36,23 +11,14 @@ import { useWishlistStore } from '@/stores/wishlistStore';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { useEffect } from 'react';
->>>>>>> 4968aec0092750d53f950ed54ee59be6aeadc6d8
 
 export default function ProductDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-<<<<<<< HEAD
-  const [product, setProduct] = useState<Product | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const { addItem, removeItem, isInWishlist } = useWishlistStore();
-=======
   const { products, fetchProducts, isLoadingProducts } = useRentalStore();
   const { addItem, removeItem, isInWishlist } = useWishlistStore();
 
   const product = products.find((p) => p.id === id);
->>>>>>> 4968aec0092750d53f950ed54ee59be6aeadc6d8
 
   useEffect(() => {
     if (!product && products.length === 0) {
@@ -74,52 +40,7 @@ export default function ProductDetailPage() {
     }
   };
 
-<<<<<<< HEAD
-  useEffect(() => {
-    const fetchProduct = async () => {
-      if (!id) return;
-      setIsLoading(true);
-      try {
-        const response = await api.get(`/products/${id}`);
-        const p = response.data.data;
-
-        // Map backend response to Product type
-        const mappedProduct = {
-          id: p.id,
-          name: p.name,
-          description: p.description,
-          category: p.vendor?.product_category || "Uncategorized",
-          images: p.images || [
-            "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=1000&auto=format&fit=crop",
-          ], // Placeholder
-          isRentable: true,
-          isPublished: p.isPublished,
-          costPrice: 0,
-          pricePerHour: 0,
-          pricePerDay: p.pricing?.pricePerDay || 0,
-          pricePerWeek: p.pricing?.pricePerWeek || 0,
-          quantityOnHand: p.inventory?.quantityOnHand || 0,
-          vendorId: p.vendorId,
-          attributes: p.attributes || {},
-          createdAt: p.createdAt,
-        };
-
-        setProduct(mappedProduct);
-      } catch (err) {
-        console.error("Error fetching product:", err);
-        setError("Failed to load product");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchProduct();
-  }, [id]);
-
-  if (isLoading) {
-=======
   if (isLoadingProducts) {
->>>>>>> 4968aec0092750d53f950ed54ee59be6aeadc6d8
     return (
       <MainLayout>
         <div className="container flex min-h-[50vh] flex-col items-center justify-center px-4 py-12">
@@ -146,15 +67,6 @@ export default function ProductDetailPage() {
     );
   }
 
-<<<<<<< HEAD
-  const features = [
-    { icon: Package, label: "Free delivery on orders above \u20B95,000" },
-    { icon: Shield, label: "Fully insured equipment" },
-    { icon: Clock, label: "Flexible rental periods" },
-  ];
-
-=======
->>>>>>> 4968aec0092750d53f950ed54ee59be6aeadc6d8
   return (
     <MainLayout>
       <div className="container px-4 py-8 md:px-6 md:py-12">
@@ -207,7 +119,7 @@ export default function ProductDetailPage() {
                     "flex h-10 w-10 items-center justify-center rounded-full shadow-lg transition-all hover:scale-110",
                     inWishlist ?
                       "bg-pink-500 text-white hover:bg-pink-600"
-                    : "bg-white hover:bg-gray-50",
+                      : "bg-white hover:bg-gray-50",
                   )}
                 >
                   <Heart
@@ -294,20 +206,9 @@ export default function ProductDetailPage() {
                   Product Specifications
                 </h3>
                 <div className="grid gap-4 sm:grid-cols-2">
-<<<<<<< HEAD
-                  {Object.entries(product.attributes).map(([key, value]) => (
-                    <div
-                      key={key}
-                      className="flex justify-between border-b border-border pb-2"
-                    >
-                      <span className="text-muted-foreground capitalize">
-                        {key}
-                      </span>
-=======
                   {product.attributes && Object.entries(product.attributes).map(([key, value]) => (
                     <div key={key} className="flex justify-between border-b border-border pb-2">
                       <span className="text-muted-foreground capitalize">{key}</span>
->>>>>>> 4968aec0092750d53f950ed54ee59be6aeadc6d8
                       <span className="font-medium">{value}</span>
                     </div>
                   ))}
@@ -336,9 +237,8 @@ export default function ProductDetailPage() {
                       {Array.from({ length: 5 }).map((_, i) => (
                         <Star
                           key={i}
-                          className={`h-5 w-5 ${
-                            i < 4 ? "fill-warning text-warning" : "text-muted"
-                          }`}
+                          className={`h-5 w-5 ${i < 4 ? "fill-warning text-warning" : "text-muted"
+                            }`}
                         />
                       ))}
                     </div>
@@ -380,7 +280,7 @@ export default function ProductDetailPage() {
             </TabsContent>
           </Tabs>
         </motion.div>
-      </div>
-    </MainLayout>
+      </div >
+    </MainLayout >
   );
 }

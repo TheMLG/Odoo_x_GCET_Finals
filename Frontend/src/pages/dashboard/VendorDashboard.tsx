@@ -146,15 +146,8 @@ export default function VendorDashboard() {
             </Button>
             <Button asChild className="rounded-xl">
               <Link to="/vendor/products/new">
-<<<<<<< HEAD
                 <Plus className="mr-2 h-4 w-4" />
                 Add Product
-=======
-                <Link to="/vendor/products/new">
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add Product
-                </Link>
->>>>>>> 4968aec0092750d53f950ed54ee59be6aeadc6d8
               </Link>
             </Button>
           </div>
@@ -257,17 +250,9 @@ export default function VendorDashboard() {
                       <Area
                         type="monotone"
                         dataKey="revenue"
-<<<<<<< HEAD
                         stroke="hsl(221, 83%, 53%)"
                         strokeWidth={2}
                         fill="url(#colorRevenue)"
-=======
-                        stroke="var(--color-revenue)"
-                        strokeWidth={2}
-                        fill="var(--color-revenue)"
-                        fillOpacity={0.1}
-                        activeDot={{ r: 6, strokeWidth: 0 }}
->>>>>>> 4968aec0092750d53f950ed54ee59be6aeadc6d8
                       />
                     </AreaChart>
                   </ResponsiveContainer>
@@ -350,11 +335,7 @@ export default function VendorDashboard() {
                         </Badge>
                       </div>
                     ))
-<<<<<<< HEAD
-                  : <p className="text-sm text-muted-foreground text-center py-4">
-=======
                     : <p className="text-sm text-muted-foreground text-center py-4">
->>>>>>> 4968aec0092750d53f950ed54ee59be6aeadc6d8
                       No products yet. Add your first product!
                     </p>
                   }
