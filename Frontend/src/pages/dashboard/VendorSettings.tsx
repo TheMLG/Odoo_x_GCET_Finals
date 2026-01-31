@@ -1,52 +1,58 @@
-import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { MainLayout } from '@/components/layout/MainLayout';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
-import { useToast } from '@/hooks/use-toast';
-import { useAuthStore } from '@/stores/authStore';
-import api from '@/lib/api';
-import { 
-  User, 
-  Mail, 
-  Lock, 
-  Save, 
+import { VendorLayout } from "@/components/layout/VendorLayout";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { useToast } from "@/hooks/use-toast";
+import api from "@/lib/api";
+import { useAuthStore } from "@/stores/authStore";
+import { motion } from "framer-motion";
+import {
   ArrowLeft,
   Building2,
   FileText,
   KeyRound,
-  Tag 
-} from 'lucide-react';
-import { Link } from 'react-router-dom';
+  Lock,
+  Mail,
+  Save,
+  Tag,
+  User,
+} from "lucide-react";
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 
 export default function VendorSettings() {
   const { toast } = useToast();
   const { user, setUser } = useAuthStore();
-  
+
   // User info form state
   const [userForm, setUserForm] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
+    firstName: "",
+    lastName: "",
+    email: "",
   });
   const [isUserLoading, setIsUserLoading] = useState(false);
-  
+
   // Vendor profile form state
   const [vendorForm, setVendorForm] = useState({
-    companyName: '',
-    gstNo: '',
-    product_category: '',
+    companyName: "",
+    gstNo: "",
+    product_category: "",
   });
   const [isVendorLoading, setIsVendorLoading] = useState(false);
-  
+
   // Password form state
   const [passwordForm, setPasswordForm] = useState({
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: '',
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
   });
   const [isPasswordLoading, setIsPasswordLoading] = useState(false);
 
@@ -54,16 +60,16 @@ export default function VendorSettings() {
   useEffect(() => {
     if (user) {
       setUserForm({
-        firstName: user.firstName || '',
-        lastName: user.lastName || '',
-        email: user.email || '',
+        firstName: user.firstName || "",
+        lastName: user.lastName || "",
+        email: user.email || "",
       });
-      
+
       if (user.vendor) {
         setVendorForm({
-          companyName: user.vendor.companyName || '',
-          gstNo: user.vendor.gstNo || '',
-          product_category: user.vendor.product_category || '',
+          companyName: user.vendor.companyName || "",
+          gstNo: user.vendor.gstNo || "",
+          product_category: user.vendor.product_category || "",
         });
       }
     }
@@ -75,21 +81,23 @@ export default function VendorSettings() {
     setIsUserLoading(true);
 
     try {
-      const response = await api.put('/vendor/profile/user', userForm);
+      const response = await api.put("/vendor/profile/user", userForm);
       const updatedUser = response.data.data;
-      
+
       // Update auth store
       setUser(updatedUser);
-      
+
       toast({
-        title: 'Success',
-        description: 'Personal information updated successfully',
+        title: "Success",
+        description: "Personal information updated successfully",
       });
     } catch (error: any) {
       toast({
-        title: 'Error',
-        description: error.response?.data?.message || 'Failed to update personal information',
-        variant: 'destructive',
+        title: "Error",
+        description:
+          error.response?.data?.message ||
+          "Failed to update personal information",
+        variant: "destructive",
       });
     } finally {
       setIsUserLoading(false);
@@ -102,21 +110,23 @@ export default function VendorSettings() {
     setIsVendorLoading(true);
 
     try {
-      await api.put('/vendor/profile', vendorForm);
-      
+      await api.put("/vendor/profile", vendorForm);
+
       // Fetch updated user data
-      const userResponse = await api.get('/auth/current-user');
+      const userResponse = await api.get("/auth/current-user");
       setUser(userResponse.data.data);
-      
+
       toast({
-        title: 'Success',
-        description: 'Business information updated successfully',
+        title: "Success",
+        description: "Business information updated successfully",
       });
     } catch (error: any) {
       toast({
-        title: 'Error',
-        description: error.response?.data?.message || 'Failed to update business information',
-        variant: 'destructive',
+        title: "Error",
+        description:
+          error.response?.data?.message ||
+          "Failed to update business information",
+        variant: "destructive",
       });
     } finally {
       setIsVendorLoading(false);
@@ -130,18 +140,18 @@ export default function VendorSettings() {
     // Validation
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
       toast({
-        title: 'Error',
-        description: 'New passwords do not match',
-        variant: 'destructive',
+        title: "Error",
+        description: "New passwords do not match",
+        variant: "destructive",
       });
       return;
     }
 
     if (passwordForm.newPassword.length < 6) {
       toast({
-        title: 'Error',
-        description: 'Password must be at least 6 characters long',
-        variant: 'destructive',
+        title: "Error",
+        description: "Password must be at least 6 characters long",
+        variant: "destructive",
       });
       return;
     }
@@ -149,27 +159,28 @@ export default function VendorSettings() {
     setIsPasswordLoading(true);
 
     try {
-      await api.post('/vendor/profile/change-password', {
+      await api.post("/vendor/profile/change-password", {
         currentPassword: passwordForm.currentPassword,
         newPassword: passwordForm.newPassword,
       });
 
       toast({
-        title: 'Success',
-        description: 'Password changed successfully',
+        title: "Success",
+        description: "Password changed successfully",
       });
 
       // Reset form
       setPasswordForm({
-        currentPassword: '',
-        newPassword: '',
-        confirmPassword: '',
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
       });
     } catch (error: any) {
       toast({
-        title: 'Error',
-        description: error.response?.data?.message || 'Failed to change password',
-        variant: 'destructive',
+        title: "Error",
+        description:
+          error.response?.data?.message || "Failed to change password",
+        variant: "destructive",
       });
     } finally {
       setIsPasswordLoading(false);
@@ -177,7 +188,7 @@ export default function VendorSettings() {
   };
 
   return (
-    <MainLayout showFooter={false}>
+    <VendorLayout>
       <div className="container px-4 py-8 md:px-6 md:py-12 max-w-4xl mx-auto">
         {/* Header */}
         <motion.div
@@ -217,9 +228,7 @@ export default function VendorSettings() {
                   <User className="h-5 w-5 text-primary" />
                   <CardTitle>Personal Information</CardTitle>
                 </div>
-                <CardDescription>
-                  Update your personal details
-                </CardDescription>
+                <CardDescription>Update your personal details</CardDescription>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleUserUpdate} className="space-y-4">
@@ -231,7 +240,10 @@ export default function VendorSettings() {
                         placeholder="Enter first name"
                         value={userForm.firstName}
                         onChange={(e) =>
-                          setUserForm({ ...userForm, firstName: e.target.value })
+                          setUserForm({
+                            ...userForm,
+                            firstName: e.target.value,
+                          })
                         }
                         required
                         className="rounded-xl"
@@ -273,14 +285,13 @@ export default function VendorSettings() {
                     disabled={isUserLoading}
                     className="rounded-xl"
                   >
-                    {isUserLoading ? (
-                      'Saving...'
-                    ) : (
-                      <>
+                    {isUserLoading ?
+                      "Saving..."
+                    : <>
                         <Save className="mr-2 h-4 w-4" />
                         Save Changes
                       </>
-                    )}
+                    }
                   </Button>
                 </form>
               </CardContent>
@@ -301,9 +312,7 @@ export default function VendorSettings() {
                   <Building2 className="h-5 w-5 text-primary" />
                   <CardTitle>Business Information</CardTitle>
                 </div>
-                <CardDescription>
-                  Update your company details
-                </CardDescription>
+                <CardDescription>Update your company details</CardDescription>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleVendorUpdate} className="space-y-4">
@@ -316,7 +325,10 @@ export default function VendorSettings() {
                         placeholder="Enter company name"
                         value={vendorForm.companyName}
                         onChange={(e) =>
-                          setVendorForm({ ...vendorForm, companyName: e.target.value })
+                          setVendorForm({
+                            ...vendorForm,
+                            companyName: e.target.value,
+                          })
                         }
                         required
                         className="pl-10 rounded-xl"
@@ -332,7 +344,10 @@ export default function VendorSettings() {
                         placeholder="Enter GST number"
                         value={vendorForm.gstNo}
                         onChange={(e) =>
-                          setVendorForm({ ...vendorForm, gstNo: e.target.value })
+                          setVendorForm({
+                            ...vendorForm,
+                            gstNo: e.target.value,
+                          })
                         }
                         required
                         className="pl-10 rounded-xl"
@@ -348,7 +363,10 @@ export default function VendorSettings() {
                         placeholder="e.g., Photography, Audio, Computers"
                         value={vendorForm.product_category}
                         onChange={(e) =>
-                          setVendorForm({ ...vendorForm, product_category: e.target.value })
+                          setVendorForm({
+                            ...vendorForm,
+                            product_category: e.target.value,
+                          })
                         }
                         required
                         className="pl-10 rounded-xl"
@@ -360,14 +378,13 @@ export default function VendorSettings() {
                     disabled={isVendorLoading}
                     className="rounded-xl"
                   >
-                    {isVendorLoading ? (
-                      'Saving...'
-                    ) : (
-                      <>
+                    {isVendorLoading ?
+                      "Saving..."
+                    : <>
                         <Save className="mr-2 h-4 w-4" />
                         Save Changes
                       </>
-                    )}
+                    }
                   </Button>
                 </form>
               </CardContent>
@@ -438,7 +455,9 @@ export default function VendorSettings() {
                     </p>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                    <Label htmlFor="confirmPassword">
+                      Confirm New Password
+                    </Label>
                     <div className="relative">
                       <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                       <Input
@@ -462,14 +481,13 @@ export default function VendorSettings() {
                     disabled={isPasswordLoading}
                     className="rounded-xl"
                   >
-                    {isPasswordLoading ? (
-                      'Changing Password...'
-                    ) : (
-                      <>
+                    {isPasswordLoading ?
+                      "Changing Password..."
+                    : <>
                         <Lock className="mr-2 h-4 w-4" />
                         Change Password
                       </>
-                    )}
+                    }
                   </Button>
                 </form>
               </CardContent>
@@ -485,9 +503,7 @@ export default function VendorSettings() {
             <Card className="rounded-2xl">
               <CardHeader>
                 <CardTitle>Account Information</CardTitle>
-                <CardDescription>
-                  View your account details
-                </CardDescription>
+                <CardDescription>View your account details</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid gap-4 sm:grid-cols-2">
@@ -497,27 +513,31 @@ export default function VendorSettings() {
                   </div>
                   <div>
                     <Label className="text-muted-foreground">Vendor ID</Label>
-                    <p className="mt-1 font-medium">{user?.vendor?.id || 'N/A'}</p>
+                    <p className="mt-1 font-medium">
+                      {user?.vendor?.id || "N/A"}
+                    </p>
                   </div>
                   <div>
                     <Label className="text-muted-foreground">Role</Label>
                     <div className="mt-1 flex items-center gap-2">
                       <Building2 className="h-4 w-4 text-primary" />
                       <span className="font-medium">
-                        {user?.roles?.[0]?.role?.name || 'VENDOR'}
+                        {user?.roles?.[0]?.role?.name || "VENDOR"}
                       </span>
                     </div>
                   </div>
                   <div>
-                    <Label className="text-muted-foreground">Member Since</Label>
+                    <Label className="text-muted-foreground">
+                      Member Since
+                    </Label>
                     <p className="mt-1 font-medium">
-                      {user?.createdAt
-                        ? new Date(user.createdAt).toLocaleDateString('en-US', {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric',
-                          })
-                        : 'N/A'}
+                      {user?.createdAt ?
+                        new Date(user.createdAt).toLocaleDateString("en-US", {
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                        })
+                      : "N/A"}
                     </p>
                   </div>
                 </div>
@@ -526,6 +546,6 @@ export default function VendorSettings() {
           </motion.div>
         </div>
       </div>
-    </MainLayout>
+    </VendorLayout>
   );
 }
