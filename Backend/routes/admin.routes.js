@@ -1,20 +1,21 @@
 import { Router } from "express";
 import {
-  getAllUsers,
-  getUserById,
-  createUser,
-  updateUser,
-  deleteUser,
-  getAllVendors,
-  getAllProducts,
-  getAllOrders,
-  getDashboardStats,
-  getAnalytics,
-  getAdminProfile,
-  updateAdminProfile,
   changeAdminPassword,
-  updateProduct,
+  createUser,
   deleteProduct,
+  deleteUser,
+  getAdminProfile,
+  getAllOrders,
+  getAllProducts,
+  getAllUsers,
+  getAllVendors,
+  getAnalytics,
+  getDashboardStats,
+  getUserById,
+  sendRentalReminders,
+  updateAdminProfile,
+  updateProduct,
+  updateUser,
 } from "../controllers/admin.controller.js";
 import { verifyJWT } from "../middleware/auth.middleware.js";
 import { isAdmin } from "../middleware/role.middleware.js";
@@ -36,7 +37,11 @@ router.route("/profile/change-password").post(changeAdminPassword);
 
 // User management routes
 router.route("/users").get(getAllUsers).post(createUser);
-router.route("/users/:userId").get(getUserById).put(updateUser).delete(deleteUser);
+router
+  .route("/users/:userId")
+  .get(getUserById)
+  .put(updateUser)
+  .delete(deleteUser);
 
 // Vendor management routes
 router.route("/vendors").get(getAllVendors);
@@ -47,5 +52,8 @@ router.route("/products/:productId").put(updateProduct).delete(deleteProduct);
 
 // Order management routes
 router.route("/orders").get(getAllOrders);
+
+// Cron job management routes
+router.route("/trigger-rental-reminders").post(sendRentalReminders);
 
 export default router;
