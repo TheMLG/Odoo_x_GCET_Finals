@@ -84,22 +84,13 @@ export function Navbar() {
         </Link>
 
         {/* Desktop Navigation */}
-<<<<<<< HEAD
         {isCustomer && (
           <div className="hidden flex-1 items-center gap-4 px-8 md:flex">
             {/* Location */}
             <button className="flex items-center gap-2 rounded-lg px-3 py-2 hover:bg-muted">
               <MapPin className="h-5 w-5" />
-              <span className="text-sm font-medium">Mumbai</span>
+              <span className="text-sm font-medium">{rentalLocation}</span>
             </button>
-=======
-        <div className="hidden flex-1 items-center gap-4 px-8 md:flex">
-          {/* Location */}
-          <button className="flex items-center gap-2 rounded-lg px-3 py-2 hover:bg-muted">
-            <MapPin className="h-5 w-5" />
-            <span className="text-sm font-medium">{rentalLocation}</span>
-          </button>
->>>>>>> 506d7df715d9587171652d6674bfb24aee8b41fc
 
             {/* Search Bar */}
             <div className="relative flex-1 max-w-md">
@@ -127,7 +118,7 @@ export function Navbar() {
             <Button variant="ghost" size="icon" className="rounded-xl">
               <Heart className="h-5 w-5" />
               {wishlistItems.length > 0 && (
-                <Badge 
+                <Badge
                   className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-pink-500 p-0 text-xs text-white"
                 >
                   {wishlistItems.length}

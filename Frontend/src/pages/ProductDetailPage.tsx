@@ -1,33 +1,30 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Check, Star, Package, Shield, Clock, Share2, Heart, TrendingUp } from 'lucide-react';
+import { ArrowLeft, Check, Star, Package, Shield, Clock, Share2, Heart } from 'lucide-react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { RentalConfigurator } from '@/components/products/RentalConfigurator';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-<<<<<<< HEAD
-import { useState, useEffect } from 'react';
-import api from '@/lib/api';
-import { Product } from '@/types/rental';
-=======
 import { useRentalStore } from '@/stores/rentalStore';
 import { useWishlistStore } from '@/stores/wishlistStore';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
->>>>>>> 506d7df715d9587171652d6674bfb24aee8b41fc
+import { useEffect } from 'react';
 
 export default function ProductDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-<<<<<<< HEAD
-  const [product, setProduct] = useState<Product | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-=======
-  const { products } = useRentalStore();
+  const { products, fetchProducts, isLoadingProducts } = useRentalStore();
   const { addItem, removeItem, isInWishlist } = useWishlistStore();
+
   const product = products.find((p) => p.id === id);
+
+  useEffect(() => {
+    if (!product && products.length === 0) {
+      fetchProducts();
+    }
+  }, [product, products, fetchProducts]);
 
   const inWishlist = product ? isInWishlist(product.id) : false;
 
@@ -42,48 +39,8 @@ export default function ProductDetailPage() {
       toast.success('Added to wishlist');
     }
   };
->>>>>>> 506d7df715d9587171652d6674bfb24aee8b41fc
 
-  useEffect(() => {
-    const fetchProduct = async () => {
-      if (!id) return;
-      setIsLoading(true);
-      try {
-        const response = await api.get(`/products/${id}`);
-        const p = response.data.data;
-
-        // Map backend response to Product type
-        const mappedProduct = {
-          id: p.id,
-          name: p.name,
-          description: p.description,
-          category: p.vendor?.product_category || 'Uncategorized',
-          images: p.images || ['https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=1000&auto=format&fit=crop'], // Placeholder
-          isRentable: true,
-          isPublished: p.isPublished,
-          costPrice: 0,
-          pricePerHour: 0,
-          pricePerDay: p.pricing?.pricePerDay || 0,
-          pricePerWeek: p.pricing?.pricePerWeek || 0,
-          quantityOnHand: p.inventory?.quantityOnHand || 0,
-          vendorId: p.vendorId,
-          attributes: p.attributes || {},
-          createdAt: p.createdAt
-        };
-
-        setProduct(mappedProduct);
-      } catch (err) {
-        console.error("Error fetching product:", err);
-        setError("Failed to load product");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchProduct();
-  }, [id]);
-
-  if (isLoading) {
+  if (isLoadingProducts) {
     return (
       <MainLayout>
         <div className="container flex min-h-[50vh] flex-col items-center justify-center px-4 py-12">
@@ -93,7 +50,7 @@ export default function ProductDetailPage() {
     );
   }
 
-  if (error || !product) {
+  if (!product) {
     return (
       <MainLayout>
         <div className="container flex min-h-[50vh] flex-col items-center justify-center px-4 py-12">
@@ -109,12 +66,6 @@ export default function ProductDetailPage() {
       </MainLayout>
     );
   }
-
-  const features = [
-    { icon: Package, label: 'Free delivery on orders above \u20B95,000' },
-    { icon: Shield, label: 'Fully insured equipment' },
-    { icon: Clock, label: 'Flexible rental periods' },
-  ];
 
   return (
     <MainLayout>
@@ -247,7 +198,7 @@ export default function ProductDetailPage() {
               <div className="rounded-2xl border border-border bg-card p-6">
                 <h3 className="mb-4 text-lg font-semibold">Product Specifications</h3>
                 <div className="grid gap-4 sm:grid-cols-2">
-                  {Object.entries(product.attributes).map(([key, value]) => (
+                  {product.attributes && Object.entries(product.attributes).map(([key, value]) => (
                     <div key={key} className="flex justify-between border-b border-border pb-2">
                       <span className="text-muted-foreground capitalize">{key}</span>
                       <span className="font-medium">{value}</span>
