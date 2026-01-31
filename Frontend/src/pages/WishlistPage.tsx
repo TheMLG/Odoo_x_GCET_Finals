@@ -1,8 +1,3 @@
-import { motion } from 'framer-motion';
-import { Heart, ShoppingCart, Trash2, Package, X } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -13,14 +8,26 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
-import { useWishlistStore } from '@/stores/wishlistStore';
-import { useAuthStore } from '@/stores/authStore';
-import { useState, useEffect } from 'react';
-import { toast } from 'sonner';
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { useAuthStore } from "@/stores/authStore";
+import { useWishlistStore } from "@/stores/wishlistStore";
+import { Heart, Package, ShoppingCart, Trash2, X } from "lucide-react";
+import { useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 export default function WishlistPage() {
-  const { items, removeItem, clearWishlist, deleteWishlist, fetchWishlist, isLoading, isInitialized } = useWishlistStore();
+  const {
+    items,
+    removeItem,
+    clearWishlist,
+    deleteWishlist,
+    fetchWishlist,
+    isLoading,
+    isInitialized,
+  } = useWishlistStore();
   const { isAuthenticated } = useAuthStore();
   const navigate = useNavigate();
 
@@ -37,17 +44,17 @@ export default function WishlistPage() {
 
   const handleRemoveFromWishlist = async (productId: string) => {
     await removeItem(productId);
-    toast.success('Removed from wishlist');
+    toast.success("Removed from wishlist");
   };
 
   const handleClearWishlist = async () => {
     await clearWishlist();
-    toast.success('Wishlist cleared');
+    toast.success("Wishlist cleared");
   };
 
   const handleDeleteWishlist = async () => {
     await deleteWishlist();
-    toast.success('Wishlist deleted completely');
+    toast.success("Wishlist deleted completely");
   };
 
   return (
@@ -58,17 +65,15 @@ export default function WishlistPage() {
           <div>
             <h1 className="text-3xl font-bold">My Wishlist</h1>
             <p className="text-muted-foreground">
-              {items.length} {items.length === 1 ? 'item' : 'items'} in your wishlist
+              {items.length} {items.length === 1 ? "item" : "items"} in your
+              wishlist
             </p>
           </div>
           {items.length > 0 && (
             <div className="flex gap-2">
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="rounded-xl"
-                  >
+                  <Button variant="outline" className="rounded-xl">
                     <Trash2 className="mr-2 h-4 w-4" />
                     Clear All
                   </Button>
@@ -77,8 +82,8 @@ export default function WishlistPage() {
                   <AlertDialogHeader>
                     <AlertDialogTitle>Clear Wishlist?</AlertDialogTitle>
                     <AlertDialogDescription>
-                      This will remove all {items.length} items from your wishlist. 
-                      You can add them back later.
+                      This will remove all {items.length} items from your
+                      wishlist. You can add them back later.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
@@ -92,10 +97,7 @@ export default function WishlistPage() {
               {isAuthenticated && (
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
-                    <Button
-                      variant="destructive"
-                      className="rounded-xl"
-                    >
+                    <Button variant="destructive" className="rounded-xl">
                       <X className="mr-2 h-4 w-4" />
                       Delete Wishlist
                     </Button>
@@ -104,8 +106,8 @@ export default function WishlistPage() {
                     <AlertDialogHeader>
                       <AlertDialogTitle>Delete Wishlist?</AlertDialogTitle>
                       <AlertDialogDescription>
-                        This will permanently delete your wishlist and all saved items. 
-                        This action cannot be undone.
+                        This will permanently delete your wishlist and all saved
+                        items. This action cannot be undone.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -132,7 +134,7 @@ export default function WishlistPage() {
         )}
 
         {/* Wishlist Items */}
-        {!isLoading && items.length === 0 ? (
+        {!isLoading && items.length === 0 ?
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -141,7 +143,9 @@ export default function WishlistPage() {
             <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-muted">
               <Heart className="h-12 w-12 text-muted-foreground" />
             </div>
-            <h2 className="mb-2 text-2xl font-semibold">Your wishlist is empty</h2>
+            <h2 className="mb-2 text-2xl font-semibold">
+              Your wishlist is empty
+            </h2>
             <p className="mb-6 text-muted-foreground">
               Browse products and add items to your wishlist
             </p>
@@ -152,8 +156,7 @@ export default function WishlistPage() {
               </Link>
             </Button>
           </motion.div>
-        ) : (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        : <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {items.map((product, index) => (
               <motion.div
                 key={product.id}
@@ -164,7 +167,10 @@ export default function WishlistPage() {
                 <Card className="group overflow-hidden rounded-xl border-2 transition-all hover:border-primary hover:shadow-lg">
                   <CardContent className="p-0">
                     {/* Product Image */}
-                    <Link to={`/products/${product.id}`} className="relative block aspect-square overflow-hidden">
+                    <Link
+                      to={`/products/${product.id}`}
+                      className="relative block aspect-square overflow-hidden"
+                    >
                       <img
                         src={product.images[0]}
                         alt={product.name}
@@ -188,15 +194,21 @@ export default function WishlistPage() {
                       <div className="mb-4 space-y-1">
                         <div className="flex items-center justify-between text-sm">
                           <span className="text-muted-foreground">Hourly</span>
-                          <span className="font-semibold">₹{product.pricePerHour}</span>
+                          <span className="font-semibold">
+                            ₹{product.pricePerHour}
+                          </span>
                         </div>
                         <div className="flex items-center justify-between text-sm">
                           <span className="text-muted-foreground">Daily</span>
-                          <span className="font-semibold">₹{product.pricePerDay}</span>
+                          <span className="font-semibold">
+                            ₹{product.pricePerDay}
+                          </span>
                         </div>
                         <div className="flex items-center justify-between text-sm">
                           <span className="text-muted-foreground">Weekly</span>
-                          <span className="font-semibold">₹{product.pricePerWeek}</span>
+                          <span className="font-semibold">
+                            ₹{product.pricePerWeek}
+                          </span>
                         </div>
                       </div>
 
@@ -222,15 +234,20 @@ export default function WishlistPage() {
                           </AlertDialogTrigger>
                           <AlertDialogContent>
                             <AlertDialogHeader>
-                              <AlertDialogTitle>Remove from Wishlist?</AlertDialogTitle>
+                              <AlertDialogTitle>
+                                Remove from Wishlist?
+                              </AlertDialogTitle>
                               <AlertDialogDescription>
-                                Are you sure you want to remove "{product.name}" from your wishlist?
+                                Are you sure you want to remove "{product.name}"
+                                from your wishlist?
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
                               <AlertDialogCancel>Cancel</AlertDialogCancel>
                               <AlertDialogAction
-                                onClick={() => handleRemoveFromWishlist(product.id)}
+                                onClick={() =>
+                                  handleRemoveFromWishlist(product.id)
+                                }
                               >
                                 Remove
                               </AlertDialogAction>
@@ -244,7 +261,7 @@ export default function WishlistPage() {
               </motion.div>
             ))}
           </div>
-        )}
+        }
       </div>
     </div>
   );

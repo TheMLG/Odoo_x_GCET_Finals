@@ -35,8 +35,8 @@ import VendorSettings from "./pages/dashboard/VendorSettings";
 import HomePage from "./pages/HomePage";
 import InvoicePage from "./pages/InvoicePage";
 import NotFound from "./pages/NotFound";
-import OrdersPage from "./pages/OrdersPage";
 import OrderDetailPage from "./pages/OrderDetailPage";
+import OrdersPage from "./pages/OrdersPage";
 import ProductDetailPage from "./pages/ProductDetailPage";
 import ProductsPage from "./pages/ProductsPage";
 import WishlistPage from "./pages/WishlistPage";
@@ -79,10 +79,16 @@ function ProtectedRoute({
 
 // Public Route - redirects authenticated users away from auth pages
 function PublicRoute({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, getUserRole } = useAuthStore();
 
   if (isAuthenticated) {
-    return <Navigate to="/" replace />;
+    const userRole = getUserRole();
+    // Redirect to appropriate dashboard based on role
+    const redirectPath =
+      userRole === "ADMIN" ? "/admin/dashboard"
+      : userRole === "VENDOR" ? "/vendor/dashboard"
+      : "/";
+    return <Navigate to={redirectPath} replace />;
   }
 
   return <>{children}</>;

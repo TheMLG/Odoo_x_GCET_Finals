@@ -269,8 +269,6 @@ exports.Prisma.CouponScalarFieldEnum = {
   currentUsageCount: 'currentUsageCount',
   expiryDate: 'expiryDate',
   isActive: 'isActive',
-  userId: 'userId',
-  isWelcomeCoupon: 'isWelcomeCoupon',
   createdAt: 'createdAt'
 };
 
