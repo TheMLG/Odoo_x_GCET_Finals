@@ -2,6 +2,14 @@
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Separator } from "@/components/ui/separator";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { downloadInvoicePDF, getUserOrders, Order } from "@/lib/orderApi";
@@ -9,11 +17,14 @@ import { useAuthStore } from "@/stores/authStore";
 import { format } from "date-fns";
 import { motion } from "framer-motion";
 import {
+  Building,
+  Calendar,
   CheckCircle2,
   Download,
   Eye,
   FileText,
   Loader2,
+  Mail,
   MapPin,
   Package,
   TrendingUp,
@@ -93,6 +104,8 @@ export default function OrdersPage() {
   const [downloadingInvoice, setDownloadingInvoice] = useState<string | null>(
     null,
   );
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
 
   useEffect(() => {
     fetchOrders();
@@ -129,8 +142,9 @@ export default function OrdersPage() {
     }
   };
 
-  const handleViewDetails = (orderId: string) => {
-    navigate(`/orders/${orderId}`);
+  const handleViewDetails = (order: Order) => {
+    setSelectedOrder(order);
+    setDetailsDialogOpen(true);
   };
 
   const formatPrice = (price: number | string) => {
@@ -140,6 +154,17 @@ export default function OrdersPage() {
       currency: "INR",
       maximumFractionDigits: 0,
     }).format(numPrice);
+  };
+
+  const calculateOrderTotal = (order: Order) => {
+    return order.items.reduce((total, item) => {
+      const days = Math.ceil(
+        (new Date(item.rentalEnd).getTime() -
+          new Date(item.rentalStart).getTime()) /
+          (1000 * 60 * 60 * 24),
+      );
+      return total + Number(item.unitPrice) * item.quantity * Math.max(days, 1);
+    }, 0);
   };
 
   const filteredOrders = orders.filter((order) => {
@@ -306,7 +331,7 @@ export default function OrdersPage() {
                                     variant="outline"
                                     size="sm"
                                     className="rounded-lg"
-                                    onClick={() => handleViewDetails(order.id)}
+                                    onClick={() => handleViewDetails(order)}
                                   >
                                     <Eye className="mr-2 h-4 w-4" />
                                     View Details
@@ -344,6 +369,231 @@ export default function OrdersPage() {
           </Tabs>
         </div>
       </div>
+
+      {/* Order Details Dialog */}
+      <Dialog open={detailsDialogOpen} onOpenChange={setDetailsDialogOpen}>
+        <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto">
+          {selectedOrder && (
+            <>
+              <DialogHeader>
+                <div className="flex items-center justify-between">
+                  <DialogTitle className="text-2xl font-bold">
+                    Order Details
+                  </DialogTitle>
+                  <StatusBadge
+                    label={
+                      statusConfig[
+                        selectedOrder.status.toLowerCase() as keyof typeof statusConfig
+                      ]?.label || "Draft"
+                    }
+                    variant={
+                      statusConfig[
+                        selectedOrder.status.toLowerCase() as keyof typeof statusConfig
+                      ]?.variant || "blue"
+                    }
+                    icon={
+                      statusConfig[
+                        selectedOrder.status.toLowerCase() as keyof typeof statusConfig
+                      ]?.icon || FileText
+                    }
+                  />
+                </div>
+                <DialogDescription className="sr-only">
+                  View order details including items, vendor information, and
+                  invoice
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="space-y-6">
+                {/* Order Info */}
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-3 rounded-xl bg-gray-50 p-4">
+                    <div className="flex justify-between">
+                      <span className="text-sm text-muted-foreground">
+                        Order Number:
+                      </span>
+                      <span className="font-semibold">
+                        #{selectedOrder.orderNumber}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-muted-foreground">
+                        Order Date:
+                      </span>
+                      <span className="font-semibold">
+                        {format(
+                          new Date(selectedOrder.createdAt),
+                          "MMM dd, yyyy",
+                        )}
+                      </span>
+                    </div>
+                    {selectedOrder.invoice && (
+                      <div className="flex justify-between">
+                        <span className="text-sm text-muted-foreground">
+                          Invoice Number:
+                        </span>
+                        <span className="font-semibold">
+                          {selectedOrder.invoice.invoiceNumber}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Vendor Info */}
+                  <div className="space-y-2">
+                    <h3 className="mb-3 font-semibold text-muted-foreground">
+                      Vendor:
+                    </h3>
+                    <div className="flex items-center gap-2">
+                      <Building className="h-4 w-4 text-muted-foreground" />
+                      <span className="font-medium">
+                        {selectedOrder.vendor?.companyName ||
+                          `${selectedOrder.vendor?.user?.firstName} ${selectedOrder.vendor?.user?.lastName}`}
+                      </span>
+                    </div>
+                    {selectedOrder.vendor?.user?.email && (
+                      <div className="flex items-center gap-2">
+                        <Mail className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm">
+                          {selectedOrder.vendor.user.email}
+                        </span>
+                      </div>
+                    )}
+                    {selectedOrder.vendor?.gstNo && (
+                      <div className="flex items-center gap-2">
+                        <FileText className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm">
+                          GSTIN: {selectedOrder.vendor.gstNo}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Items Table */}
+                <div className="overflow-hidden rounded-xl border border-border">
+                  <table className="w-full">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="p-4 text-left text-sm font-semibold">
+                          Product
+                        </th>
+                        <th className="p-4 text-center text-sm font-semibold">
+                          Qty
+                        </th>
+                        <th className="p-4 text-right text-sm font-semibold">
+                          Rate/Day
+                        </th>
+                        <th className="p-4 text-right text-sm font-semibold">
+                          Amount
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {selectedOrder.items.map((item) => {
+                        const days = Math.ceil(
+                          (new Date(item.rentalEnd).getTime() -
+                            new Date(item.rentalStart).getTime()) /
+                            (1000 * 60 * 60 * 24),
+                        );
+                        const itemTotal =
+                          Number(item.unitPrice) *
+                          item.quantity *
+                          Math.max(days, 1);
+                        return (
+                          <tr key={item.id} className="border-t border-border">
+                            <td className="p-4">
+                              <div className="flex items-center gap-3">
+                                <div className="relative h-12 w-12 overflow-hidden rounded-lg border bg-white">
+                                  <img
+                                    src={item.product?.product_image_url}
+                                    alt={item.product?.name}
+                                    className="h-full w-full object-cover"
+                                  />
+                                </div>
+                                <div>
+                                  <div className="font-medium">
+                                    {item.product?.name}
+                                  </div>
+                                  <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                                    <Calendar className="h-3 w-3" />
+                                    {format(
+                                      new Date(item.rentalStart),
+                                      "MMM dd",
+                                    )}{" "}
+                                    -{" "}
+                                    {format(
+                                      new Date(item.rentalEnd),
+                                      "MMM dd, yyyy",
+                                    )}{" "}
+                                    ({Math.max(days, 1)} days)
+                                  </div>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="p-4 text-center">{item.quantity}</td>
+                            <td className="p-4 text-right">
+                              {formatPrice(item.unitPrice)}
+                            </td>
+                            <td className="p-4 text-right font-semibold">
+                              {formatPrice(itemTotal)}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Totals */}
+                <div className="ml-auto max-w-sm space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Subtotal:</span>
+                    <span className="font-semibold">
+                      {formatPrice(calculateOrderTotal(selectedOrder))}
+                    </span>
+                  </div>
+                  {selectedOrder.invoice && (
+                    <>
+                      <Separator />
+                      <div className="flex justify-between text-lg">
+                        <span className="font-semibold">Total Amount:</span>
+                        <span className="font-bold text-primary">
+                          {formatPrice(selectedOrder.invoice.totalAmount)}
+                        </span>
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                {/* Actions */}
+                <div className="flex justify-end gap-2 border-t pt-4">
+                  {selectedOrder.invoice && (
+                    <Button
+                      variant="outline"
+                      onClick={() =>
+                        handleDownloadInvoice(
+                          selectedOrder.id,
+                          selectedOrder.orderNumber,
+                        )
+                      }
+                      disabled={downloadingInvoice === selectedOrder.id}
+                    >
+                      {downloadingInvoice === selectedOrder.id ?
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      : <Download className="mr-2 h-4 w-4" />}
+                      Download Invoice
+                    </Button>
+                  )}
+                  <Button onClick={() => setDetailsDialogOpen(false)}>
+                    Close
+                  </Button>
+                </div>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </MainLayout>
   );
 }
