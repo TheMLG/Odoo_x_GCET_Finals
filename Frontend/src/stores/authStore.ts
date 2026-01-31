@@ -64,6 +64,10 @@ export const useAuthStore = create<AuthState>()(
           const response = await api.post('/auth/login', { email, password });
           const { user, accessToken } = response.data.data;
 
+          if (!user || !accessToken) {
+            throw new Error('Invalid response from server');
+          }
+
           // Store token in localStorage
           localStorage.setItem('accessToken', accessToken);
 
@@ -71,8 +75,9 @@ export const useAuthStore = create<AuthState>()(
           return { success: true };
         } catch (error: any) {
           console.error('Login error:', error.response?.data || error.message);
+
           // Return the specific error message from the backend
-          const errorMessage = error.response?.data?.message || 'Something went wrong';
+          const errorMessage = error.response?.data?.message || error.message || 'Something went wrong';
           return { success: false, error: errorMessage };
         } finally {
           set({ isLoading: false });

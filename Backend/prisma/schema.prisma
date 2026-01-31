@@ -39,6 +39,7 @@ model User {
   orders     Order[]
   wishlists  Wishlist[]
   addresses  Address[]
+  coupons    Coupon[]
 }
 
 model Role {
@@ -285,7 +286,10 @@ model Coupon {
   currentUsageCount Int     @default(0)
   expiryDate       DateTime?
   isActive         Boolean  @default(true)
+  userId           String?  // For user-specific coupons (e.g., welcome coupons)
+  isWelcomeCoupon  Boolean  @default(false) // Flag to identify welcome coupons
   createdAt        DateTime @default(now())
 
+  user   User?   @relation(fields: [userId], references: [id])
   orders Order[]
 }

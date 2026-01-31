@@ -6,6 +6,7 @@ import ApiResponse from "../utils/ApiResponse.js";
 // Get all available coupons
 export const getAvailableCoupons = asyncHandler(async (req, res) => {
     const { minOrderAmount } = req.query;
+    const userId = req.user?.id; // Get authenticated user ID
 
     const currentDate = new Date();
 
@@ -18,13 +19,29 @@ export const getAvailableCoupons = asyncHandler(async (req, res) => {
         ],
     };
 
+    // Add filter for global coupons OR user-specific coupons
+    if (userId) {
+        whereConditions.OR.push(
+            { userId: null }, // Global coupons
+            { userId: userId } // User-specific coupons
+        );
+    } else {
+        whereConditions.userId = null; // Only global coupons for unauthenticated users
+    }
+
     // Add minimum order filter if provided
     if (minOrderAmount) {
-        whereConditions.OR = [
-            ...whereConditions.OR,
-            { minOrderAmount: null }, // No minimum
-            { minOrderAmount: { lte: parseFloat(minOrderAmount) } }, // Order meets minimum
+        const existingOR = whereConditions.OR;
+        whereConditions.AND = [
+            { OR: existingOR },
+            {
+                OR: [
+                    { minOrderAmount: null }, // No minimum
+                    { minOrderAmount: { lte: parseFloat(minOrderAmount) } }, // Order meets minimum
+                ]
+            }
         ];
+        delete whereConditions.OR; // Remove the original OR since we're using AND now
     }
 
     const coupons = await prisma.coupon.findMany({
@@ -39,6 +56,8 @@ export const getAvailableCoupons = asyncHandler(async (req, res) => {
             maxUsageCount: true,
             currentUsageCount: true,
             expiryDate: true,
+            isWelcomeCoupon: true,
+            userId: true,
         },
     });
 
@@ -62,6 +81,7 @@ export const getAvailableCoupons = asyncHandler(async (req, res) => {
 // Validate a coupon code
 export const validateCoupon = asyncHandler(async (req, res) => {
     const { code, orderAmount } = req.body;
+    const userId = req.user?.id; // Get authenticated user ID
 
     if (!code || !orderAmount) {
         throw new ApiError(400, "Coupon code and order amount are required");
@@ -77,6 +97,30 @@ export const validateCoupon = asyncHandler(async (req, res) => {
 
     if (!coupon.isActive) {
         throw new ApiError(400, "This coupon is no longer active");
+    }
+
+    // Check if coupon is user-specific
+    if (coupon.userId !== null) {
+        if (!userId) {
+            throw new ApiError(401, "Please login to use this coupon");
+        }
+        if (coupon.userId !== userId) {
+            throw new ApiError(403, "This coupon is not valid for your account");
+        }
+    }
+
+    // Check if it's a welcome coupon and validate first order restriction
+    if (coupon.isWelcomeCoupon && userId) {
+        const orderCount = await prisma.order.count({
+            where: { userId: userId },
+        });
+
+        if (orderCount > 0) {
+            throw new ApiError(
+                400,
+                "Welcome coupon can only be used on your first order"
+            );
+        }
     }
 
     // Check expiry

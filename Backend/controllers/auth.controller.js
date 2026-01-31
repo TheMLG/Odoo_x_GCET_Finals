@@ -95,6 +95,32 @@ export const registerUser = asyncHandler(async (req, res) => {
     },
   });
 
+  // Create welcome coupon for new user
+  try {
+    const couponCode = `WELCOME-${user.id.substring(0, 6).toUpperCase()}`;
+    const expiryDate = new Date();
+    expiryDate.setDate(expiryDate.getDate() + 30); // 30 days from now
+
+    await prisma.coupon.create({
+      data: {
+        code: couponCode,
+        description: "Welcome to SharePal! Enjoy 10% off on your first order.",
+        discountType: "PERCENTAGE",
+        discountValue: 10,
+        minOrderAmount: null,
+        maxUsageCount: 1,
+        currentUsageCount: 0,
+        expiryDate: expiryDate,
+        isActive: true,
+        userId: user.id,
+        isWelcomeCoupon: true,
+      },
+    });
+  } catch (couponError) {
+    // Log error but don't fail user registration
+    console.error("Failed to create welcome coupon:", couponError);
+  }
+
   // Generate tokens
   const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(
     user.id
@@ -108,13 +134,13 @@ export const registerUser = asyncHandler(async (req, res) => {
     .cookie("accessToken", accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
       maxAge: 24 * 60 * 60 * 1000, // 1 day
     })
     .cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     })
     .json(
@@ -213,13 +239,13 @@ export const registerVendor = asyncHandler(async (req, res) => {
     .cookie("accessToken", accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
       maxAge: 24 * 60 * 60 * 1000, // 1 day
     })
     .cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     })
     .json(
@@ -281,13 +307,13 @@ export const login = asyncHandler(async (req, res) => {
     .cookie("accessToken", accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
       maxAge: 24 * 60 * 60 * 1000, // 1 day
     })
     .cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     })
     .json(
@@ -303,19 +329,18 @@ export const login = asyncHandler(async (req, res) => {
     );
 });
 
-// Logout
 export const logout = asyncHandler(async (req, res) => {
   res
     .status(200)
     .clearCookie("accessToken", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
     })
     .clearCookie("refreshToken", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
     })
     .json(new ApiResponse(200, {}, "Logout successful"));
 });
@@ -379,13 +404,13 @@ export const refreshAccessToken = asyncHandler(async (req, res) => {
       .cookie("accessToken", accessToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
+        sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
         maxAge: 24 * 60 * 60 * 1000,
       })
       .cookie("refreshToken", newRefreshToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
+        sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
         maxAge: 7 * 24 * 60 * 60 * 1000,
       })
       .json(
