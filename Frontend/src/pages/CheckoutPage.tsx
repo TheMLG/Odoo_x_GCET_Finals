@@ -1,23 +1,23 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useCartStore } from '@/stores/cartStore';
+import { addDays, format } from 'date-fns';
+import { toast } from 'sonner';
 import { motion } from 'framer-motion';
-import { format, addDays } from 'date-fns';
-import { Calendar, ChevronLeft, ChevronRight, ChevronDown, Tag, Zap, CreditCard } from 'lucide-react';
-import { MainLayout } from '@/components/layout/MainLayout';
+import { Calendar, ChevronDown, ChevronLeft, ChevronRight, CreditCard, Tag, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
-import { useCartStore } from '@/stores/cartStore';
-import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { cn } from '@/lib/utils';
+import {MainLayout} from '@/components/layout/MainLayout';
 
 const steps = [
   { id: 1, name: 'Contact Details' },
-  { id: 2, name: 'Address' },
-  { id: 3, name: 'CarePal' },
-  { id: 4, name: 'Delivery Time' },
+  { id: 2, name: 'Delivery Address' },
+  { id: 3, name: 'ID Proof' },
+  { id: 4, name: 'Review' },
   { id: 5, name: 'Payment' },
 ];
 

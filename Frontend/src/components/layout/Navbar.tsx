@@ -1,6 +1,22 @@
-import { CartSheet } from "@/components/products/CartSheet";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Link, useLocation } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { 
+  Package, 
+  ShoppingCart, 
+  User, 
+  LogOut, 
+  Menu, 
+  X,
+  LayoutDashboard,
+  FileText,
+  Settings,
+  Search,
+  MapPin,
+  Heart
+} from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -34,10 +50,17 @@ export function Navbar() {
   const location = useLocation();
   const { user, isAuthenticated, logout, getUserRole } = useAuthStore();
   const { items } = useCartStore();
-  const { items: wishlistItems } = useWishlistStore();
+  const { items: wishlistItems, fetchWishlist, isInitialized } = useWishlistStore();
   const { location: rentalLocation } = useRentalStore();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
+
+  // Fetch wishlist when user is authenticated
+  useEffect(() => {
+    if (isAuthenticated && !isInitialized) {
+      fetchWishlist();
+    }
+  }, [isAuthenticated, isInitialized, fetchWishlist]);
 
   const navLinks = [
     { href: "/", label: "Home" },
