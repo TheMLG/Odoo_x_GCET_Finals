@@ -30,8 +30,8 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // If the error is 401 and we haven't retried yet
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // If the error is 401 and we haven't retried yet, and it's not a login request
+    if (error.response?.status === 401 && !originalRequest._retry && !originalRequest.url.includes('/auth/login')) {
       originalRequest._retry = true;
 
       try {
@@ -40,10 +40,10 @@ api.interceptors.response.use(
           {},
           { withCredentials: true }
         );
-        
+
         const { accessToken } = data.data;
         localStorage.setItem('accessToken', accessToken);
-        
+
         // Retry the original request with new token
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
         return api(originalRequest);

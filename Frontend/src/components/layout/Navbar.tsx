@@ -1,22 +1,5 @@
-import { Link, useLocation } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { 
-  Package, 
-  ShoppingCart, 
-  User, 
-  LogOut, 
-  Menu, 
-  X,
-  LayoutDashboard,
-  FileText,
-  Settings,
-  Search,
-  MapPin,
-  Heart
-} from 'lucide-react';
-import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -43,14 +26,19 @@ import {
   User,
   X,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { CartSheet } from "../products/CartSheet";
 
 export function Navbar() {
   const location = useLocation();
   const { user, isAuthenticated, logout, getUserRole } = useAuthStore();
   const { items } = useCartStore();
-  const { items: wishlistItems, fetchWishlist, isInitialized } = useWishlistStore();
+  const {
+    items: wishlistItems,
+    fetchWishlist,
+    isInitialized,
+  } = useWishlistStore();
   const { location: rentalLocation } = useRentalStore();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
