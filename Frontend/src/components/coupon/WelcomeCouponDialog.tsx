@@ -53,9 +53,9 @@ export function WelcomeCouponDialog() {
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogContent className="sm:max-w-md overflow-hidden p-0 gap-0">
                 {/* Background decoration */}
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 opacity-10" />
-                <div className="absolute -top-20 -right-20 w-40 h-40 bg-yellow-400 rounded-full blur-3xl opacity-20" />
-                <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-blue-400 rounded-full blur-3xl opacity-20" />
+                <div className="absolute inset-0 bg-blue-50 opacity-50" />
+                <div className="absolute -top-20 -right-20 w-40 h-40 bg-blue-200 rounded-full blur-3xl opacity-20" />
+                <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-blue-200 rounded-full blur-3xl opacity-20" />
 
                 <div className="relative p-6">
                     {/* Close button */}
@@ -71,7 +71,7 @@ export function WelcomeCouponDialog() {
                         initial={{ scale: 0, rotate: -180 }}
                         animate={{ scale: 1, rotate: 0 }}
                         transition={{ type: 'spring', duration: 0.6 }}
-                        className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-500 shadow-lg"
+                        className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-blue-500 shadow-lg"
                     >
                         <Gift className="h-10 w-10 text-white" />
                     </motion.div>
@@ -104,7 +104,7 @@ export function WelcomeCouponDialog() {
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.2 }}
                         >
-                            <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                            <DialogTitle className="text-2xl font-bold text-blue-600">
                                 🎉 Congratulations!
                             </DialogTitle>
                         </motion.div>
@@ -117,32 +117,32 @@ export function WelcomeCouponDialog() {
                         className="mt-4 text-center space-y-4"
                     >
                         <p className="text-lg font-semibold text-gray-900">
-                            You've got a <span className="text-purple-600 text-xl font-bold">{welcomeCoupon.discountValue}% discount</span>!
+                            You've got a <span className="text-blue-600 text-xl font-bold">{welcomeCoupon.discountValue}% discount</span>!
                         </p>
                         <p className="text-sm text-gray-600">
                             {welcomeCoupon.description}
                         </p>
 
                         {/* Coupon code box */}
-                        <div className="relative mt-6 rounded-xl border-2 border-dashed border-purple-300 bg-gradient-to-br from-purple-50 to-blue-50 p-4">
+                        <div className="relative mt-6 rounded-xl border-2 border-dashed border-blue-300 bg-blue-50 p-4">
                             <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-white px-2">
-                                <span className="text-xs font-semibold text-purple-600 uppercase">Your Code</span>
+                                <span className="text-xs font-semibold text-blue-600 uppercase">Your Code</span>
                             </div>
 
                             <div className="flex items-center justify-center gap-2 mt-1">
-                                <code className="text-2xl font-bold tracking-wider text-purple-700">
+                                <code className="text-2xl font-bold tracking-wider text-blue-700">
                                     {welcomeCoupon.code}
                                 </code>
                                 <Button
                                     size="sm"
                                     variant="ghost"
                                     onClick={handleCopy}
-                                    className="h-8 w-8 p-0 rounded-full hover:bg-purple-100"
+                                    className="h-8 w-8 p-0 rounded-full hover:bg-blue-100"
                                 >
                                     {copied ? (
                                         <Check className="h-4 w-4 text-green-600" />
                                     ) : (
-                                        <Copy className="h-4 w-4 text-purple-600" />
+                                        <Copy className="h-4 w-4 text-blue-600" />
                                     )}
                                 </Button>
                             </div>
@@ -162,7 +162,7 @@ export function WelcomeCouponDialog() {
                         {/* CTA Button */}
                         <Button
                             onClick={() => setIsOpen(false)}
-                            className="w-full mt-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold shadow-lg"
+                            className="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-lg"
                             size="lg"
                         >
                             Start Shopping

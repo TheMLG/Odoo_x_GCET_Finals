@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Tag, ChevronDown, Loader2, Gift, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,10 +19,17 @@ export function CouponSelector({ totalAmount, onCouponApplied, appliedCouponCode
     const [isLoading, setIsLoading] = useState(false);
     const [couponCode, setCouponCode] = useState('');
     const [isApplying, setIsApplying] = useState(false);
+    const couponListRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         if (showCoupons && coupons.length === 0) {
             fetchCoupons();
+        }
+        // Auto-scroll to coupon list when it opens - use 'start' to show checkout button below
+        if (showCoupons && couponListRef.current) {
+            setTimeout(() => {
+                couponListRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 150);
         }
     }, [showCoupons]);
 
@@ -106,6 +113,7 @@ export function CouponSelector({ totalAmount, onCouponApplied, appliedCouponCode
             <AnimatePresence>
                 {showCoupons && !appliedCouponCode && (
                     <motion.div
+                        ref={couponListRef}
                         initial={{ height: 0, opacity: 0 }}
                         animate={{ height: 'auto', opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
@@ -122,79 +130,101 @@ export function CouponSelector({ totalAmount, onCouponApplied, appliedCouponCode
                                     No coupons available
                                 </div>
                             ) : (
-                                coupons.map((coupon) => (
-                                    <motion.div
-                                        key={coupon.id}
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        className={cn(
-                                            'relative overflow-hidden rounded-lg border-2 p-4 cursor-pointer transition-all hover:border-blue-500 hover:shadow-md',
-                                            coupon.isWelcomeCoupon
-                                                ? 'border-gradient-to-r from-blue-400 to-purple-400 bg-gradient-to-r from-blue-50 to-purple-50'
-                                                : 'border-gray-200 bg-white'
-                                        )}
-                                        onClick={() => handleApplyCoupon(coupon.code)}
-                                    >
-                                        {coupon.isWelcomeCoupon && (
-                                            <div className="absolute -right-8 -top-8 h-16 w-16 rounded-full bg-yellow-400 opacity-20" />
-                                        )}
+                                coupons.map((coupon) => {
+                                    const isApplicable = !coupon.minOrderAmount || totalAmount >= coupon.minOrderAmount;
+                                    const amountShort = coupon.minOrderAmount ? coupon.minOrderAmount - totalAmount : 0;
 
-                                        <div className="relative flex items-start gap-3">
-                                            <div className={cn(
-                                                "flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg",
-                                                coupon.isWelcomeCoupon
-                                                    ? "bg-gradient-to-br from-blue-500 to-purple-500"
-                                                    : "bg-blue-100"
-                                            )}>
-                                                {coupon.isWelcomeCoupon ? (
-                                                    <Gift className="h-6 w-6 text-white" />
-                                                ) : (
-                                                    <Tag className="h-6 w-6 text-blue-600" />
-                                                )}
-                                            </div>
-
-                                            <div className="flex-1 min-w-0">
-                                                <div className="flex items-start justify-between gap-2">
-                                                    <div>
-                                                        <div className="flex items-center gap-2">
-                                                            <span className="font-mono font-bold text-sm">{coupon.code}</span>
-                                                            {coupon.isWelcomeCoupon && (
-                                                                <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 px-2 py-0.5 text-xs font-semibold text-white">
-                                                                    <Sparkles className="h-3 w-3" />
-                                                                    Welcome Offer
-                                                                </span>
-                                                            )}
-                                                        </div>
-                                                        <p className="mt-1 text-sm text-gray-600 line-clamp-2">
-                                                            {coupon.description}
-                                                        </p>
-                                                    </div>
-                                                    <div className="text-right flex-shrink-0">
-                                                        <div className={cn(
-                                                            "text-lg font-bold",
-                                                            coupon.isWelcomeCoupon ? "text-purple-600" : "text-blue-600"
-                                                        )}>
-                                                            {coupon.discountType === 'PERCENTAGE'
-                                                                ? `${coupon.discountValue}% OFF`
-                                                                : `₹${coupon.discountValue} OFF`}
-                                                        </div>
-                                                    </div>
+                                    return (
+                                        <motion.div
+                                            key={coupon.id}
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            className={cn(
+                                                'relative overflow-hidden rounded-lg border-2 p-4 transition-all',
+                                                isApplicable
+                                                    ? 'cursor-pointer hover:border-blue-500 hover:shadow-md border-gray-200 bg-white'
+                                                    : 'cursor-not-allowed border-gray-100 bg-gray-50 opacity-60',
+                                                coupon.isWelcomeCoupon && isApplicable && 'border-blue-300 bg-blue-50'
+                                            )}
+                                            onClick={() => isApplicable && handleApplyCoupon(coupon.code)}
+                                        >
+                                            <div className="relative flex items-start gap-3">
+                                                <div className={cn(
+                                                    "flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg",
+                                                    coupon.isWelcomeCoupon && isApplicable
+                                                        ? "bg-blue-500"
+                                                        : isApplicable
+                                                            ? "bg-blue-100"
+                                                            : "bg-gray-200"
+                                                )}>
+                                                    {coupon.isWelcomeCoupon ? (
+                                                        <Gift className={cn("h-6 w-6", isApplicable ? "text-white" : "text-gray-400")} />
+                                                    ) : (
+                                                        <Tag className={cn("h-6 w-6", isApplicable ? "text-blue-600" : "text-gray-400")} />
+                                                    )}
                                                 </div>
 
-                                                {coupon.minOrderAmount && (
-                                                    <p className="mt-2 text-xs text-gray-500">
-                                                        Min. order: ₹{coupon.minOrderAmount}
-                                                    </p>
-                                                )}
-                                                {coupon.expiryDate && (
-                                                    <p className="mt-1 text-xs text-gray-500">
-                                                        Expires: {new Date(coupon.expiryDate).toLocaleDateString('en-IN')}
-                                                    </p>
-                                                )}
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex items-start justify-between gap-2">
+                                                        <div>
+                                                            <div className="flex items-center gap-2">
+                                                                <span className={cn(
+                                                                    "font-mono font-bold text-sm",
+                                                                    !isApplicable && "text-gray-400"
+                                                                )}>{coupon.code}</span>
+                                                                {coupon.isWelcomeCoupon && isApplicable && (
+                                                                    <span className="inline-flex items-center gap-1 rounded-full bg-blue-500 px-2 py-0.5 text-xs font-semibold text-white">
+                                                                        <Sparkles className="h-3 w-3" />
+                                                                        Welcome Offer
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            <p className={cn(
+                                                                "mt-1 text-sm line-clamp-2",
+                                                                isApplicable ? "text-gray-600" : "text-gray-400"
+                                                            )}>
+                                                                {coupon.description}
+                                                            </p>
+                                                        </div>
+                                                        <div className="text-right flex-shrink-0">
+                                                            <div className={cn(
+                                                                "text-lg font-bold",
+                                                                coupon.isWelcomeCoupon && isApplicable
+                                                                    ? "text-blue-600"
+                                                                    : isApplicable
+                                                                        ? "text-blue-600"
+                                                                        : "text-gray-400"
+                                                            )}>
+                                                                {coupon.discountType === 'PERCENTAGE'
+                                                                    ? `${coupon.discountValue}% OFF`
+                                                                    : `₹${coupon.discountValue} OFF`}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    {!isApplicable && coupon.minOrderAmount && (
+                                                        <p className="mt-2 text-xs text-red-500 font-medium">
+                                                            Add ₹{amountShort} more to unlock this coupon
+                                                        </p>
+                                                    )}
+                                                    {isApplicable && coupon.minOrderAmount && (
+                                                        <p className="mt-2 text-xs text-gray-500">
+                                                            Min. order: ₹{coupon.minOrderAmount}
+                                                        </p>
+                                                    )}
+                                                    {coupon.expiryDate && (
+                                                        <p className={cn(
+                                                            "mt-1 text-xs",
+                                                            isApplicable ? "text-gray-500" : "text-gray-400"
+                                                        )}>
+                                                            Expires: {new Date(coupon.expiryDate).toLocaleDateString('en-IN')}
+                                                        </p>
+                                                    )}
+                                                </div>
                                             </div>
-                                        </div>
-                                    </motion.div>
-                                ))
+                                        </motion.div>
+                                    );
+                                })
                             )}
                         </div>
                     </motion.div>

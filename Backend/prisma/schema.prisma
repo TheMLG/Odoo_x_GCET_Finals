@@ -18,6 +18,7 @@ model User {
   otpExpiry DateTime?
   addresses Address[]
   carts     Cart[]
+  coupons   Coupon[]
   orders    Order[]
   roles     UserRole[]
   vendor    Vendor?
