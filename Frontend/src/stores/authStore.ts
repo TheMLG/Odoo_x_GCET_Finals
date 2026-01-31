@@ -199,7 +199,7 @@ export const useAuthStore = create<AuthState>()(
             return '/vendor/dashboard';
           case 'CUSTOMER':
           default:
-            return '/orders';
+            return '/';
         }
       },
     }),
