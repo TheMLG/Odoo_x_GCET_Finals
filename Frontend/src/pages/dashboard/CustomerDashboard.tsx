@@ -28,29 +28,37 @@ export default function CustomerDashboard() {
       title: 'Total Orders',
       value: userOrders.length,
       icon: ShoppingCart,
-      color: 'text-primary',
-      bgColor: 'bg-primary/10',
+      textColor: 'text-blue-700',
+      bgColor: 'bg-blue-100',
+      iconColor: 'text-blue-600',
+      subtitle: 'All time orders',
     },
     {
       title: 'Active Rentals',
       value: activeRentals.length,
       icon: Package,
-      color: 'text-success',
-      bgColor: 'bg-success/10',
+      textColor: 'text-emerald-700',
+      bgColor: 'bg-emerald-100',
+      iconColor: 'text-emerald-600',
+      subtitle: 'Currently rented',
     },
     {
       title: 'Pending',
       value: pendingOrders.length,
       icon: Clock,
-      color: 'text-warning',
-      bgColor: 'bg-warning/10',
+      textColor: 'text-purple-700',
+      bgColor: 'bg-purple-100',
+      iconColor: 'text-purple-600',
+      subtitle: 'Awaiting confirmation',
     },
     {
       title: 'Invoices',
       value: userOrders.length,
       icon: FileText,
-      color: 'text-chart-4',
-      bgColor: 'bg-chart-4/10',
+      textColor: 'text-red-700',
+      bgColor: 'bg-red-100',
+      iconColor: 'text-red-600',
+      subtitle: 'Total invoices',
     },
   ];
 
@@ -65,7 +73,7 @@ export default function CustomerDashboard() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
-          <h1 className="text-3xl font-bold">Welcome back, {user?.name?.split(' ')[0]}!</h1>
+          <h1 className="text-3xl font-bold">Welcome back, {user?.firstName}!</h1>
           <p className="text-muted-foreground">
             Manage your rentals and orders from your dashboard
           </p>
@@ -80,14 +88,19 @@ export default function CustomerDashboard() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
             >
-              <Card className="rounded-2xl">
-                <CardContent className="flex items-center gap-4 p-6">
-                  <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${stat.bgColor}`}>
-                    <stat.icon className={`h-6 w-6 ${stat.color}`} />
+              <Card className={`rounded-3xl border-0 shadow-sm ${stat.bgColor}`}>
+                <CardContent className="p-6">
+                  <div className="flex items-start justify-between mb-3">
+                    <p className={`text-sm font-semibold uppercase tracking-wide ${stat.textColor}`}>
+                      {stat.title}
+                    </p>
+                    <div className="flex h-11 w-11 items-center justify-center rounded-full bg-white shadow-sm">
+                      <stat.icon className={`h-5 w-5 ${stat.iconColor}`} />
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">{stat.title}</p>
-                    <p className="text-2xl font-bold">{stat.value}</p>
+                  <div className="space-y-0.5">
+                    <p className={`text-4xl font-bold ${stat.textColor}`}>{stat.value}</p>
+                    <p className={`text-sm ${stat.textColor} opacity-70`}>{stat.subtitle}</p>
                   </div>
                 </CardContent>
               </Card>

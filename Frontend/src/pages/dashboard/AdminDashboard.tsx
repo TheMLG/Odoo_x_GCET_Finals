@@ -58,32 +58,40 @@ export default function AdminDashboard() {
       title: 'Total Revenue',
       value: `₹${totalRevenue.toLocaleString()}`,
       icon: DollarSign,
-      color: 'text-success',
-      bgColor: 'bg-success/10',
+      textColor: 'text-emerald-700',
+      bgColor: 'bg-emerald-100',
+      iconColor: 'text-emerald-600',
+      subtitle: 'Total earnings',
       change: '+15%',
     },
     {
       title: 'Total Orders',
       value: totalOrders,
       icon: ShoppingCart,
-      color: 'text-primary',
-      bgColor: 'bg-primary/10',
+      textColor: 'text-blue-700',
+      bgColor: 'bg-blue-100',
+      iconColor: 'text-blue-600',
+      subtitle: 'All time orders',
       change: '+12%',
     },
     {
       title: 'Active Products',
       value: activeProducts,
       icon: Package,
-      color: 'text-warning',
-      bgColor: 'bg-warning/10',
+      textColor: 'text-purple-700',
+      bgColor: 'bg-purple-100',
+      iconColor: 'text-purple-600',
+      subtitle: 'Published products',
       change: '+5',
     },
     {
       title: 'Active Rentals',
       value: activeRentals,
       icon: Users,
-      color: 'text-chart-4',
-      bgColor: 'bg-chart-4/10',
+      textColor: 'text-red-700',
+      bgColor: 'bg-red-100',
+      iconColor: 'text-red-600',
+      subtitle: 'Currently rented',
       change: null,
     },
   ];
@@ -120,22 +128,19 @@ export default function AdminDashboard() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
             >
-              <Card className="rounded-2xl">
+              <Card className={`rounded-3xl border-0 shadow-sm ${stat.bgColor}`}>
                 <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${stat.bgColor}`}>
-                      <stat.icon className={`h-6 w-6 ${stat.color}`} />
+                  <div className="flex items-start justify-between mb-3">
+                    <p className={`text-sm font-semibold uppercase tracking-wide ${stat.textColor}`}>
+                      {stat.title}
+                    </p>
+                    <div className="flex h-11 w-11 items-center justify-center rounded-full bg-white shadow-sm">
+                      <stat.icon className={`h-5 w-5 ${stat.iconColor}`} />
                     </div>
-                    {stat.change && (
-                      <Badge variant="secondary" className="rounded-lg text-success">
-                        <TrendingUp className="mr-1 h-3 w-3" />
-                        {stat.change}
-                      </Badge>
-                    )}
                   </div>
-                  <div className="mt-4">
-                    <p className="text-sm text-muted-foreground">{stat.title}</p>
-                    <p className="text-2xl font-bold">{stat.value}</p>
+                  <div className="space-y-0.5">
+                    <p className={`text-4xl font-bold ${stat.textColor}`}>{stat.value}</p>
+                    <p className={`text-sm ${stat.textColor} opacity-70`}>{stat.subtitle}</p>
                   </div>
                 </CardContent>
               </Card>
