@@ -1,4 +1,10 @@
-import { LayoutDashboard, Package, Settings, ShoppingCart } from "lucide-react";
+import {
+  FileText,
+  LayoutDashboard,
+  Package,
+  Settings,
+  ShoppingCart,
+} from "lucide-react";
 
 // Vendor Navigation Items
 export const VENDOR_NAV_ITEMS = [
@@ -11,6 +17,11 @@ export const VENDOR_NAV_ITEMS = [
     label: "Orders",
     href: "/vendor/orders",
     icon: ShoppingCart,
+  },
+  {
+    label: "Invoices",
+    href: "/vendor/invoices",
+    icon: FileText,
   },
   {
     label: "Products",
