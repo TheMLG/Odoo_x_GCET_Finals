@@ -26,9 +26,13 @@ interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<boolean>;
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+
   signup: (data: SignupData) => Promise<boolean>;
   logout: () => Promise<void>;
+  forgotPassword: (email: string) => Promise<boolean>;
+  verifyOtp: (email: string, otp: string) => Promise<boolean>;
+  resetPassword: (email: string, otp: string, password: string) => Promise<boolean>;
   setUser: (user: User | null) => void;
   fetchCurrentUser: () => Promise<void>;
   hasRole: (role: 'ADMIN' | 'VENDOR' | 'CUSTOMER') => boolean;
@@ -59,33 +63,36 @@ export const useAuthStore = create<AuthState>()(
         try {
           const response = await api.post('/auth/login', { email, password });
           const { user, accessToken } = response.data.data;
-          
+
           // Store token in localStorage
           localStorage.setItem('accessToken', accessToken);
-          
+
           set({ user, isAuthenticated: true });
-          return true;
+          return { success: true };
         } catch (error: any) {
           console.error('Login error:', error.response?.data || error.message);
-          return false;
+          // Return the specific error message from the backend
+          const errorMessage = error.response?.data?.message || 'Something went wrong';
+          return { success: false, error: errorMessage };
         } finally {
           set({ isLoading: false });
         }
       },
 
+
       signup: async (data: SignupData) => {
         set({ isLoading: true });
         try {
-          const endpoint = data.role === 'vendor' 
-            ? '/auth/register/vendor' 
+          const endpoint = data.role === 'vendor'
+            ? '/auth/register/vendor'
             : '/auth/register/user';
-          
+
           const response = await api.post(endpoint, data);
           const { user, accessToken } = response.data.data;
-          
+
           // Store token in localStorage
           localStorage.setItem('accessToken', accessToken);
-          
+
           set({ user, isAuthenticated: true });
           return true;
         } catch (error: any) {
@@ -105,6 +112,45 @@ export const useAuthStore = create<AuthState>()(
         } finally {
           localStorage.removeItem('accessToken');
           set({ user: null, isAuthenticated: false, isLoading: false });
+        }
+      },
+
+      forgotPassword: async (email: string) => {
+        set({ isLoading: true });
+        try {
+          await api.post('/auth/forgot-password', { email });
+          return true;
+        } catch (error: any) {
+          console.error('Forgot password error:', error.response?.data || error.message);
+          return false;
+        } finally {
+          set({ isLoading: false });
+        }
+      },
+
+      verifyOtp: async (email: string, otp: string) => {
+        set({ isLoading: true });
+        try {
+          await api.post('/auth/verify-otp', { email, otp });
+          return true;
+        } catch (error: any) {
+          console.error('OTP verification error:', error.response?.data || error.message);
+          return false;
+        } finally {
+          set({ isLoading: false });
+        }
+      },
+
+      resetPassword: async (email: string, otp: string, password: string) => {
+        set({ isLoading: true });
+        try {
+          await api.post('/auth/reset-password', { email, otp, newPassword: password });
+          return true;
+        } catch (error: any) {
+          console.error('Reset password error:', error.response?.data || error.message);
+          return false;
+        } finally {
+          set({ isLoading: false });
         }
       },
 

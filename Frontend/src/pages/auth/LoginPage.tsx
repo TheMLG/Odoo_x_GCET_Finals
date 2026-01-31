@@ -50,14 +50,14 @@ export default function LoginPage() {
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
     try {
-      const success = await login(data.email, data.password);
-      if (success) {
+      const result = await login(data.email, data.password);
+      if (result.success) {
         toast.success('Welcome back!');
         const dashboardPath = getDashboardPath();
         navigate(dashboardPath);
       } else {
-        toast.error('Invalid credentials', {
-          description: 'Please check your login ID and password',
+        form.setError('root', {
+          message: result.error || 'Please check your login ID and password',
         });
       }
     } catch (error) {
@@ -155,12 +155,18 @@ export default function LoginPage() {
               {/* Forgot Password Link */}
               <div className="text-left">
                 <Link
-                  to="#"
+                  to="/auth/forgot-password"
                   className="text-blue-600 hover:text-blue-700 text-sm font-medium transition-colors"
                 >
                   Forgot password?
                 </Link>
               </div>
+
+              {form.formState.errors.root && (
+                <div className="text-red-500 text-sm text-center bg-red-50 p-2 rounded-lg border border-red-100">
+                  {form.formState.errors.root.message}
+                </div>
+              )}
 
               <Button
                 type="submit"
