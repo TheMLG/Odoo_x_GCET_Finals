@@ -1,12 +1,29 @@
-import prisma from "../config/prisma.js";
 import bcrypt from "bcryptjs";
+import prisma from "../config/prisma.js";
+
+const hash = (pwd) => bcrypt.hash(pwd, 10);
+
+const categories = [
+  "Electronics",
+  "Construction",
+  "Photography",
+  "Event Equipment",
+  "Home Appliances",
+];
+
+const productsByCategory = {
+  Electronics: ["DSLR Camera", "Drone", "Projector"],
+  Construction: ["Concrete Mixer", "Jack Hammer"],
+  Photography: ["Tripod", "Lighting Kit"],
+  "Event Equipment": ["Sound System", "LED Wall"],
+  "Home Appliances": ["Washing Machine", "Air Conditioner"],
+};
 
 async function main() {
   console.log("🌱 Starting database seed...");
 
-  // Create Roles
-  console.log("Creating roles...");
-  
+  /* ───────────────────────── ROLES ───────────────────────── */
+
   const adminRole = await prisma.role.upsert({
     where: { name: "ADMIN" },
     update: {},
@@ -25,157 +42,226 @@ async function main() {
     create: { name: "CUSTOMER" },
   });
 
-  console.log("✅ Roles created:", { adminRole, vendorRole, customerRole });
+  /* ───────────────────────── ADMIN ───────────────────────── */
 
-  // Create Admin User
-  console.log("Creating admin user...");
-  
-  const adminEmail = "admin@odoo.com";
-  const existingAdmin = await prisma.user.findUnique({
-    where: { email: adminEmail },
+  await prisma.user.upsert({
+    where: { email: "admin@odoo.com" },
+    update: {},
+    create: {
+      email: "admin@odoo.com",
+      password: await hash("Admin@123"),
+      firstName: "Admin",
+      lastName: "User",
+      roles: {
+        create: { roleId: adminRole.id },
+      },
+    },
   });
 
-  if (!existingAdmin) {
-    const hashedPassword = await bcrypt.hash("Admin@123", 10);
-    
-    const adminUser = await prisma.user.create({
-      data: {
-        email: adminEmail,
-        password: hashedPassword,
-        firstName: "Admin",
-        lastName: "User",
-        roles: {
-          create: {
-            roleId: adminRole.id,
-          },
-        },
-      },
-      include: {
-        roles: {
-          include: {
-            role: true,
-          },
-        },
-      },
-    });
+  /* ───────────────────────── VENDORS ───────────────────────── */
 
-    console.log("✅ Admin user created:", {
-      email: adminUser.email,
-      name: `${adminUser.firstName} ${adminUser.lastName}`,
-    });
-  } else {
-    console.log("ℹ️  Admin user already exists");
-  }
+  const vendors = [];
 
-  // Create Sample Vendor
-  console.log("Creating sample vendor...");
-  
-  const vendorEmail = "vendor@odoo.com";
-  const existingVendor = await prisma.user.findUnique({
-    where: { email: vendorEmail },
-  });
-
-  if (!existingVendor) {
-    const hashedPassword = await bcrypt.hash("Vendor@123", 10);
-    
-    const vendorUser = await prisma.user.create({
-      data: {
-        email: vendorEmail,
-        password: hashedPassword,
-        firstName: "Sample",
-        lastName: "Vendor",
+  for (let i = 1; i <= 3; i++) {
+    const user = await prisma.user.upsert({
+      where: { email: `vendor${i}@odoo.com` },
+      update: {},
+      create: {
+        email: `vendor${i}@odoo.com`,
+        password: await hash(`Vendor@${i}23`),
+        firstName: "Vendor",
+        lastName: `${i}`,
         roles: {
-          create: {
-            roleId: vendorRole.id,
-          },
+          create: { roleId: vendorRole.id },
         },
         vendor: {
           create: {
-            companyName: "Sample Rentals Co.",
-            gstNo: "22AAAAA0000A1Z5",
-            product_category: "Electronics",
+            companyName: `Rental Co ${i}`,
+            gstNo: `22AAAAA000${i}A1Z${i}`,
+            product_category: categories[i % categories.length],
           },
         },
       },
-      include: {
-        roles: {
-          include: {
-            role: true,
-          },
-        },
-        vendor: true,
-      },
+      include: { vendor: true },
     });
 
-    console.log("✅ Sample vendor created:", {
-      email: vendorUser.email,
-      companyName: vendorUser.vendor?.companyName,
-    });
-  } else {
-    console.log("ℹ️  Sample vendor already exists");
+    vendors.push(user.vendor);
   }
 
-  // Create Sample Customer
-  console.log("Creating sample customer...");
-  
-  const customerEmail = "customer@odoo.com";
-  const existingCustomer = await prisma.user.findUnique({
-    where: { email: customerEmail },
+  /* ───────────────────────── CUSTOMERS ───────────────────────── */
+
+  const customers = [];
+
+  for (let i = 1; i <= 5; i++) {
+    const user = await prisma.user.upsert({
+      where: { email: `customer${i}@odoo.com` },
+      update: {},
+      create: {
+        email: `customer${i}@odoo.com`,
+        password: await hash(`Customer@${i}23`),
+        firstName: "Customer",
+        lastName: `${i}`,
+        roles: {
+          create: { roleId: customerRole.id },
+        },
+      },
+    });
+
+    customers.push(user);
+  }
+
+  /* ───────────────────────── ATTRIBUTES ───────────────────────── */
+
+  const colorAttr = await prisma.attribute.upsert({
+    where: { name: "Color" },
+    update: {},
+    create: { name: "Color" },
   });
 
-  if (!existingCustomer) {
-    const hashedPassword = await bcrypt.hash("Customer@123", 10);
-    
-    const customerUser = await prisma.user.create({
-      data: {
-        email: customerEmail,
-        password: hashedPassword,
-        firstName: "Sample",
-        lastName: "Customer",
-        roles: {
-          create: {
-            roleId: customerRole.id,
-          },
-        },
-      },
-      include: {
-        roles: {
-          include: {
-            role: true,
-          },
-        },
-      },
-    });
+  const sizeAttr = await prisma.attribute.upsert({
+    where: { name: "Size" },
+    update: {},
+    create: { name: "Size" },
+  });
 
-    console.log("✅ Sample customer created:", {
-      email: customerUser.email,
-      name: `${customerUser.firstName} ${customerUser.lastName}`,
-    });
-  } else {
-    console.log("ℹ️  Sample customer already exists");
+  const red = await prisma.attributeValue.create({
+    data: { id: "RED", attributeId: colorAttr.id, value: "Red" },
+  });
+
+  const blue = await prisma.attributeValue.create({
+    data: { id: "BLUE", attributeId: colorAttr.id, value: "Blue" },
+  });
+
+  const large = await prisma.attributeValue.create({
+    data: { id: "L", attributeId: sizeAttr.id, value: "Large" },
+  });
+
+  /* ───────────────────────── PRODUCTS ───────────────────────── */
+
+  const products = [];
+
+  for (const vendor of vendors) {
+    const names = productsByCategory[vendor.product_category] || [
+      "Generic Item",
+    ];
+
+    for (const name of names) {
+      const product = await prisma.product.create({
+        data: {
+          vendorId: vendor.id,
+          name,
+          description: `${name} available for rent`,
+          isPublished: true,
+          inventory: {
+            create: {
+              totalQty: Math.floor(Math.random() * 20) + 5,
+            },
+          },
+          pricing: {
+            createMany: {
+              data: [
+                { type: "DAY", price: Math.floor(Math.random() * 2000) + 500 },
+                {
+                  type: "WEEK",
+                  price: Math.floor(Math.random() * 8000) + 3000,
+                },
+              ],
+            },
+          },
+          attributes: {
+            createMany: {
+              data: [
+                {
+                  attributeId: colorAttr.id,
+                  attributeValueId: Math.random() > 0.5 ? red.id : blue.id,
+                },
+                {
+                  attributeId: sizeAttr.id,
+                  attributeValueId: large.id,
+                },
+              ],
+            },
+          },
+        },
+      });
+
+      products.push(product);
+    }
   }
 
-  console.log("\n🎉 Database seeding completed successfully!");
-  console.log("\n📋 Test Credentials:");
-  console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-  console.log("Admin:");
-  console.log("  Email: admin@odoo.com");
-  console.log("  Password: Admin@123");
-  console.log("\nVendor:");
-  console.log("  Email: vendor@odoo.com");
-  console.log("  Password: Vendor@123");
-  console.log("\nCustomer:");
-  console.log("  Email: customer@odoo.com");
-  console.log("  Password: Customer@123");
-  console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
+  /* ───────────────────────── CARTS + ORDERS ───────────────────────── */
+
+  for (const customer of customers) {
+    const product = products[Math.floor(Math.random() * products.length)];
+    const start = new Date();
+    const end = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000);
+
+    const cart = await prisma.cart.create({
+      data: {
+        userId: customer.id,
+        items: {
+          create: {
+            productId: product.id,
+            quantity: 1,
+            rentalStart: start,
+            rentalEnd: end,
+            unitPrice: 1200,
+          },
+        },
+      },
+      include: { items: true },
+    });
+
+    const order = await prisma.order.create({
+      data: {
+        userId: customer.id,
+        vendorId: product.vendorId,
+        status: "CONFIRMED",
+        items: {
+          create: cart.items.map((item) => ({
+            productId: item.productId,
+            quantity: item.quantity,
+            rentalStart: item.rentalStart,
+            rentalEnd: item.rentalEnd,
+            unitPrice: item.unitPrice,
+            reservations: {
+              create: {
+                productId: item.productId,
+                reservedFrom: item.rentalStart,
+                reservedTo: item.rentalEnd,
+                quantity: item.quantity,
+              },
+            },
+          })),
+        },
+      },
+    });
+
+    await prisma.invoice.create({
+      data: {
+        orderId: order.id,
+        totalAmount: 1200,
+        gstAmount: 216,
+        status: "PAID",
+        payments: {
+          create: {
+            amount: 1416,
+            mode: "UPI",
+            status: "SUCCESS",
+            paidAt: new Date(),
+          },
+        },
+      },
+    });
+  }
+
+  console.log("🎉 Database seeded successfully");
 }
 
 main()
-  .then(async () => {
-    await prisma.$disconnect();
-  })
+  .then(async () => prisma.$disconnect())
   .catch(async (e) => {
-    console.error("❌ Error during seeding:", e);
+    console.error("❌ Seed failed:", e);
     await prisma.$disconnect();
     process.exit(1);
   });
