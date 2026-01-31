@@ -62,7 +62,7 @@ async function main() {
 
   const vendors = [];
 
-  for (let i = 1; i <= 3; i++) {
+  for (let i = 1; i <= 4; i++) {
     const user = await prisma.user.upsert({
       where: { email: `vendor${i}@odoo.com` },
       update: {},
