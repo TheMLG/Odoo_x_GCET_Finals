@@ -18,6 +18,7 @@ model User {
   otpExpiry DateTime?
   addresses Address[]
   carts     Cart[]
+  coupons   Coupon[]
   orders    Order[]
   roles     UserRole[]
   vendor    Vendor?
@@ -235,7 +236,6 @@ model Address {
 }
 
 model Coupon {
-<<<<<<< HEAD
   id               String   @id @default(uuid())
   code             String   @unique
   description      String
@@ -253,18 +253,3 @@ model Coupon {
   user   User?   @relation(fields: [userId], references: [id])
   orders Order[]
 }
-=======
-  id                String    @id @default(uuid())
-  code              String    @unique
-  description       String
-  discountType      String
-  discountValue     Decimal
-  minOrderAmount    Decimal?
-  maxUsageCount     Int?
-  currentUsageCount Int       @default(0)
-  expiryDate        DateTime?
-  isActive          Boolean   @default(true)
-  createdAt         DateTime  @default(now())
-  orders            Order[]
-}
->>>>>>> 5bc9261d88d8f2cd7dc4a7dbf6b8b729df72caf0

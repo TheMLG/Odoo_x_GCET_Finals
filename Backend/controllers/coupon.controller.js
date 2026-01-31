@@ -21,27 +21,34 @@ export const getAvailableCoupons = asyncHandler(async (req, res) => {
 
     // Add filter for global coupons OR user-specific coupons
     if (userId) {
-        whereConditions.OR.push(
-            { userId: null }, // Global coupons
-            { userId: userId } // User-specific coupons
-        );
+        // For authenticated users: show global coupons OR user-specific coupons
+        whereConditions.AND = [
+            {
+                OR: [
+                    { userId: null }, // Global coupons
+                    { userId: userId } // User-specific coupons
+                ]
+            }
+        ];
     } else {
-        whereConditions.userId = null; // Only global coupons for unauthenticated users
+        // For unauthenticated users: only global coupons
+        whereConditions.userId = null;
     }
 
     // Add minimum order filter if provided
     if (minOrderAmount) {
-        const existingOR = whereConditions.OR;
-        whereConditions.AND = [
-            { OR: existingOR },
-            {
-                OR: [
-                    { minOrderAmount: null }, // No minimum
-                    { minOrderAmount: { lte: parseFloat(minOrderAmount) } }, // Order meets minimum
-                ]
-            }
-        ];
-        delete whereConditions.OR; // Remove the original OR since we're using AND now
+        const minOrderFilter = {
+            OR: [
+                { minOrderAmount: null }, // No minimum
+                { minOrderAmount: { lte: parseFloat(minOrderAmount) } }, // Order meets minimum
+            ]
+        };
+
+        if (whereConditions.AND) {
+            whereConditions.AND.push(minOrderFilter);
+        } else {
+            whereConditions.AND = [minOrderFilter];
+        }
     }
 
     const coupons = await prisma.coupon.findMany({
