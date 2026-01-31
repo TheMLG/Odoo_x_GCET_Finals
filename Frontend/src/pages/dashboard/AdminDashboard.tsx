@@ -1,10 +1,16 @@
-import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import { AdminLayout } from "@/components/layout/AdminLayout";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
+import api from "@/lib/api";
+import { motion } from "framer-motion";
 import {
-  Users,
+  ArrowUpRight,
+  BarChart3,
+  IndianRupee,
   Package,
   ShoppingCart,
+<<<<<<< HEAD
   TrendingUp,
   Settings,
   BarChart3,
@@ -17,11 +23,24 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import api from '@/lib/api';
+=======
+  Users,
+} from "lucide-react";
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+>>>>>>> 506d7df715d9587171652d6674bfb24aee8b41fc
 import {
-  BarChart,
   Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
+<<<<<<< HEAD
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
@@ -44,22 +63,25 @@ const chartConfig = {
     color: "hsl(221, 83%, 53%)",
   },
 } satisfies ChartConfig;
+=======
+} from "recharts";
+>>>>>>> 506d7df715d9587171652d6674bfb24aee8b41fc
 
 const ordersByMonth = [
-  { month: 'Jan', orders: 45 },
-  { month: 'Feb', orders: 52 },
-  { month: 'Mar', orders: 48 },
-  { month: 'Apr', orders: 61 },
-  { month: 'May', orders: 55 },
-  { month: 'Jun', orders: 67 },
+  { month: "Jan", orders: 45 },
+  { month: "Feb", orders: 52 },
+  { month: "Mar", orders: 48 },
+  { month: "Apr", orders: 61 },
+  { month: "May", orders: 55 },
+  { month: "Jun", orders: 67 },
 ];
 
 const categoryData = [
-  { name: 'Photography', value: 35, color: 'hsl(221, 83%, 53%)' },
-  { name: 'Audio', value: 25, color: 'hsl(142, 76%, 36%)' },
-  { name: 'Computers', value: 20, color: 'hsl(38, 92%, 50%)' },
-  { name: 'Electronics', value: 15, color: 'hsl(280, 65%, 60%)' },
-  { name: 'Other', value: 5, color: 'hsl(215, 16%, 47%)' },
+  { name: "Photography", value: 35, color: "hsl(221, 83%, 53%)" },
+  { name: "Audio", value: 25, color: "hsl(142, 76%, 36%)" },
+  { name: "Computers", value: 20, color: "hsl(38, 92%, 50%)" },
+  { name: "Electronics", value: 15, color: "hsl(280, 65%, 60%)" },
+  { name: "Other", value: 5, color: "hsl(215, 16%, 47%)" },
 ];
 
 interface DashboardStats {
@@ -82,13 +104,14 @@ export default function AdminDashboard() {
   const fetchDashboardStats = async () => {
     setIsLoading(true);
     try {
-      const response = await api.get('/admin/stats');
+      const response = await api.get("/admin/stats");
       setStats(response.data.data);
     } catch (error: any) {
       toast({
-        title: 'Error',
-        description: error.response?.data?.message || 'Failed to fetch dashboard stats',
-        variant: 'destructive',
+        title: "Error",
+        description:
+          error.response?.data?.message || "Failed to fetch dashboard stats",
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -109,20 +132,28 @@ export default function AdminDashboard() {
     return (
       <AdminLayout>
         <div className="container px-4 py-8 md:px-6 md:py-12">
-          <div className="text-center text-red-500">Failed to load dashboard data</div>
+          <div className="text-center text-red-500">
+            Failed to load dashboard data
+          </div>
         </div>
       </AdminLayout>
     );
   }
 
-  const totalRevenue = stats.recentOrders?.reduce((sum: number, o: any) => sum + (o.totalAmount || 0), 0) || 0;
+  const totalRevenue =
+    stats.recentOrders?.reduce(
+      (sum: number, o: any) => sum + (o.totalAmount || 0),
+      0,
+    ) || 0;
   const activeProducts = stats.totalProducts;
   const totalOrders = stats.totalOrders;
-  const activeRentals = stats.recentOrders?.filter((o: any) => o.status === 'PICKED_UP').length || 0;
+  const activeRentals =
+    stats.recentOrders?.filter((o: any) => o.status === "PICKED_UP").length ||
+    0;
 
   const statCards = [
     {
-      title: 'Total Revenue',
+      title: "Total Revenue",
       value: (
         <div className="flex items-center gap-1">
           <IndianRupee className="h-7 w-7" />
@@ -130,37 +161,37 @@ export default function AdminDashboard() {
         </div>
       ),
       icon: IndianRupee,
-      textColor: 'text-emerald-700',
-      bgColor: 'bg-emerald-100',
-      iconColor: 'text-emerald-600',
-      subtitle: 'Total earnings',
+      textColor: "text-emerald-700",
+      bgColor: "bg-emerald-100",
+      iconColor: "text-emerald-600",
+      subtitle: "Total earnings",
     },
     {
-      title: 'Total Orders',
+      title: "Total Orders",
       value: totalOrders,
       icon: ShoppingCart,
-      textColor: 'text-blue-700',
-      bgColor: 'bg-blue-100',
-      iconColor: 'text-blue-600',
-      subtitle: 'All time orders',
+      textColor: "text-blue-700",
+      bgColor: "bg-blue-100",
+      iconColor: "text-blue-600",
+      subtitle: "All time orders",
     },
     {
-      title: 'Active Products',
+      title: "Active Products",
       value: activeProducts,
       icon: Package,
-      textColor: 'text-purple-700',
-      bgColor: 'bg-purple-100',
-      iconColor: 'text-purple-600',
-      subtitle: 'Published products',
+      textColor: "text-purple-700",
+      bgColor: "bg-purple-100",
+      iconColor: "text-purple-600",
+      subtitle: "Published products",
     },
     {
-      title: 'Active Rentals',
+      title: "Active Rentals",
       value: activeRentals,
       icon: Users,
-      textColor: 'text-red-700',
-      bgColor: 'bg-red-100',
-      iconColor: 'text-red-600',
-      subtitle: 'Currently rented',
+      textColor: "text-red-700",
+      bgColor: "bg-red-100",
+      iconColor: "text-red-600",
+      subtitle: "Currently rented",
     },
   ];
 
@@ -188,10 +219,14 @@ export default function AdminDashboard() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
             >
-              <Card className={`rounded-3xl border-0 shadow-sm ${stat.bgColor}`}>
+              <Card
+                className={`rounded-3xl border-0 shadow-sm ${stat.bgColor}`}
+              >
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between mb-3">
-                    <p className={`text-sm font-semibold uppercase tracking-wide ${stat.textColor}`}>
+                    <p
+                      className={`text-sm font-semibold uppercase tracking-wide ${stat.textColor}`}
+                    >
                       {stat.title}
                     </p>
                     <div className="flex h-11 w-11 items-center justify-center rounded-full bg-white shadow-sm">
@@ -199,8 +234,17 @@ export default function AdminDashboard() {
                     </div>
                   </div>
                   <div className="space-y-0.5">
+<<<<<<< HEAD
                     <div className={`text-4xl font-bold ${stat.textColor}`}>{stat.value}</div>
                     <p className={`text-sm ${stat.textColor} opacity-70`}>{stat.subtitle}</p>
+=======
+                    <p className={`text-4xl font-bold ${stat.textColor}`}>
+                      {stat.value}
+                    </p>
+                    <p className={`text-sm ${stat.textColor} opacity-70`}>
+                      {stat.subtitle}
+                    </p>
+>>>>>>> 506d7df715d9587171652d6674bfb24aee8b41fc
                   </div>
                 </CardContent>
               </Card>
@@ -229,6 +273,7 @@ export default function AdminDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="h-[300px]">
+<<<<<<< HEAD
                   <ChartContainer config={chartConfig} className="h-full w-full">
                     <BarChart data={ordersByMonth} barGap={8}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
@@ -248,6 +293,25 @@ export default function AdminDashboard() {
                       <ChartTooltip
                         content={<ChartTooltipContent />}
                         cursor={{ fill: 'hsl(var(--muted) / 0.4)' }}
+=======
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={ordersByMonth}>
+                      <CartesianGrid
+                        strokeDasharray="3 3"
+                        stroke="hsl(var(--border))"
+                      />
+                      <XAxis
+                        dataKey="month"
+                        stroke="hsl(var(--muted-foreground))"
+                      />
+                      <YAxis stroke="hsl(var(--muted-foreground))" />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: "hsl(var(--card))",
+                          border: "1px solid hsl(var(--border))",
+                          borderRadius: "12px",
+                        }}
+>>>>>>> 506d7df715d9587171652d6674bfb24aee8b41fc
                       />
                       <Bar
                         dataKey="orders"
@@ -291,15 +355,27 @@ export default function AdminDashboard() {
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
                       </Pie>
+<<<<<<< HEAD
                       <ChartTooltip
                         content={<ChartTooltipContent hideLabel />}
+=======
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: "hsl(var(--card))",
+                          border: "1px solid hsl(var(--border))",
+                          borderRadius: "12px",
+                        }}
+>>>>>>> 506d7df715d9587171652d6674bfb24aee8b41fc
                       />
                     </PieChart>
                   </ChartContainer>
                 </div>
                 <div className="mt-4 space-y-2">
                   {categoryData.map((cat) => (
-                    <div key={cat.name} className="flex items-center justify-between text-sm">
+                    <div
+                      key={cat.name}
+                      className="flex items-center justify-between text-sm"
+                    >
                       <div className="flex items-center gap-2">
                         <div
                           className="h-3 w-3 rounded-full"
@@ -329,28 +405,44 @@ export default function AdminDashboard() {
             </CardHeader>
             <CardContent>
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                <Button asChild variant="outline" className="justify-start rounded-xl">
+                <Button
+                  asChild
+                  variant="outline"
+                  className="justify-start rounded-xl"
+                >
                   <Link to="/admin/users">
                     <Users className="mr-2 h-4 w-4" />
                     Manage Users
                     <ArrowUpRight className="ml-auto h-4 w-4" />
                   </Link>
                 </Button>
-                <Button asChild variant="outline" className="justify-start rounded-xl">
+                <Button
+                  asChild
+                  variant="outline"
+                  className="justify-start rounded-xl"
+                >
                   <Link to="/admin/products">
                     <Package className="mr-2 h-4 w-4" />
                     All Products
                     <ArrowUpRight className="ml-auto h-4 w-4" />
                   </Link>
                 </Button>
-                <Button asChild variant="outline" className="justify-start rounded-xl">
+                <Button
+                  asChild
+                  variant="outline"
+                  className="justify-start rounded-xl"
+                >
                   <Link to="/admin/orders">
                     <ShoppingCart className="mr-2 h-4 w-4" />
                     All Orders
                     <ArrowUpRight className="ml-auto h-4 w-4" />
                   </Link>
                 </Button>
-                <Button asChild variant="outline" className="justify-start rounded-xl">
+                <Button
+                  asChild
+                  variant="outline"
+                  className="justify-start rounded-xl"
+                >
                   <Link to="/admin/reports">
                     <BarChart3 className="mr-2 h-4 w-4" />
                     Reports

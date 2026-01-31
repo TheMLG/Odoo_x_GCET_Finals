@@ -1,11 +1,13 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { Clock, Calendar, CalendarDays, ShoppingCart } from 'lucide-react';
+import { Clock, Calendar, CalendarDays, ShoppingCart, Heart } from 'lucide-react';
 import { Product } from '@/types/rental';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { useWishlistStore } from '@/stores/wishlistStore';
+import { toast } from 'sonner';
 
 interface ProductCardProps {
   product: Product;
@@ -13,12 +15,28 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product, index = 0 }: ProductCardProps) {
+  const { addItem, removeItem, isInWishlist } = useWishlistStore();
+  const inWishlist = isInWishlist(product.id);
+
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
       currency: 'INR',
       maximumFractionDigits: 0,
     }).format(price);
+  };
+
+  const handleWishlistToggle = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (inWishlist) {
+      removeItem(product.id);
+      toast.success('Removed from wishlist');
+    } else {
+      addItem(product);
+      toast.success('Added to wishlist');
+    }
   };
 
   return (
@@ -43,6 +61,18 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
                 Only {product.quantityOnHand} left
               </Badge>
             )}
+            {/* Wishlist Button */}
+            <button
+              onClick={handleWishlistToggle}
+              className="absolute left-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 backdrop-blur-sm transition-all hover:bg-white hover:scale-110"
+            >
+              <Heart 
+                className={cn(
+                  "h-5 w-5 transition-colors",
+                  inWishlist ? "fill-pink-500 text-pink-500" : "text-gray-600"
+                )}
+              />
+            </button>
             <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
           </div>
         </Link>

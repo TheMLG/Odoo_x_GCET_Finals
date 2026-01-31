@@ -7054,6 +7054,8 @@ export namespace Prisma {
     vendorId: string | null
     name: string | null
     description: string | null
+    category: string | null
+    product_image_url: string | null
     isPublished: boolean | null
     createdAt: Date | null
   }
@@ -7063,6 +7065,8 @@ export namespace Prisma {
     vendorId: string | null
     name: string | null
     description: string | null
+    category: string | null
+    product_image_url: string | null
     isPublished: boolean | null
     createdAt: Date | null
   }
@@ -7072,6 +7076,8 @@ export namespace Prisma {
     vendorId: number
     name: number
     description: number
+    category: number
+    product_image_url: number
     isPublished: number
     createdAt: number
     _all: number
@@ -7083,6 +7089,8 @@ export namespace Prisma {
     vendorId?: true
     name?: true
     description?: true
+    category?: true
+    product_image_url?: true
     isPublished?: true
     createdAt?: true
   }
@@ -7092,6 +7100,8 @@ export namespace Prisma {
     vendorId?: true
     name?: true
     description?: true
+    category?: true
+    product_image_url?: true
     isPublished?: true
     createdAt?: true
   }
@@ -7101,6 +7111,8 @@ export namespace Prisma {
     vendorId?: true
     name?: true
     description?: true
+    category?: true
+    product_image_url?: true
     isPublished?: true
     createdAt?: true
     _all?: true
@@ -7183,6 +7195,8 @@ export namespace Prisma {
     vendorId: string
     name: string
     description: string | null
+    category: string
+    product_image_url: string
     isPublished: boolean
     createdAt: Date
     _count: ProductCountAggregateOutputType | null
@@ -7209,6 +7223,8 @@ export namespace Prisma {
     vendorId?: boolean
     name?: boolean
     description?: boolean
+    category?: boolean
+    product_image_url?: boolean
     isPublished?: boolean
     createdAt?: boolean
     vendor?: boolean | VendorDefaultArgs<ExtArgs>
@@ -7226,6 +7242,8 @@ export namespace Prisma {
     vendorId?: boolean
     name?: boolean
     description?: boolean
+    category?: boolean
+    product_image_url?: boolean
     isPublished?: boolean
     createdAt?: boolean
     vendor?: boolean | VendorDefaultArgs<ExtArgs>
@@ -7236,6 +7254,8 @@ export namespace Prisma {
     vendorId?: boolean
     name?: boolean
     description?: boolean
+    category?: boolean
+    product_image_url?: boolean
     isPublished?: boolean
     createdAt?: boolean
     vendor?: boolean | VendorDefaultArgs<ExtArgs>
@@ -7246,11 +7266,13 @@ export namespace Prisma {
     vendorId?: boolean
     name?: boolean
     description?: boolean
+    category?: boolean
+    product_image_url?: boolean
     isPublished?: boolean
     createdAt?: boolean
   }
 
-  export type ProductOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "vendorId" | "name" | "description" | "isPublished" | "createdAt", ExtArgs["result"]["product"]>
+  export type ProductOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "vendorId" | "name" | "description" | "category" | "product_image_url" | "isPublished" | "createdAt", ExtArgs["result"]["product"]>
   export type ProductInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     vendor?: boolean | VendorDefaultArgs<ExtArgs>
     inventory?: boolean | Product$inventoryArgs<ExtArgs>
@@ -7284,6 +7306,8 @@ export namespace Prisma {
       vendorId: string
       name: string
       description: string | null
+      category: string
+      product_image_url: string
       isPublished: boolean
       createdAt: Date
     }, ExtArgs["result"]["product"]>
@@ -7720,6 +7744,8 @@ export namespace Prisma {
     readonly vendorId: FieldRef<"Product", 'String'>
     readonly name: FieldRef<"Product", 'String'>
     readonly description: FieldRef<"Product", 'String'>
+    readonly category: FieldRef<"Product", 'String'>
+    readonly product_image_url: FieldRef<"Product", 'String'>
     readonly isPublished: FieldRef<"Product", 'Boolean'>
     readonly createdAt: FieldRef<"Product", 'DateTime'>
   }
@@ -21453,6 +21479,8 @@ export namespace Prisma {
     vendorId: 'vendorId',
     name: 'name',
     description: 'description',
+    category: 'category',
+    product_image_url: 'product_image_url',
     isPublished: 'isPublished',
     createdAt: 'createdAt'
   };
@@ -21924,6 +21952,8 @@ export namespace Prisma {
     vendorId?: StringFilter<"Product"> | string
     name?: StringFilter<"Product"> | string
     description?: StringNullableFilter<"Product"> | string | null
+    category?: StringFilter<"Product"> | string
+    product_image_url?: StringFilter<"Product"> | string
     isPublished?: BoolFilter<"Product"> | boolean
     createdAt?: DateTimeFilter<"Product"> | Date | string
     vendor?: XOR<VendorScalarRelationFilter, VendorWhereInput>
@@ -21940,6 +21970,8 @@ export namespace Prisma {
     vendorId?: SortOrder
     name?: SortOrder
     description?: SortOrderInput | SortOrder
+    category?: SortOrder
+    product_image_url?: SortOrder
     isPublished?: SortOrder
     createdAt?: SortOrder
     vendor?: VendorOrderByWithRelationInput
@@ -21959,6 +21991,8 @@ export namespace Prisma {
     vendorId?: StringFilter<"Product"> | string
     name?: StringFilter<"Product"> | string
     description?: StringNullableFilter<"Product"> | string | null
+    category?: StringFilter<"Product"> | string
+    product_image_url?: StringFilter<"Product"> | string
     isPublished?: BoolFilter<"Product"> | boolean
     createdAt?: DateTimeFilter<"Product"> | Date | string
     vendor?: XOR<VendorScalarRelationFilter, VendorWhereInput>
@@ -21975,6 +22009,8 @@ export namespace Prisma {
     vendorId?: SortOrder
     name?: SortOrder
     description?: SortOrderInput | SortOrder
+    category?: SortOrder
+    product_image_url?: SortOrder
     isPublished?: SortOrder
     createdAt?: SortOrder
     _count?: ProductCountOrderByAggregateInput
@@ -21990,6 +22026,8 @@ export namespace Prisma {
     vendorId?: StringWithAggregatesFilter<"Product"> | string
     name?: StringWithAggregatesFilter<"Product"> | string
     description?: StringNullableWithAggregatesFilter<"Product"> | string | null
+    category?: StringWithAggregatesFilter<"Product"> | string
+    product_image_url?: StringWithAggregatesFilter<"Product"> | string
     isPublished?: BoolWithAggregatesFilter<"Product"> | boolean
     createdAt?: DateTimeWithAggregatesFilter<"Product"> | Date | string
   }
@@ -22910,6 +22948,8 @@ export namespace Prisma {
     id?: string
     name: string
     description?: string | null
+    category?: string
+    product_image_url?: string
     isPublished?: boolean
     createdAt?: Date | string
     vendor: VendorCreateNestedOneWithoutProductsInput
@@ -22926,6 +22966,8 @@ export namespace Prisma {
     vendorId: string
     name: string
     description?: string | null
+    category?: string
+    product_image_url?: string
     isPublished?: boolean
     createdAt?: Date | string
     inventory?: ProductInventoryUncheckedCreateNestedOneWithoutProductInput
@@ -22940,6 +22982,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    category?: StringFieldUpdateOperationsInput | string
+    product_image_url?: StringFieldUpdateOperationsInput | string
     isPublished?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     vendor?: VendorUpdateOneRequiredWithoutProductsNestedInput
@@ -22956,6 +23000,8 @@ export namespace Prisma {
     vendorId?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    category?: StringFieldUpdateOperationsInput | string
+    product_image_url?: StringFieldUpdateOperationsInput | string
     isPublished?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     inventory?: ProductInventoryUncheckedUpdateOneWithoutProductNestedInput
@@ -22971,6 +23017,8 @@ export namespace Prisma {
     vendorId: string
     name: string
     description?: string | null
+    category?: string
+    product_image_url?: string
     isPublished?: boolean
     createdAt?: Date | string
   }
@@ -22979,6 +23027,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    category?: StringFieldUpdateOperationsInput | string
+    product_image_url?: StringFieldUpdateOperationsInput | string
     isPublished?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -22988,6 +23038,8 @@ export namespace Prisma {
     vendorId?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    category?: StringFieldUpdateOperationsInput | string
+    product_image_url?: StringFieldUpdateOperationsInput | string
     isPublished?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -23938,6 +23990,8 @@ export namespace Prisma {
     vendorId?: SortOrder
     name?: SortOrder
     description?: SortOrder
+    category?: SortOrder
+    product_image_url?: SortOrder
     isPublished?: SortOrder
     createdAt?: SortOrder
   }
@@ -23947,6 +24001,8 @@ export namespace Prisma {
     vendorId?: SortOrder
     name?: SortOrder
     description?: SortOrder
+    category?: SortOrder
+    product_image_url?: SortOrder
     isPublished?: SortOrder
     createdAt?: SortOrder
   }
@@ -23956,6 +24012,8 @@ export namespace Prisma {
     vendorId?: SortOrder
     name?: SortOrder
     description?: SortOrder
+    category?: SortOrder
+    product_image_url?: SortOrder
     isPublished?: SortOrder
     createdAt?: SortOrder
   }
@@ -26176,6 +26234,8 @@ export namespace Prisma {
     id?: string
     name: string
     description?: string | null
+    category?: string
+    product_image_url?: string
     isPublished?: boolean
     createdAt?: Date | string
     inventory?: ProductInventoryCreateNestedOneWithoutProductInput
@@ -26190,6 +26250,8 @@ export namespace Prisma {
     id?: string
     name: string
     description?: string | null
+    category?: string
+    product_image_url?: string
     isPublished?: boolean
     createdAt?: Date | string
     inventory?: ProductInventoryUncheckedCreateNestedOneWithoutProductInput
@@ -26297,6 +26359,8 @@ export namespace Prisma {
     vendorId?: StringFilter<"Product"> | string
     name?: StringFilter<"Product"> | string
     description?: StringNullableFilter<"Product"> | string | null
+    category?: StringFilter<"Product"> | string
+    product_image_url?: StringFilter<"Product"> | string
     isPublished?: BoolFilter<"Product"> | boolean
     createdAt?: DateTimeFilter<"Product"> | Date | string
   }
@@ -26675,6 +26739,8 @@ export namespace Prisma {
     id?: string
     name: string
     description?: string | null
+    category?: string
+    product_image_url?: string
     isPublished?: boolean
     createdAt?: Date | string
     vendor: VendorCreateNestedOneWithoutProductsInput
@@ -26690,6 +26756,8 @@ export namespace Prisma {
     vendorId: string
     name: string
     description?: string | null
+    category?: string
+    product_image_url?: string
     isPublished?: boolean
     createdAt?: Date | string
     pricing?: RentalPricingUncheckedCreateNestedManyWithoutProductInput
@@ -26719,6 +26787,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    category?: StringFieldUpdateOperationsInput | string
+    product_image_url?: StringFieldUpdateOperationsInput | string
     isPublished?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     vendor?: VendorUpdateOneRequiredWithoutProductsNestedInput
@@ -26734,6 +26804,8 @@ export namespace Prisma {
     vendorId?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    category?: StringFieldUpdateOperationsInput | string
+    product_image_url?: StringFieldUpdateOperationsInput | string
     isPublished?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     pricing?: RentalPricingUncheckedUpdateManyWithoutProductNestedInput
@@ -26747,6 +26819,8 @@ export namespace Prisma {
     id?: string
     name: string
     description?: string | null
+    category?: string
+    product_image_url?: string
     isPublished?: boolean
     createdAt?: Date | string
     vendor: VendorCreateNestedOneWithoutProductsInput
@@ -26762,6 +26836,8 @@ export namespace Prisma {
     vendorId: string
     name: string
     description?: string | null
+    category?: string
+    product_image_url?: string
     isPublished?: boolean
     createdAt?: Date | string
     inventory?: ProductInventoryUncheckedCreateNestedOneWithoutProductInput
@@ -26791,6 +26867,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    category?: StringFieldUpdateOperationsInput | string
+    product_image_url?: StringFieldUpdateOperationsInput | string
     isPublished?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     vendor?: VendorUpdateOneRequiredWithoutProductsNestedInput
@@ -26806,6 +26884,8 @@ export namespace Prisma {
     vendorId?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    category?: StringFieldUpdateOperationsInput | string
+    product_image_url?: StringFieldUpdateOperationsInput | string
     isPublished?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     inventory?: ProductInventoryUncheckedUpdateOneWithoutProductNestedInput
@@ -26936,6 +27016,8 @@ export namespace Prisma {
     id?: string
     name: string
     description?: string | null
+    category?: string
+    product_image_url?: string
     isPublished?: boolean
     createdAt?: Date | string
     vendor: VendorCreateNestedOneWithoutProductsInput
@@ -26951,6 +27033,8 @@ export namespace Prisma {
     vendorId: string
     name: string
     description?: string | null
+    category?: string
+    product_image_url?: string
     isPublished?: boolean
     createdAt?: Date | string
     inventory?: ProductInventoryUncheckedCreateNestedOneWithoutProductInput
@@ -26997,6 +27081,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    category?: StringFieldUpdateOperationsInput | string
+    product_image_url?: StringFieldUpdateOperationsInput | string
     isPublished?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     vendor?: VendorUpdateOneRequiredWithoutProductsNestedInput
@@ -27012,6 +27098,8 @@ export namespace Prisma {
     vendorId?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    category?: StringFieldUpdateOperationsInput | string
+    product_image_url?: StringFieldUpdateOperationsInput | string
     isPublished?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     inventory?: ProductInventoryUncheckedUpdateOneWithoutProductNestedInput
@@ -27175,6 +27263,8 @@ export namespace Prisma {
     id?: string
     name: string
     description?: string | null
+    category?: string
+    product_image_url?: string
     isPublished?: boolean
     createdAt?: Date | string
     vendor: VendorCreateNestedOneWithoutProductsInput
@@ -27190,6 +27280,8 @@ export namespace Prisma {
     vendorId: string
     name: string
     description?: string | null
+    category?: string
+    product_image_url?: string
     isPublished?: boolean
     createdAt?: Date | string
     inventory?: ProductInventoryUncheckedCreateNestedOneWithoutProductInput
@@ -27244,6 +27336,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    category?: StringFieldUpdateOperationsInput | string
+    product_image_url?: StringFieldUpdateOperationsInput | string
     isPublished?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     vendor?: VendorUpdateOneRequiredWithoutProductsNestedInput
@@ -27259,6 +27353,8 @@ export namespace Prisma {
     vendorId?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    category?: StringFieldUpdateOperationsInput | string
+    product_image_url?: StringFieldUpdateOperationsInput | string
     isPublished?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     inventory?: ProductInventoryUncheckedUpdateOneWithoutProductNestedInput
@@ -27513,6 +27609,8 @@ export namespace Prisma {
     id?: string
     name: string
     description?: string | null
+    category?: string
+    product_image_url?: string
     isPublished?: boolean
     createdAt?: Date | string
     vendor: VendorCreateNestedOneWithoutProductsInput
@@ -27528,6 +27626,8 @@ export namespace Prisma {
     vendorId: string
     name: string
     description?: string | null
+    category?: string
+    product_image_url?: string
     isPublished?: boolean
     createdAt?: Date | string
     inventory?: ProductInventoryUncheckedCreateNestedOneWithoutProductInput
@@ -27612,6 +27712,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    category?: StringFieldUpdateOperationsInput | string
+    product_image_url?: StringFieldUpdateOperationsInput | string
     isPublished?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     vendor?: VendorUpdateOneRequiredWithoutProductsNestedInput
@@ -27627,6 +27729,8 @@ export namespace Prisma {
     vendorId?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    category?: StringFieldUpdateOperationsInput | string
+    product_image_url?: StringFieldUpdateOperationsInput | string
     isPublished?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     inventory?: ProductInventoryUncheckedUpdateOneWithoutProductNestedInput
@@ -27681,6 +27785,8 @@ export namespace Prisma {
     id?: string
     name: string
     description?: string | null
+    category?: string
+    product_image_url?: string
     isPublished?: boolean
     createdAt?: Date | string
     vendor: VendorCreateNestedOneWithoutProductsInput
@@ -27696,6 +27802,8 @@ export namespace Prisma {
     vendorId: string
     name: string
     description?: string | null
+    category?: string
+    product_image_url?: string
     isPublished?: boolean
     createdAt?: Date | string
     inventory?: ProductInventoryUncheckedCreateNestedOneWithoutProductInput
@@ -27756,6 +27864,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    category?: StringFieldUpdateOperationsInput | string
+    product_image_url?: StringFieldUpdateOperationsInput | string
     isPublished?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     vendor?: VendorUpdateOneRequiredWithoutProductsNestedInput
@@ -27771,6 +27881,8 @@ export namespace Prisma {
     vendorId?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    category?: StringFieldUpdateOperationsInput | string
+    product_image_url?: StringFieldUpdateOperationsInput | string
     isPublished?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     inventory?: ProductInventoryUncheckedUpdateOneWithoutProductNestedInput
@@ -28032,6 +28144,8 @@ export namespace Prisma {
     id?: string
     name: string
     description?: string | null
+    category?: string
+    product_image_url?: string
     isPublished?: boolean
     createdAt?: Date | string
   }
@@ -28047,6 +28161,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    category?: StringFieldUpdateOperationsInput | string
+    product_image_url?: StringFieldUpdateOperationsInput | string
     isPublished?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     inventory?: ProductInventoryUpdateOneWithoutProductNestedInput
@@ -28061,6 +28177,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    category?: StringFieldUpdateOperationsInput | string
+    product_image_url?: StringFieldUpdateOperationsInput | string
     isPublished?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     inventory?: ProductInventoryUncheckedUpdateOneWithoutProductNestedInput
@@ -28075,6 +28193,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    category?: StringFieldUpdateOperationsInput | string
+    product_image_url?: StringFieldUpdateOperationsInput | string
     isPublished?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }

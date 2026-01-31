@@ -3,16 +3,26 @@ import { motion } from 'framer-motion';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { ProductCard } from '@/components/products/ProductCard';
 import { ProductFilters } from '@/components/products/ProductFilters';
+<<<<<<< HEAD
 import api from '@/lib/api';
 import { Product } from '@/types/rental';
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+=======
+import { useRentalStore } from '@/stores/rentalStore';
+import { Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
+
+export default function ProductsPage() {
+  const { products, isLoadingProducts, productsError, fetchProducts } = useRentalStore();
+>>>>>>> 506d7df715d9587171652d6674bfb24aee8b41fc
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState('featured');
 
+<<<<<<< HEAD
   useEffect(() => {
     const fetchProducts = async () => {
       setIsLoading(true);
@@ -53,6 +63,21 @@ export default function ProductsPage() {
 
     fetchProducts();
   }, []);
+=======
+  // Fetch products on mount
+  useEffect(() => {
+    fetchProducts();
+  }, [fetchProducts]);
+
+  // Show error toast if fetching fails
+  useEffect(() => {
+    if (productsError) {
+      toast.error('Failed to load products', {
+        description: productsError,
+      });
+    }
+  }, [productsError]);
+>>>>>>> 506d7df715d9587171652d6674bfb24aee8b41fc
 
   const filteredProducts = useMemo(() => {
     let result = products.filter((p) => p.isPublished);
@@ -139,27 +164,37 @@ export default function ProductsPage() {
           Showing {filteredProducts.length} product{filteredProducts.length !== 1 ? 's' : ''}
         </motion.p>
 
-        {/* Products Grid */}
-        {filteredProducts.length > 0 ? (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {filteredProducts.map((product, index) => (
-              <ProductCard key={product.id} product={product} index={index} />
-            ))}
+        {/* Loading state */}
+        {isLoadingProducts ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <span className="ml-3 text-muted-foreground">Loading products...</span>
           </div>
         ) : (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col items-center justify-center py-20 text-center"
-          >
-            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-muted">
-              <span className="text-2xl">🔍</span>
-            </div>
-            <h3 className="mb-2 text-lg font-semibold">No products found</h3>
-            <p className="text-muted-foreground">
-              Try adjusting your search or filter criteria
-            </p>
-          </motion.div>
+          <>
+            {/* Products Grid */}
+            {filteredProducts.length > 0 ? (
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {filteredProducts.map((product, index) => (
+                  <ProductCard key={product.id} product={product} index={index} />
+                ))}
+              </div>
+            ) : (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex flex-col items-center justify-center py-20 text-center"
+              >
+                <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+                  <span className="text-2xl">🔍</span>
+                </div>
+                <h3 className="mb-2 text-lg font-semibold">No products found</h3>
+                <p className="text-muted-foreground">
+                  Try adjusting your search or filter criteria
+                </p>
+              </motion.div>
+            )}
+          </>
         )}
       </div>
     </MainLayout>

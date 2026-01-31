@@ -6,16 +6,43 @@ import { RentalConfigurator } from '@/components/products/RentalConfigurator';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+<<<<<<< HEAD
 import { useState, useEffect } from 'react';
 import api from '@/lib/api';
 import { Product } from '@/types/rental';
+=======
+import { useRentalStore } from '@/stores/rentalStore';
+import { useWishlistStore } from '@/stores/wishlistStore';
+import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
+>>>>>>> 506d7df715d9587171652d6674bfb24aee8b41fc
 
 export default function ProductDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+<<<<<<< HEAD
   const [product, setProduct] = useState<Product | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+=======
+  const { products } = useRentalStore();
+  const { addItem, removeItem, isInWishlist } = useWishlistStore();
+  const product = products.find((p) => p.id === id);
+
+  const inWishlist = product ? isInWishlist(product.id) : false;
+
+  const handleWishlistToggle = () => {
+    if (!product) return;
+
+    if (inWishlist) {
+      removeItem(product.id);
+      toast.success('Removed from wishlist');
+    } else {
+      addItem(product);
+      toast.success('Added to wishlist');
+    }
+  };
+>>>>>>> 506d7df715d9587171652d6674bfb24aee8b41fc
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -135,6 +162,15 @@ export default function ProductDetailPage() {
             {/* Main Image */}
             <div className="relative flex-1">
               <div className="absolute right-4 top-4 z-10 flex gap-2">
+                <button
+                  onClick={handleWishlistToggle}
+                  className={cn(
+                    "flex h-10 w-10 items-center justify-center rounded-full shadow-lg transition-all hover:scale-110",
+                    inWishlist ? "bg-pink-500 text-white hover:bg-pink-600" : "bg-white hover:bg-gray-50"
+                  )}
+                >
+                  <Heart className={cn("h-5 w-5", inWishlist && "fill-current")} />
+                </button>
                 <button className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-lg hover:bg-gray-50">
                   <Share2 className="h-5 w-5" />
                 </button>

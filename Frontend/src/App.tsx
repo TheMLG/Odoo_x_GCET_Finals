@@ -1,56 +1,75 @@
-import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
+import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useAuthStore } from "@/stores/authStore";
+<<<<<<< HEAD
 import { ScrollToTop } from "@/components/common/ScrollToTop";
+=======
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+>>>>>>> 506d7df715d9587171652d6674bfb24aee8b41fc
 
 // Pages
-import HomePage from "./pages/HomePage";
-import ProductsPage from "./pages/ProductsPage";
-import ProductDetailPage from "./pages/ProductDetailPage";
-import CartPage from "./pages/CartPage";
-import CheckoutPage from "./pages/CheckoutPage";
-import OrdersPage from "./pages/OrdersPage";
-import InvoicePage from "./pages/InvoicePage";
+import WishlistPage from "./pages/WishlistPage";
 import LoginPage from "./pages/auth/LoginPage";
 import SignupPage from "./pages/auth/SignupPage";
 import UserSignupPage from "./pages/auth/UserSignupPage";
 import VendorSignupPage from "./pages/auth/VendorSignupPage";
-import CustomerDashboard from "./pages/dashboard/CustomerDashboard";
-import VendorDashboard from "./pages/dashboard/VendorDashboard";
-import VendorSettings from "./pages/dashboard/VendorSettings";
+import CartPage from "./pages/CartPage";
+import CheckoutPage from "./pages/CheckoutPage";
 import AdminDashboard from "./pages/dashboard/AdminDashboard";
 import AdminSettings from "./pages/dashboard/AdminSettings";
-import ManageUsers from "./pages/dashboard/ManageUsers";
-import ManageVendors from "./pages/dashboard/ManageVendors";
-import ManageProducts from "./pages/dashboard/ManageProducts";
-import ManageOrders from "./pages/dashboard/ManageOrders";
-import ReportsAnalytics from "./pages/dashboard/ReportsAnalytics";
+import CustomerDashboard from "./pages/dashboard/CustomerDashboard";
+import VendorAddProduct from "./pages/dashboard/VendorAddProduct";
+import VendorDashboard from "./pages/dashboard/VendorDashboard";
+import VendorEditProduct from "./pages/dashboard/VendorEditProduct";
+import VendorOrders from "./pages/dashboard/VendorOrders";
+import VendorProducts from "./pages/dashboard/VendorProducts";
+import VendorSettings from "./pages/dashboard/VendorSettings";
+import HomePage from "./pages/HomePage";
+import InvoicePage from "./pages/InvoicePage";
 import NotFound from "./pages/NotFound";
+import OrdersPage from "./pages/OrdersPage";
+import ProductDetailPage from "./pages/ProductDetailPage";
+import ProductsPage from "./pages/ProductsPage";
 
 const queryClient = new QueryClient();
 
 // Protected Route Component
 function ProtectedRoute({
   children,
+<<<<<<< HEAD
   allowedRoles
 }: {
   children: React.ReactNode;
   allowedRoles?: ('ADMIN' | 'VENDOR' | 'CUSTOMER')[];
+=======
+  allowedRoles,
+}: {
+  children: React.ReactNode;
+  allowedRoles?: ("ADMIN" | "VENDOR" | "CUSTOMER")[];
+>>>>>>> 506d7df715d9587171652d6674bfb24aee8b41fc
 }) {
   const { isAuthenticated, getUserRole } = useAuthStore();
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace state={{ from: window.location.pathname }} />;
+    return (
+      <Navigate
+        to="/login"
+        replace
+        state={{ from: window.location.pathname }}
+      />
+    );
   }
 
   const userRole = getUserRole();
 
   if (allowedRoles && userRole && !allowedRoles.includes(userRole)) {
     // Redirect to appropriate dashboard based on role
-    const redirectPath = userRole === 'ADMIN' ? '/admin/dashboard' : userRole === 'VENDOR' ? '/vendor/dashboard' : '/dashboard';
+    const redirectPath =
+      userRole === "ADMIN" ? "/admin/dashboard"
+      : userRole === "VENDOR" ? "/vendor/dashboard"
+      : "/dashboard";
     return <Navigate to={redirectPath} replace />;
   }
 
@@ -73,10 +92,14 @@ function DashboardRouter() {
   const { getUserRole } = useAuthStore();
   const role = getUserRole();
 
+<<<<<<< HEAD
   if (role === 'ADMIN') {
+=======
+  if (role === "ADMIN") {
+>>>>>>> 506d7df715d9587171652d6674bfb24aee8b41fc
     return <Navigate to="/admin/dashboard" replace />;
   }
-  if (role === 'VENDOR') {
+  if (role === "VENDOR") {
     return <Navigate to="/vendor/dashboard" replace />;
   }
   return <CustomerDashboard />;
@@ -168,33 +191,76 @@ const App = () => (
             }
           />
 
+<<<<<<< HEAD
           {/* Vendor Routes */}
+=======
+>>>>>>> 506d7df715d9587171652d6674bfb24aee8b41fc
           <Route
             path="/vendor/dashboard"
             element={
-              <ProtectedRoute allowedRoles={['VENDOR', 'ADMIN']}>
+              <ProtectedRoute allowedRoles={["VENDOR", "ADMIN"]}>
                 <VendorDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+<<<<<<< HEAD
+            path="/vendor/settings"
+=======
+            path="/vendor/orders"
+>>>>>>> 506d7df715d9587171652d6674bfb24aee8b41fc
+            element={
+              <ProtectedRoute allowedRoles={["VENDOR", "ADMIN"]}>
+                <VendorOrders />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/vendor/products"
+            element={
+              <ProtectedRoute allowedRoles={["VENDOR", "ADMIN"]}>
+                <VendorProducts />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/vendor/products/new"
+            element={
+              <ProtectedRoute allowedRoles={["VENDOR", "ADMIN"]}>
+                <VendorAddProduct />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/vendor/products/:productId/edit"
+            element={
+              <ProtectedRoute allowedRoles={["VENDOR", "ADMIN"]}>
+                <VendorEditProduct />
               </ProtectedRoute>
             }
           />
           <Route
             path="/vendor/settings"
             element={
-              <ProtectedRoute allowedRoles={['VENDOR', 'ADMIN']}>
+              <ProtectedRoute allowedRoles={["VENDOR", "ADMIN"]}>
                 <VendorSettings />
               </ProtectedRoute>
             }
           />
           <Route
             path="/vendor"
+<<<<<<< HEAD
             element={
               <Navigate to="/vendor/dashboard" replace />
             }
+=======
+            element={<Navigate to="/vendor/dashboard" replace />}
+>>>>>>> 506d7df715d9587171652d6674bfb24aee8b41fc
           />
           <Route
             path="/vendor/*"
             element={
-              <ProtectedRoute allowedRoles={['VENDOR', 'ADMIN']}>
+              <ProtectedRoute allowedRoles={["VENDOR", "ADMIN"]}>
                 <VendorDashboard />
               </ProtectedRoute>
             }
@@ -204,12 +270,13 @@ const App = () => (
           <Route
             path="/admin/dashboard"
             element={
-              <ProtectedRoute allowedRoles={['ADMIN']}>
+              <ProtectedRoute allowedRoles={["ADMIN"]}>
                 <AdminDashboard />
               </ProtectedRoute>
             }
           />
           <Route
+<<<<<<< HEAD
             path="/admin/users"
             element={
               <ProtectedRoute allowedRoles={['ADMIN']}>
@@ -253,20 +320,29 @@ const App = () => (
             path="/admin/settings"
             element={
               <ProtectedRoute allowedRoles={['ADMIN']}>
+=======
+            path="/admin/settings"
+            element={
+              <ProtectedRoute allowedRoles={["ADMIN"]}>
+>>>>>>> 506d7df715d9587171652d6674bfb24aee8b41fc
                 <AdminSettings />
               </ProtectedRoute>
             }
           />
           <Route
             path="/admin"
+<<<<<<< HEAD
             element={
               <Navigate to="/admin/dashboard" replace />
             }
+=======
+            element={<Navigate to="/admin/dashboard" replace />}
+>>>>>>> 506d7df715d9587171652d6674bfb24aee8b41fc
           />
           <Route
             path="/admin/*"
             element={
-              <ProtectedRoute allowedRoles={['ADMIN']}>
+              <ProtectedRoute allowedRoles={["ADMIN"]}>
                 <AdminDashboard />
               </ProtectedRoute>
             }

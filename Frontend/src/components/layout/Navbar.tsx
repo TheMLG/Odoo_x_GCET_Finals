@@ -11,7 +11,8 @@ import {
   FileText,
   Settings,
   Search,
-  MapPin
+  MapPin,
+  Heart
 } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -25,6 +26,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useAuthStore } from '@/stores/authStore';
 import { useCartStore } from '@/stores/cartStore';
+import { useRentalStore } from '@/stores/rentalStore';
+import { useWishlistStore } from '@/stores/wishlistStore';
 import { CartSheet } from '@/components/products/CartSheet';
 import { cn } from '@/lib/utils';
 
@@ -32,6 +35,8 @@ export function Navbar() {
   const location = useLocation();
   const { user, isAuthenticated, logout, getUserRole } = useAuthStore();
   const { items } = useCartStore();
+  const { items: wishlistItems } = useWishlistStore();
+  const { location: rentalLocation } = useRentalStore();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
 
@@ -79,6 +84,7 @@ export function Navbar() {
         </Link>
 
         {/* Desktop Navigation */}
+<<<<<<< HEAD
         {isCustomer && (
           <div className="hidden flex-1 items-center gap-4 px-8 md:flex">
             {/* Location */}
@@ -86,6 +92,14 @@ export function Navbar() {
               <MapPin className="h-5 w-5" />
               <span className="text-sm font-medium">Mumbai</span>
             </button>
+=======
+        <div className="hidden flex-1 items-center gap-4 px-8 md:flex">
+          {/* Location */}
+          <button className="flex items-center gap-2 rounded-lg px-3 py-2 hover:bg-muted">
+            <MapPin className="h-5 w-5" />
+            <span className="text-sm font-medium">{rentalLocation}</span>
+          </button>
+>>>>>>> 506d7df715d9587171652d6674bfb24aee8b41fc
 
             {/* Search Bar */}
             <div className="relative flex-1 max-w-md">
@@ -107,6 +121,20 @@ export function Navbar() {
               <Search className="h-5 w-5" />
             </Button>
           )}
+
+          {/* Wishlist */}
+          <Link to="/wishlist" className="relative">
+            <Button variant="ghost" size="icon" className="rounded-xl">
+              <Heart className="h-5 w-5" />
+              {wishlistItems.length > 0 && (
+                <Badge 
+                  className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-pink-500 p-0 text-xs text-white"
+                >
+                  {wishlistItems.length}
+                </Badge>
+              )}
+            </Button>
+          </Link>
 
           {/* Cart */}
           {isCustomer && (

@@ -9,11 +9,19 @@ import { Separator } from '@/components/ui/separator';
 import { useCartStore } from '@/stores/cartStore';
 import { useAuthStore } from '@/stores/authStore';
 import { toast } from 'sonner';
+import { useEffect } from 'react';
 
 export default function CartPage() {
   const navigate = useNavigate();
-  const { items, removeItem, updateItem, getTotalAmount, clearCart } = useCartStore();
+  const { items, removeItem, updateItem, getTotalAmount, clearCart, fetchCart, isLoading } = useCartStore();
   const { isAuthenticated } = useAuthStore();
+
+  // Fetch cart on mount if authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchCart();
+    }
+  }, [isAuthenticated, fetchCart]);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-IN', {

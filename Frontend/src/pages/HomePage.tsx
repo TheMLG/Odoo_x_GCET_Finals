@@ -7,6 +7,7 @@ import { MainLayout } from '@/components/layout/MainLayout';
 import { ProductCard } from '@/components/products/ProductCard';
 import { useRentalStore } from '@/stores/rentalStore';
 import { RoleBasedRedirect } from '@/components/RoleBasedRedirect';
+import { useEffect } from 'react';
 
 const features = [
   {
@@ -60,8 +61,13 @@ const testimonials = [
 ];
 
 export default function HomePage() {
-  const { products } = useRentalStore();
+  const { products, fetchProducts } = useRentalStore();
   const featuredProducts = products.filter((p) => p.isPublished).slice(0, 4);
+
+  // Fetch products on mount
+  useEffect(() => {
+    fetchProducts();
+  }, [fetchProducts]);
 
   return (
     <RoleBasedRedirect>

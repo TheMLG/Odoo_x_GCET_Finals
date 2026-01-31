@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
-import { Calendar as CalendarIcon, Clock, Minus, Plus, ShoppingCart, TrendingUp, Shield, Heart, ChevronRight, Tag, Zap, CheckCircle2 } from 'lucide-react';
+import { Calendar as CalendarIcon, Clock, Minus, Plus, ShoppingCart, TrendingUp, Shield, Heart, ChevronRight, Tag, Zap, CheckCircle2, Loader2 } from 'lucide-react';
 import { Product, RentalDuration } from '@/types/rental';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
@@ -14,6 +14,10 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Badge } from '@/components/ui/badge';
 import { useCartStore } from '@/stores/cartStore';
+import { useRentalStore } from '@/stores/rentalStore';
+import { useAuthStore } from '@/stores/authStore';
+import { DatePickerDialog } from '@/components/DatePickerDialog';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
@@ -22,10 +26,14 @@ interface RentalConfiguratorProps {
 }
 
 export function RentalConfigurator({ product }: RentalConfiguratorProps) {
+  const navigate = useNavigate();
   const [quantity, setQuantity] = useState(1);
   const [duration, setDuration] = useState<RentalDuration>('daily');
-  const [startDate, setStartDate] = useState<Date>();
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
   const { addItem } = useCartStore();
+  const { deliveryDate, pickupDate } = useRentalStore();
+  const { isAuthenticated } = useAuthStore();
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-IN', {
@@ -50,9 +58,19 @@ export function RentalConfigurator({ product }: RentalConfiguratorProps) {
 
   const totalPrice = getPriceForDuration() * quantity;
 
-  const handleAddToCart = () => {
-    if (!startDate) {
-      toast.error('Please select a start date');
+  const handleAddToCart = async () => {
+    if (!isAuthenticated) {
+      toast.error('Please login to add items to cart', {
+        action: {
+          label: 'Login',
+          onClick: () => navigate('/login'),
+        },
+      });
+      return;
+    }
+
+    if (!deliveryDate || !pickupDate) {
+      toast.error('Please select delivery and pickup dates');
       return;
     }
 
@@ -61,10 +79,17 @@ export function RentalConfigurator({ product }: RentalConfiguratorProps) {
       return;
     }
 
-    addItem(product, quantity, duration, startDate);
-    toast.success('Added to cart!', {
-      description: `${product.name} x${quantity} - ${duration}`,
-    });
+    try {
+      setIsAddingToCart(true);
+      await addItem(product, quantity, duration, deliveryDate);
+      toast.success('Added to cart!', {
+        description: `${product.name} x${quantity} - ${duration}`,
+      });
+    } catch (error) {
+      // Error toast is already shown in the store
+    } finally {
+      setIsAddingToCart(false);
+    }
   };
 
   const durationOptions = [
@@ -106,16 +131,41 @@ export function RentalConfigurator({ product }: RentalConfiguratorProps) {
         <div className="text-xs text-muted-foreground">Price incl. of all taxes</div>
       </div>
 
+      {/* Select Usage Dates Button */}
+      <Button
+        size="lg"
+        variant="outline"
+        className="w-full rounded-xl border-2"
+        onClick={() => setIsDatePickerOpen(true)}
+      >
+        <CalendarIcon className="mr-2 h-5 w-5" />
+        {deliveryDate && pickupDate
+          ? `${format(deliveryDate, 'MMM dd')} - ${format(pickupDate, 'MMM dd')}`
+          : 'Select Usage Dates'}
+      </Button>
+
       {/* Add to Cart Button */}
       <Button
         size="lg"
         className="w-full rounded-xl bg-blue-600 hover:bg-blue-700"
         onClick={handleAddToCart}
-        disabled={!startDate || quantity > product.quantityOnHand}
+        disabled={!deliveryDate || !pickupDate || quantity > product.quantityOnHand || isAddingToCart}
       >
-        <ShoppingCart className="mr-2 h-5 w-5" />
-        Add to Cart
+        {isAddingToCart ? (
+          <>
+            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+            Adding to Cart...
+          </>
+        ) : (
+          <>
+            <ShoppingCart className="mr-2 h-5 w-5" />
+            Add to Cart
+          </>
+        )}
       </Button>
+
+      {/* Date Picker Dialog */}
+      <DatePickerDialog open={isDatePickerOpen} onClose={() => setIsDatePickerOpen(false)} />
 
       {/* Available Offers */}
       <div className="rounded-xl border border-border p-4">
@@ -145,41 +195,6 @@ export function RentalConfigurator({ product }: RentalConfiguratorProps) {
                 Use code EARLYE & get 15% off on orders above {'\u20B9'}2000
               </div>
             </div>
-          </div>
-        </div>
-      </div>
-
-      {/* SharePal Zero Policy */}
-      <div className="rounded-2xl bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 p-6 shadow-sm border border-purple-100">
-        <div className="mb-4 flex items-center gap-2">
-          <div className="flex h-8 items-center rounded-lg bg-gradient-to-r from-purple-600 to-blue-600 px-3 text-xs font-bold text-white shadow-md">
-            SharePal
-          </div>
-          <span className="font-bold text-purple-900">ZERO Policy</span>
-        </div>
-        <div className="mb-3 flex items-center gap-2">
-          <CheckCircle2 className="h-5 w-5 text-purple-600" />
-          <span className="font-semibold text-purple-900">Transparent prices</span>
-        </div>
-        <div className="mb-3 text-sm text-purple-700">Zero Surprises</div>
-        <div className="space-y-2">
-          <div className="flex items-center gap-2 text-sm">
-            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-purple-100">
-              <CheckCircle2 className="h-4 w-4 text-purple-600" />
-            </div>
-            <span className="text-purple-900">Zero Security Deposit</span>
-          </div>
-          <div className="flex items-center gap-2 text-sm">
-            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-purple-100">
-              <CheckCircle2 className="h-4 w-4 text-purple-600" />
-            </div>
-            <span className="text-purple-900">Zero Delivery Charges</span>
-          </div>
-          <div className="flex items-center gap-2 text-sm">
-            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-purple-100">
-              <CheckCircle2 className="h-4 w-4 text-purple-600" />
-            </div>
-            <span className="text-purple-900">Zero Hidden Charges</span>
           </div>
         </div>
       </div>
@@ -221,35 +236,6 @@ export function RentalConfigurator({ product }: RentalConfiguratorProps) {
                 </Label>
               ))}
             </RadioGroup>
-          </div>
-
-          {/* Start Date */}
-          <div className="space-y-3">
-            <Label className="text-sm font-medium">Start Date</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    'w-full justify-start rounded-xl text-left font-normal',
-                    !startDate && 'text-muted-foreground'
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {startDate ? format(startDate, 'PPP') : 'Select start date'}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={startDate}
-                  onSelect={setStartDate}
-                  disabled={(date) => date < new Date()}
-                  initialFocus
-                  className="pointer-events-auto"
-                />
-              </PopoverContent>
-            </Popover>
           </div>
 
           {/* Quantity */}
