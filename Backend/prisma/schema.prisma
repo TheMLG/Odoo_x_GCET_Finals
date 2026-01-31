@@ -11,7 +11,7 @@ generator client {
 
 
 datasource db {
-  provider = "sqlserver"
+  provider = "postgresql"
 }
 
 // SQL Server doesn't support enums, using String with validated values in application layer
