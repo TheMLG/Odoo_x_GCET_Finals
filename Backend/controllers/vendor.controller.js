@@ -257,7 +257,7 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
   const { orderId } = req.params;
   const { status } = req.body;
 
-  if (!["CONFIRMED", "PICKED_UP", "RETURNED", "CANCELLED"].includes(status)) {
+  if (!["CONFIRMED", "INVOICED", "RETURNED", "CANCELLED"].includes(status)) {
     throw new ApiError(400, "Invalid order status");
   }
 
@@ -348,13 +348,13 @@ export const getVendorStats = asyncHandler(async (req, res) => {
     return sum;
   }, 0);
 
-  // Count active rentals (PICKED_UP status)
-  const activeRentals = orders.filter((o) => o.status === "PICKED_UP").length;
+  // Count active rentals (INVOICED status)
+  const activeRentals = orders.filter((o) => o.status === "INVOICED").length;
 
-  // Count overdue returns (PICKED_UP with past return date)
+  // Count overdue returns (INVOICED with past return date)
   const now = new Date();
   const overdueReturns = orders.filter((order) => {
-    if (order.status !== "PICKED_UP") return false;
+    if (order.status !== "INVOICED") return false;
     // Check if any order item has past rental end date
     return order.items.some((item) => new Date(item.rentalEnd) < now);
   }).length;

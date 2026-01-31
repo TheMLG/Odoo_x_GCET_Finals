@@ -45,7 +45,7 @@ export interface VendorOrder {
   id: string;
   userId: string;
   vendorId: string;
-  status: "CONFIRMED" | "PICKED_UP" | "RETURNED" | "CANCELLED";
+  status: "CONFIRMED" | "INVOICED" | "RETURNED" | "CANCELLED";
   createdAt: string;
   user: {
     id: string;

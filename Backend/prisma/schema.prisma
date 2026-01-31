@@ -160,7 +160,7 @@ model Order {
   id        String      @id @default(uuid())
   userId    String
   vendorId  String
-  status    String      // Valid: CONFIRMED, PICKED_UP, RETURNED, CANCELLED
+  status    String      // Valid: CONFIRMED, INVOICED, RETURNED, CANCELLED
   createdAt DateTime    @default(now())
 
   user    User        @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
