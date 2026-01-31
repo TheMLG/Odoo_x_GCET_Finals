@@ -22,6 +22,11 @@ import VendorDashboard from "./pages/dashboard/VendorDashboard";
 import VendorSettings from "./pages/dashboard/VendorSettings";
 import AdminDashboard from "./pages/dashboard/AdminDashboard";
 import AdminSettings from "./pages/dashboard/AdminSettings";
+import ManageUsers from "./pages/dashboard/ManageUsers";
+import ManageVendors from "./pages/dashboard/ManageVendors";
+import ManageProducts from "./pages/dashboard/ManageProducts";
+import ManageOrders from "./pages/dashboard/ManageOrders";
+import ReportsAnalytics from "./pages/dashboard/ReportsAnalytics";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -199,6 +204,46 @@ const App = () => (
             element={
               <ProtectedRoute allowedRoles={['ADMIN']}>
                 <AdminDashboard />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/admin/users" 
+            element={
+              <ProtectedRoute allowedRoles={['ADMIN']}>
+                <ManageUsers />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/admin/vendors" 
+            element={
+              <ProtectedRoute allowedRoles={['ADMIN']}>
+                <ManageVendors />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/admin/products" 
+            element={
+              <ProtectedRoute allowedRoles={['ADMIN']}>
+                <ManageProducts />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/admin/orders" 
+            element={
+              <ProtectedRoute allowedRoles={['ADMIN']}>
+                <ManageOrders />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/admin/reports" 
+            element={
+              <ProtectedRoute allowedRoles={['ADMIN']}>
+                <ReportsAnalytics />
               </ProtectedRoute>
             } 
           />

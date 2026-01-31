@@ -9,6 +9,7 @@ import {
   getAllProducts,
   getAllOrders,
   getDashboardStats,
+  getAnalytics,
   getAdminProfile,
   updateAdminProfile,
   changeAdminPassword,
@@ -23,6 +24,9 @@ router.use(verifyJWT, isAdmin);
 
 // Dashboard stats
 router.route("/stats").get(getDashboardStats);
+
+// Analytics
+router.route("/analytics").get(getAnalytics);
 
 // Admin profile routes
 router.route("/profile").get(getAdminProfile).put(updateAdminProfile);

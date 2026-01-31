@@ -189,8 +189,149 @@ export const updateUser = asyncHandler(async (req, res) => {
 export const deleteUser = asyncHandler(async (req, res) => {
   const { userId } = req.params;
 
-  await prisma.user.delete({
+  // Check if user exists
+  const user = await prisma.user.findUnique({
     where: { id: userId },
+    include: {
+      vendor: true,
+      orders: true,
+      carts: true,
+    },
+  });
+
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+
+  // Use transaction to ensure all deletes succeed or fail together
+  await prisma.$transaction(async (tx) => {
+    // Delete user roles first (due to foreign key constraint)
+    await tx.userRole.deleteMany({
+      where: { userId },
+    });
+
+    // Delete carts and cart items
+    if (user.carts.length > 0) {
+      const cartIds = user.carts.map(cart => cart.id);
+      await tx.cartItem.deleteMany({
+        where: { cartId: { in: cartIds } },
+      });
+      await tx.cart.deleteMany({
+        where: { userId },
+      });
+    }
+
+    // If user has vendor, delete vendor-related data
+    if (user.vendor) {
+      const vendorId = user.vendor.id;
+
+      // Get all products for this vendor
+      const products = await tx.product.findMany({
+        where: { vendorId },
+        select: { id: true },
+      });
+      const productIds = products.map(p => p.id);
+
+      if (productIds.length > 0) {
+        // Delete product-related data
+        await tx.reservation.deleteMany({
+          where: { productId: { in: productIds } },
+        });
+        await tx.orderItem.deleteMany({
+          where: { productId: { in: productIds } },
+        });
+        await tx.cartItem.deleteMany({
+          where: { productId: { in: productIds } },
+        });
+        await tx.productAttribute.deleteMany({
+          where: { productId: { in: productIds } },
+        });
+        await tx.rentalPricing.deleteMany({
+          where: { productId: { in: productIds } },
+        });
+        await tx.productInventory.deleteMany({
+          where: { productId: { in: productIds } },
+        });
+        await tx.product.deleteMany({
+          where: { vendorId },
+        });
+      }
+
+      // Delete orders where user is the vendor
+      const vendorOrders = await tx.order.findMany({
+        where: { vendorId },
+        include: { invoice: true },
+      });
+
+      for (const order of vendorOrders) {
+        if (order.invoice) {
+          // Delete payments first
+          await tx.payment.deleteMany({
+            where: { invoiceId: order.invoice.id },
+          });
+          // Delete invoice
+          await tx.invoice.delete({
+            where: { id: order.invoice.id },
+          });
+        }
+        // Delete order items
+        await tx.orderItem.deleteMany({
+          where: { orderId: order.id },
+        });
+      }
+
+      // Delete vendor orders
+      await tx.order.deleteMany({
+        where: { vendorId },
+      });
+
+      // Finally delete vendor
+      await tx.vendor.delete({
+        where: { id: vendorId },
+      });
+    }
+
+    // Delete orders where user is the customer
+    const customerOrders = await tx.order.findMany({
+      where: { userId },
+      include: { invoice: true },
+    });
+
+    for (const order of customerOrders) {
+      if (order.invoice) {
+        // Delete payments first
+        await tx.payment.deleteMany({
+          where: { invoiceId: order.invoice.id },
+        });
+        // Delete invoice
+        await tx.invoice.delete({
+          where: { id: order.invoice.id },
+        });
+      }
+      // Delete reservations through order items
+      const orderItems = await tx.orderItem.findMany({
+        where: { orderId: order.id },
+      });
+      for (const item of orderItems) {
+        await tx.reservation.deleteMany({
+          where: { orderItemId: item.id },
+        });
+      }
+      // Delete order items
+      await tx.orderItem.deleteMany({
+        where: { orderId: order.id },
+      });
+    }
+
+    // Delete customer orders
+    await tx.order.deleteMany({
+      where: { userId },
+    });
+
+    // Finally, delete the user
+    await tx.user.delete({
+      where: { id: userId },
+    });
   });
 
   res.status(200).json(new ApiResponse(200, {}, "User deleted successfully"));
@@ -304,7 +445,11 @@ export const getAllOrders = asyncHandler(async (req, res) => {
             product: true,
           },
         },
-        invoice: true,
+        invoice: {
+          include: {
+            payments: true,
+          },
+        },
       },
       skip,
       take: parseInt(limit),
@@ -313,11 +458,26 @@ export const getAllOrders = asyncHandler(async (req, res) => {
     prisma.order.count({ where }),
   ]);
 
+  // Transform orders to include totalAmount and paidAmount
+  const transformedOrders = orders.map((order) => {
+    const totalAmount = order.invoice?.totalAmount || 0;
+    const paidAmount = order.invoice?.payments?.reduce(
+      (sum, payment) => sum + (payment.status === "SUCCESS" ? Number(payment.amount) : 0),
+      0
+    ) || 0;
+
+    return {
+      ...order,
+      totalAmount: Number(totalAmount),
+      paidAmount: Number(paidAmount),
+    };
+  });
+
   res.status(200).json(
     new ApiResponse(
       200,
       {
-        orders,
+        orders: transformedOrders,
         pagination: {
           total,
           page: parseInt(page),
@@ -364,21 +524,221 @@ export const getDashboardStats = asyncHandler(async (req, res) => {
             },
           },
         },
+        invoice: {
+          include: {
+            payments: true,
+          },
+        },
       },
     }),
   ]);
+
+  // Transform recent orders to include totalAmount and paidAmount
+  const transformedRecentOrders = recentOrders.map((order) => {
+    const totalAmount = order.invoice?.totalAmount || 0;
+    const paidAmount = order.invoice?.payments?.reduce(
+      (sum, payment) => sum + (payment.status === "SUCCESS" ? Number(payment.amount) : 0),
+      0
+    ) || 0;
+
+    return {
+      ...order,
+      totalAmount: Number(totalAmount),
+      paidAmount: Number(paidAmount),
+    };
+  });
 
   const stats = {
     totalUsers,
     totalVendors,
     totalProducts,
     totalOrders,
-    recentOrders,
+    recentOrders: transformedRecentOrders,
   };
 
   res
     .status(200)
     .json(new ApiResponse(200, stats, "Dashboard stats fetched successfully"));
+});
+
+// Get analytics data
+export const getAnalytics = asyncHandler(async (req, res) => {
+  const { timeRange = "year" } = req.query;
+
+  // Calculate date range
+  const now = new Date();
+  let startDate = new Date();
+  
+  switch (timeRange) {
+    case "week":
+      startDate.setDate(now.getDate() - 7);
+      break;
+    case "month":
+      startDate.setMonth(now.getMonth() - 1);
+      break;
+    case "quarter":
+      startDate.setMonth(now.getMonth() - 3);
+      break;
+    case "year":
+    default:
+      startDate.setFullYear(now.getFullYear() - 1);
+      break;
+  }
+
+  // Get all orders within date range
+  const orders = await prisma.order.findMany({
+    where: {
+      createdAt: {
+        gte: startDate,
+      },
+    },
+    include: {
+      items: {
+        include: {
+          product: {
+            select: {
+              name: true,
+              vendor: {
+                select: {
+                  product_category: true,
+                },
+              },
+            },
+          },
+        },
+      },
+      vendor: {
+        select: {
+          id: true,
+          companyName: true,
+        },
+      },
+    },
+  });
+
+  // Calculate monthly revenue data
+  const monthlyData = {};
+  orders.forEach((order) => {
+    const month = new Date(order.createdAt).toLocaleDateString("en-US", {
+      month: "short",
+    });
+    if (!monthlyData[month]) {
+      monthlyData[month] = { month, revenue: 0, orders: 0 };
+    }
+    monthlyData[month].revenue += order.totalAmount;
+    monthlyData[month].orders += 1;
+  });
+
+  // Get monthly users data
+  const users = await prisma.user.findMany({
+    where: {
+      createdAt: {
+        gte: startDate,
+      },
+    },
+    select: {
+      createdAt: true,
+    },
+  });
+
+  const monthlyUsers = {};
+  users.forEach((user) => {
+    const month = new Date(user.createdAt).toLocaleDateString("en-US", {
+      month: "short",
+    });
+    if (!monthlyUsers[month]) {
+      monthlyUsers[month] = 0;
+    }
+    monthlyUsers[month] += 1;
+  });
+
+  // Combine monthly data
+  const revenueData = Object.keys(monthlyData).map((month) => ({
+    ...monthlyData[month],
+    users: monthlyUsers[month] || 0,
+  }));
+
+  // Calculate category distribution
+  const categoryCount = {};
+  orders.forEach((order) => {
+    order.items.forEach((item) => {
+      const category =
+        item.product?.vendor?.product_category || "Uncategorized";
+      categoryCount[category] = (categoryCount[category] || 0) + 1;
+    });
+  });
+
+  const categoryData = Object.keys(categoryCount).map((category) => ({
+    name: category,
+    value: categoryCount[category],
+  }));
+
+  // Calculate top products
+  const productRentals = {};
+  const productRevenue = {};
+  orders.forEach((order) => {
+    order.items.forEach((item) => {
+      const productName = item.product?.name || "Unknown";
+      productRentals[productName] = (productRentals[productName] || 0) + 1;
+      productRevenue[productName] = (productRevenue[productName] || 0) + item.price;
+    });
+  });
+
+  const topProducts = Object.keys(productRentals)
+    .map((name) => ({
+      name,
+      rentals: productRentals[name],
+      revenue: productRevenue[name],
+    }))
+    .sort((a, b) => b.rentals - a.rentals)
+    .slice(0, 5);
+
+  // Calculate vendor performance
+  const vendorStats = {};
+  orders.forEach((order) => {
+    const vendorId = order.vendor?.id;
+    const vendorName = order.vendor?.companyName || "Unknown";
+    if (!vendorStats[vendorId]) {
+      vendorStats[vendorId] = {
+        name: vendorName,
+        orders: 0,
+        revenue: 0,
+      };
+    }
+    vendorStats[vendorId].orders += 1;
+    vendorStats[vendorId].revenue += order.totalAmount;
+  });
+
+  const vendorPerformance = Object.values(vendorStats)
+    .sort((a, b) => b.orders - a.orders)
+    .slice(0, 5);
+
+  // Calculate summary stats
+  const totalRevenue = orders.reduce((sum, order) => sum + order.totalAmount, 0);
+  const totalOrders = orders.length;
+  const activeUsers = await prisma.user.count();
+  const totalProducts = await prisma.product.count();
+
+  const stats = {
+    totalRevenue: `₹${(totalRevenue / 1000).toFixed(1)}k`,
+    totalOrders: totalOrders.toString(),
+    activeUsers: activeUsers.toString(),
+    productsListed: totalProducts.toString(),
+  };
+
+  res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        stats,
+        revenueData,
+        categoryData,
+        topProducts,
+        vendorPerformance,
+      },
+      "Analytics data fetched successfully"
+    )
+  );
 });
 
 // Get admin profile
