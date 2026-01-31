@@ -2,12 +2,9 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuthStore } from "@/stores/authStore";
-<<<<<<< HEAD
 import { ScrollToTop } from "@/components/common/ScrollToTop";
-=======
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
->>>>>>> 506d7df715d9587171652d6674bfb24aee8b41fc
 
 // Pages
 import WishlistPage from "./pages/WishlistPage";
@@ -38,17 +35,14 @@ const queryClient = new QueryClient();
 // Protected Route Component
 function ProtectedRoute({
   children,
-<<<<<<< HEAD
   allowedRoles
 }: {
   children: React.ReactNode;
   allowedRoles?: ('ADMIN' | 'VENDOR' | 'CUSTOMER')[];
-=======
   allowedRoles,
 }: {
   children: React.ReactNode;
   allowedRoles?: ("ADMIN" | "VENDOR" | "CUSTOMER")[];
->>>>>>> 506d7df715d9587171652d6674bfb24aee8b41fc
 }) {
   const { isAuthenticated, getUserRole } = useAuthStore();
 
@@ -92,11 +86,8 @@ function DashboardRouter() {
   const { getUserRole } = useAuthStore();
   const role = getUserRole();
 
-<<<<<<< HEAD
   if (role === 'ADMIN') {
-=======
   if (role === "ADMIN") {
->>>>>>> 506d7df715d9587171652d6674bfb24aee8b41fc
     return <Navigate to="/admin/dashboard" replace />;
   }
   if (role === "VENDOR") {
@@ -191,10 +182,7 @@ const App = () => (
             }
           />
 
-<<<<<<< HEAD
           {/* Vendor Routes */}
-=======
->>>>>>> 506d7df715d9587171652d6674bfb24aee8b41fc
           <Route
             path="/vendor/dashboard"
             element={
@@ -204,11 +192,8 @@ const App = () => (
             }
           />
           <Route
-<<<<<<< HEAD
             path="/vendor/settings"
-=======
             path="/vendor/orders"
->>>>>>> 506d7df715d9587171652d6674bfb24aee8b41fc
             element={
               <ProtectedRoute allowedRoles={["VENDOR", "ADMIN"]}>
                 <VendorOrders />
@@ -249,13 +234,10 @@ const App = () => (
           />
           <Route
             path="/vendor"
-<<<<<<< HEAD
             element={
               <Navigate to="/vendor/dashboard" replace />
             }
-=======
             element={<Navigate to="/vendor/dashboard" replace />}
->>>>>>> 506d7df715d9587171652d6674bfb24aee8b41fc
           />
           <Route
             path="/vendor/*"
@@ -276,7 +258,6 @@ const App = () => (
             }
           />
           <Route
-<<<<<<< HEAD
             path="/admin/users"
             element={
               <ProtectedRoute allowedRoles={['ADMIN']}>
@@ -320,24 +301,19 @@ const App = () => (
             path="/admin/settings"
             element={
               <ProtectedRoute allowedRoles={['ADMIN']}>
-=======
             path="/admin/settings"
             element={
               <ProtectedRoute allowedRoles={["ADMIN"]}>
->>>>>>> 506d7df715d9587171652d6674bfb24aee8b41fc
                 <AdminSettings />
               </ProtectedRoute>
             }
           />
           <Route
             path="/admin"
-<<<<<<< HEAD
             element={
               <Navigate to="/admin/dashboard" replace />
             }
-=======
             element={<Navigate to="/admin/dashboard" replace />}
->>>>>>> 506d7df715d9587171652d6674bfb24aee8b41fc
           />
           <Route
             path="/admin/*"
