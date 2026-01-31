@@ -115,3 +115,19 @@ export const createOrder = async (
     throw error;
   }
 };
+
+/**
+ * Create a Razorpay order
+ */
+export const createRazorpayOrder = async (data: any): Promise<any> => {
+  const response = await api.post('/orders/razorpay/create-order', data);
+  return response.data.data;
+};
+
+/**
+ * Verify Razorpay payment and place order
+ */
+export const verifyPayment = async (data: any): Promise<any> => {
+  const response = await api.post('/orders/razorpay/verify', data);
+  return response.data.data;
+};

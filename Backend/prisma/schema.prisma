@@ -192,13 +192,14 @@ model Invoice {
 }
 
 model Payment {
-  id        String    @id @default(uuid())
-  invoiceId String
-  amount    Decimal
-  mode      String
-  status    String
-  paidAt    DateTime?
-  invoice   Invoice   @relation(fields: [invoiceId], references: [id])
+  id            String    @id @default(uuid())
+  invoiceId     String
+  amount        Decimal
+  mode          String
+  status        String
+  transactionId String?   // Added to store Razorpay payment_id
+  paidAt        DateTime?
+  invoice       Invoice   @relation(fields: [invoiceId], references: [id])
 }
 
 model Wishlist {

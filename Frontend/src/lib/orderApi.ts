@@ -73,6 +73,22 @@ export async function createOrder(orderData?: any): Promise<Order[]> {
 }
 
 /**
+ * Create a Razorpay order
+ */
+export async function createRazorpayOrder(data: any): Promise<any> {
+    const response = await api.post('/orders/razorpay/create-order', data);
+    return response.data.data;
+}
+
+/**
+ * Verify Razorpay payment and place order
+ */
+export async function verifyPayment(data: any): Promise<any> {
+    const response = await api.post('/orders/razorpay/verify', data);
+    return response.data.data;
+}
+
+/**
  * Get all orders for the authenticated user
  * @param status Optional status filter
  */

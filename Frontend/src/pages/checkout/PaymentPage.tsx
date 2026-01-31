@@ -1,19 +1,15 @@
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { createOrder } from "@/lib/ordersApi";
+import { createRazorpayOrder, verifyPayment } from "@/lib/ordersApi";
 import { cn } from "@/lib/utils";
 import { useCartStore } from "@/stores/cartStore";
 import { useCheckoutStore } from "@/stores/checkoutStore";
 import { motion } from "framer-motion";
 import {
-  Building,
   CheckCircle,
   CreditCard,
-  Smartphone,
-  Wallet,
 } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -22,17 +18,9 @@ import { CheckoutHeader } from "./components/CheckoutHeader";
 import { CheckoutSidebar } from "./components/CheckoutSidebar";
 import { CheckoutSteps } from "./components/CheckoutSteps";
 
-interface PaymentMethod {
-  id: string;
-  name: string;
-  description: string;
-  icon: React.ReactNode;
-  available: boolean;
-}
-
 export default function PaymentPage() {
   const navigate = useNavigate();
-  const { clearCart } = useCartStore();
+  const { clearCart, appliedCoupon } = useCartStore();
   const { selectedAddress, deliverySlot, clearCheckout } = useCheckoutStore();
   const [selectedMethod, setSelectedMethod] = useState<string>("razorpay");
   const [agreeToTerms, setAgreeToTerms] = useState(false);
@@ -41,50 +29,19 @@ export default function PaymentPage() {
   // Get delivery cost from checkout store
   const deliveryCost = deliverySlot?.cost || 0;
 
-  const paymentMethods: PaymentMethod[] = [
-    {
-      id: "razorpay",
-      name: "Razorpay",
-      description: "Credit/Debit Card, UPI, Netbanking, Wallets",
-      icon: <CreditCard className="h-6 w-6" />,
-      available: true,
-    },
-    {
-      id: "upi",
-      name: "UPI",
-      description: "Google Pay, PhonePe, Paytm & more",
-      icon: <Smartphone className="h-6 w-6" />,
-      available: true,
-    },
-    {
-      id: "card",
-      name: "Credit/Debit Card",
-      description: "Visa, Mastercard, Rupay, Amex",
-      icon: <CreditCard className="h-6 w-6" />,
-      available: true,
-    },
-    {
-      id: "netbanking",
-      name: "Net Banking",
-      description: "All major banks supported",
-      icon: <Building className="h-6 w-6" />,
-      available: true,
-    },
-    {
-      id: "wallet",
-      name: "Wallets",
-      description: "Paytm, PhonePe, Amazon Pay",
-      icon: <Wallet className="h-6 w-6" />,
-      available: true,
-    },
-    {
-      id: "cod",
-      name: "Cash on Delivery",
-      description: "Pay when you receive",
-      icon: <Wallet className="h-6 w-6" />,
-      available: false, // Not available for rental items
-    },
-  ];
+  const loadRazorpay = () => {
+    return new Promise((resolve) => {
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.onload = () => {
+        resolve(true);
+      };
+      script.onerror = () => {
+        resolve(false);
+      };
+      document.body.appendChild(script);
+    });
+  };
 
   const handlePlaceOrder = async () => {
     if (!selectedMethod) {
@@ -108,22 +65,83 @@ export default function PaymentPage() {
     setIsProcessing(true);
 
     try {
-      // Create order from cart
-      const result = await createOrder({
-        addressId: selectedAddress.id,
-        paymentMethod: selectedMethod,
+      const res = await loadRazorpay();
+      if (!res) {
+        toast.error('Razorpay SDK failed to load. Are you online?');
+        setIsProcessing(false);
+        return;
+      }
+
+      // 1. Create Order on Backend (Get Order ID and Key)
+      const orderData = {
+        couponCode: appliedCoupon?.code
+      };
+
+      const data = await createRazorpayOrder(orderData);
+
+      // 2. Open Razorpay options
+      const options = {
+        key: data.key,
+        amount: data.amount,
+        currency: data.currency,
+        name: "RentX",
+        description: "Rental Transaction",
+        image: "/RentX.png",
+        order_id: data.id,
+        handler: async function (response: any) {
+          try {
+            // 3. Verify Payment
+            console.log("Payment Success", response);
+            const verifyData = {
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              addressId: selectedAddress.id,
+              couponCode: appliedCoupon?.code
+            };
+
+            await verifyPayment(verifyData);
+
+            // Clear cart and checkout state
+            clearCart();
+            clearCheckout();
+
+            toast.success('Order placed successfully!');
+            navigate("/orders");
+
+          } catch (error: any) {
+            console.error("Verification Failed:", error);
+            toast.error("Payment verification failed. Please contact support if money was deducted.");
+            setIsProcessing(false);
+          }
+        },
+        prefill: {
+          // TODO: Add user details here if available from auth store
+          name: "RentX User",
+          email: "user@example.com",
+          contact: "9999999999",
+        },
+        notes: {
+          address: "RentX Corporate Office",
+        },
+        theme: {
+          color: "#2563eb",
+        },
+        modal: {
+          ondismiss: function () {
+            setIsProcessing(false);
+          }
+        }
+      };
+
+      const paymentObject = new (window as any).Razorpay(options);
+      paymentObject.open();
+
+      paymentObject.on('payment.failed', function (response: any) {
+        toast.error(response.error.description || "Payment failed");
+        setIsProcessing(false);
       });
 
-      console.log("[Payment] Order created successfully:", result);
-
-      // Clear cart and checkout state
-      clearCart();
-      clearCheckout();
-
-      toast.success(
-        `Order placed successfully! ${result.count} order(s) created.`,
-      );
-      navigate("/orders");
     } catch (error: any) {
       console.error("[Payment] Order creation failed:", error);
       const message =
@@ -131,7 +149,6 @@ export default function PaymentPage() {
         error?.message ||
         "Failed to place order";
       toast.error(message);
-    } finally {
       setIsProcessing(false);
     }
   };
@@ -171,126 +188,47 @@ export default function PaymentPage() {
                   onValueChange={setSelectedMethod}
                 >
                   <div className="space-y-3">
-                    {paymentMethods.map((method) => (
-                      <div
-                        key={method.id}
-                        className={cn(
-                          "relative rounded-xl border-2 transition-all",
-                          !method.available && "opacity-50",
-                          selectedMethod === method.id ?
-                            "border-blue-600 bg-blue-50"
+                    <div
+                      className={cn(
+                        "relative rounded-xl border-2 transition-all",
+                        selectedMethod === "razorpay" ?
+                          "border-blue-600 bg-blue-50"
                           : "border-border hover:border-gray-400",
-                        )}
-                      >
-                        <div className="flex items-center gap-4 p-4">
-                          <RadioGroupItem
-                            value={method.id}
-                            id={method.id}
-                            disabled={!method.available}
-                          />
-                          <div
-                            className={cn(
-                              "flex h-12 w-12 items-center justify-center rounded-xl",
-                              selectedMethod === method.id ?
-                                "bg-blue-200 text-blue-600"
+                      )}
+                    >
+                      <div className="flex items-center gap-4 p-4">
+                        <RadioGroupItem
+                          value="razorpay"
+                          id="razorpay"
+                        />
+                        <div
+                          className={cn(
+                            "flex h-12 w-12 items-center justify-center rounded-xl",
+                            selectedMethod === "razorpay" ?
+                              "bg-blue-200 text-blue-600"
                               : "bg-gray-100 text-gray-600",
-                            )}
-                          >
-                            {method.icon}
-                          </div>
-                          <Label
-                            htmlFor={method.id}
-                            className={cn(
-                              "flex-1 cursor-pointer",
-                              !method.available && "cursor-not-allowed",
-                            )}
-                          >
-                            <div className="mb-1 font-semibold">
-                              {method.name}
-                            </div>
-                            <div className="text-sm text-muted-foreground">
-                              {method.description}
-                            </div>
-                            {!method.available && (
-                              <div className="mt-1 text-xs font-medium text-red-600">
-                                Not available for rental items
-                              </div>
-                            )}
-                          </Label>
-                          {method.available && selectedMethod === method.id && (
-                            <CheckCircle className="h-5 w-5 text-blue-600" />
                           )}
+                        >
+                          <CreditCard className="h-6 w-6" />
                         </div>
+                        <Label
+                          htmlFor="razorpay"
+                          className="flex-1 cursor-pointer"
+                        >
+                          <div className="mb-1 font-semibold">
+                            Razorpay
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            Credit/Debit Card, UPI, Netbanking, Wallets
+                          </div>
+                        </Label>
+                        {selectedMethod === "razorpay" && (
+                          <CheckCircle className="h-5 w-5 text-blue-600" />
+                        )}
                       </div>
-                    ))}
+                    </div>
                   </div>
                 </RadioGroup>
-
-                {/* Additional Card Details (shown when card is selected) */}
-                {selectedMethod === "card" && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    className="space-y-4 rounded-xl border border-border p-4"
-                  >
-                    <h3 className="font-semibold">Card Details</h3>
-                    <div>
-                      <Label htmlFor="cardNumber">Card Number</Label>
-                      <Input
-                        id="cardNumber"
-                        placeholder="1234 5678 9012 3456"
-                        className="mt-2"
-                      />
-                    </div>
-                    <div className="grid gap-4 md:grid-cols-3">
-                      <div className="md:col-span-2">
-                        <Label htmlFor="expiry">Expiry Date</Label>
-                        <Input
-                          id="expiry"
-                          placeholder="MM/YY"
-                          className="mt-2"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="cvv">CVV</Label>
-                        <Input
-                          id="cvv"
-                          placeholder="123"
-                          type="password"
-                          maxLength={3}
-                          className="mt-2"
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <Label htmlFor="cardName">Cardholder Name</Label>
-                      <Input
-                        id="cardName"
-                        placeholder="Name on card"
-                        className="mt-2"
-                      />
-                    </div>
-                  </motion.div>
-                )}
-
-                {/* UPI Details (shown when UPI is selected) */}
-                {selectedMethod === "upi" && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    className="space-y-4 rounded-xl border border-border p-4"
-                  >
-                    <h3 className="font-semibold">UPI Details</h3>
-                    <div>
-                      <Label htmlFor="upiId">UPI ID</Label>
-                      <Input
-                        id="upiId"
-                        placeholder="yourname@upi"
-                        className="mt-2"
-                      />
-                    </div>
-                  </motion.div>
-                )}
 
                 {/* Security & Trust Badges */}
                 <div className="rounded-xl bg-green-50 p-4">
@@ -356,7 +294,7 @@ export default function PaymentPage() {
                         <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></span>
                         Processing...
                       </>
-                    : "Place Order & Pay"}
+                      : "Pay Now"}
                   </Button>
                 </div>
               </div>

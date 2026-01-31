@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCartStore } from '@/stores/cartStore';
-import { createOrder } from '@/lib/orderApi';
+import { createRazorpayOrder, verifyPayment } from '@/lib/orderApi';
 import { addDays, format } from 'date-fns';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
@@ -17,8 +17,7 @@ import { cn } from '@/lib/utils';
 const steps = [
   { id: 1, name: 'Contact Details' },
   { id: 2, name: 'Address' },
-  { id: 3, name: 'Delivery Method' },
-  { id: 4, name: 'Payment' },
+  { id: 3, name: 'Payment' },
 ];
 
 export default function CheckoutPage() {
@@ -29,7 +28,6 @@ export default function CheckoutPage() {
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
 
   // Form state
-  // ... (rest of the state)
   const [formData, setFormData] = useState({
     firstName: 'Ronit',
     lastName: 'Dhimmar',
@@ -85,30 +83,122 @@ export default function CheckoutPage() {
     setCurrentStep(2);
   };
 
+  const loadRazorpay = () => {
+    return new Promise((resolve) => {
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.onload = () => {
+        resolve(true);
+      };
+      script.onerror = () => {
+        resolve(false);
+      };
+      document.body.appendChild(script);
+    });
+  };
+
   const handlePlaceOrder = async () => {
+    if (!formData.fullName || !formData.addressLine1 || !formData.city || !formData.state || !formData.postalCode) {
+      toast.error('Please complete the address details first.');
+      setCurrentStep(2);
+      return;
+    }
+
     try {
       setIsPlacingOrder(true);
+      console.log("Initiating Razorpay Order...");
 
+      const res = await loadRazorpay();
+      if (!res) {
+        toast.error('Razorpay SDK failed to load. Are you online?');
+        console.error("Razorpay SDK load failed");
+        setIsPlacingOrder(false);
+        return;
+      }
+
+      // 1. Create Order on Backend (Get Order ID and Key)
       const orderData = {
-        addressId: 'temp-address-id', // TODO: Use selected address ID
-        paymentMethod: 'ONLINE',
         couponCode: appliedCoupon?.code
       };
 
-      await createOrder(orderData);
+      console.log("Creating backend order...");
+      const data = await createRazorpayOrder(orderData);
 
-      toast.success('Order placed successfully!', {
-        description: 'Thank you for your order. You will receive a confirmation shortly.',
+      console.log("Razorpay Order Created:", data);
+
+      if (!data || !data.id) {
+        throw new Error("Invalid response from backend: Missing order ID");
+      }
+
+      // 2. Open Razorpay options
+      const options = {
+        key: data.key,
+        amount: data.amount,
+        currency: data.currency,
+        name: "RentX",
+        description: "Rental Transaction",
+        image: "/RentX.png",
+        order_id: data.id,
+        handler: async function (response: any) {
+          try {
+            // 3. Verify Payment
+            console.log("Payment Success Callback", response);
+            // alert(`Payment Success! ${response.razorpay_payment_id}`); // Debug alert
+            const verifyData = {
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              addressId: 'temp-address-id', // TODO: Use selected address ID
+              couponCode: appliedCoupon?.code
+            };
+
+            await verifyPayment(verifyData);
+
+            toast.success('Order placed successfully!', {
+              description: 'Thank you for your order. You will receive a confirmation shortly.',
+            });
+
+            // Clear cart including coupon
+            await clearCart();
+            navigate('/orders');
+
+          } catch (error: any) {
+            console.error("Verification Failed:", error);
+            toast.error("Payment verification failed. Please contact support if money was deducted.");
+            setIsPlacingOrder(false);
+          }
+        },
+        prefill: {
+          name: `${formData.firstName} ${formData.lastName}`,
+          email: formData.email,
+          contact: formData.phone,
+        },
+        notes: {
+          address: "RentX Corporate Office",
+        },
+        theme: {
+          color: "#2563eb",
+        },
+        modal: {
+          ondismiss: function () {
+            console.log("Payment modal dismissed");
+            setIsPlacingOrder(false);
+          }
+        }
+      };
+
+      const paymentObject = new (window as any).Razorpay(options);
+      paymentObject.open();
+
+      paymentObject.on('payment.failed', function (response: any) {
+        console.error("Payment Failed:", response.error);
+        toast.error(response.error.description || "Payment failed");
+        setIsPlacingOrder(false);
       });
 
-      // Clear cart including coupon
-      await clearCart();
-
-      navigate('/orders');
     } catch (error: any) {
-      console.error('Failed to place order:', error);
-      toast.error(error.response?.data?.message || 'Failed to place order. Please try again.');
-    } finally {
+      console.error('Failed to initiate payment:', error);
+      toast.error(error.response?.data?.message || 'Failed to initiate payment. Please try again.');
       setIsPlacingOrder(false);
     }
   };
@@ -462,30 +552,66 @@ export default function CheckoutPage() {
                       }}
                       className="flex-1 bg-blue-600 hover:bg-blue-700"
                     >
-                      Continue to Delivery
+                      Continue to Payment
                     </Button>
                   </div>
                 </div>
               </motion.div>
             )}
 
-            {currentStep > 2 && (
-              <div className="rounded-lg bg-white p-8 shadow-sm border border-gray-200">
-                <p className="text-center text-muted-foreground">
-                  Step {currentStep} content coming soon...
-                </p>
-                <div className="mt-6 flex gap-4">
+            {currentStep === 3 && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="rounded-lg bg-white p-6 md:p-8 shadow-sm border border-gray-200"
+              >
+                <h2 className="mb-6 text-lg md:text-xl font-bold">3. Payment Methods</h2>
+
+                <div className="space-y-4">
+                  <div className="rounded-lg border-2 border-blue-600 bg-blue-50 p-4 flex items-center gap-4 cursor-pointer">
+                    <div className="flex-shrink-0">
+                      <RadioGroup value="razorpay">
+                        <RadioGroupItem value="razorpay" checked={true} />
+                      </RadioGroup>
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <CreditCard className="h-5 w-5 text-blue-600" />
+                        <h3 className="font-semibold text-gray-900">Pay via Razorpay</h3>
+                        <span className="bg-blue-200 text-blue-800 text-xs px-2 py-0.5 rounded-full font-medium">Recommended</span>
+                      </div>
+                      <p className="text-sm text-gray-600 mt-1">UPI, Cards, Wallets, NetBanking</p>
+                    </div>
+                    <div>
+                      <img src="/RentX.png" className="h-8 w-auto opacity-80" alt="Razorpay" />
+                    </div>
+                  </div>
+
+                  {/* We removed other methods as requested */}
+                </div>
+
+                <div className="mt-8 flex gap-4">
                   <Button
                     variant="outline"
-                    onClick={() => setCurrentStep(currentStep - 1)}
+                    onClick={() => setCurrentStep(2)}
+                    className="flex-1"
                   >
                     Back
                   </Button>
-                  <Button onClick={() => setCurrentStep(Math.min(4, currentStep + 1))}>
-                    Continue
+                  <Button
+                    onClick={() => {
+                      // alert("DEBUG: Place Order Clicked"); // User-visible debug
+                      handlePlaceOrder();
+                    }}
+                    disabled={isPlacingOrder}
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 font-semibold"
+                    size="lg"
+                  >
+                    {isPlacingOrder ? 'Processing...' : `Pay Now ${formatPrice(totalAfterDiscount)}`}
                   </Button>
                 </div>
-              </div>
+
+              </motion.div>
             )}
           </div>
 
@@ -588,10 +714,10 @@ export default function CheckoutPage() {
                 </div>
               </div>
 
-              {/* Place Order Button */}
+              {/* Place Order Button Mobile */}
               <Button
                 onClick={handlePlaceOrder}
-                disabled={currentStep < 4 || isPlacingOrder}
+                disabled={currentStep < 3 || isPlacingOrder}
                 className="w-full rounded-lg bg-blue-600 py-5 text-base font-bold hover:bg-blue-700 shadow-md hover:shadow-lg transition-all"
                 size="lg"
               >
