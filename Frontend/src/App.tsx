@@ -14,6 +14,7 @@ import CheckoutPage from "./pages/CheckoutPage";
 import OrdersPage from "./pages/OrdersPage";
 import InvoicePage from "./pages/InvoicePage";
 import LoginPage from "./pages/auth/LoginPage";
+import SignupPage from "./pages/auth/SignupPage";
 import UserSignupPage from "./pages/auth/UserSignupPage";
 import VendorSignupPage from "./pages/auth/VendorSignupPage";
 import CustomerDashboard from "./pages/dashboard/CustomerDashboard";
@@ -89,6 +90,14 @@ const App = () => (
             element={
               <PublicRoute>
                 <LoginPage />
+              </PublicRoute>
+            } 
+          />
+          <Route 
+            path="/signup" 
+            element={
+              <PublicRoute>
+                <SignupPage />
               </PublicRoute>
             } 
           />

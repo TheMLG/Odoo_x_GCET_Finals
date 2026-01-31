@@ -42,9 +42,9 @@ export function Navbar() {
     { href: '/contact', label: 'Contact' },
   ];
 
-  const dashboardLink = user?.role === 'admin' 
+  const dashboardLink = user?.roles.some(r => r.role.name === 'ADMIN')
     ? '/admin' 
-    : user?.role === 'vendor' 
+    : user?.roles.some(r => r.role.name === 'VENDOR')
     ? '/vendor' 
     : '/dashboard';
 
@@ -108,12 +108,12 @@ export function Navbar() {
               <DropdownMenuTrigger asChild>
                 <button className="flex items-center gap-2 rounded-full bg-gray-900 p-2 pr-4 text-white hover:bg-gray-800">
                   <User className="h-5 w-5" />
-                  <span className="hidden text-sm font-medium md:inline">Hi, {user?.name?.split(' ')[0] || 'User'}</span>
+                  <span className="hidden text-sm font-medium md:inline">Hi, {user?.firstName || 'User'}</span>
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56 rounded-xl">
                 <div className="px-2 py-1.5">
-                  <p className="text-sm font-medium">{user?.name}</p>
+                  <p className="text-sm font-medium">{user?.firstName} {user?.lastName}</p>
                   <p className="text-xs text-muted-foreground">{user?.email}</p>
                 </div>
                 <DropdownMenuSeparator />

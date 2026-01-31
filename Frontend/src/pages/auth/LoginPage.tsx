@@ -27,16 +27,17 @@ type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  const { login, isAuthenticated } = useAuthStore();
+  const { login, isAuthenticated, getDashboardPath } = useAuthStore();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/', { replace: true });
+      const dashboardPath = getDashboardPath();
+      navigate(dashboardPath, { replace: true });
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, navigate, getDashboardPath]);
 
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -52,7 +53,8 @@ export default function LoginPage() {
       const success = await login(data.email, data.password);
       if (success) {
         toast.success('Welcome back!');
-        navigate('/');
+        const dashboardPath = getDashboardPath();
+        navigate(dashboardPath);
       } else {
         toast.error('Invalid credentials', {
           description: 'Please check your login ID and password',

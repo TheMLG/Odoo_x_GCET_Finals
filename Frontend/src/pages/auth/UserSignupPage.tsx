@@ -41,16 +41,17 @@ type UserSignupFormData = z.infer<typeof userSignupSchema>;
 
 export default function UserSignupPage() {
   const navigate = useNavigate();
-  const { signup, isAuthenticated } = useAuthStore();
+  const { signup, isAuthenticated, getDashboardPath } = useAuthStore();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/', { replace: true });
+      const dashboardPath = getDashboardPath();
+      navigate(dashboardPath, { replace: true });
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, navigate, getDashboardPath]);
 
   const form = useForm<UserSignupFormData>({
     resolver: zodResolver(userSignupSchema),
@@ -67,7 +68,8 @@ export default function UserSignupPage() {
     setIsLoading(true);
     try {
       const success = await signup({
-        name: `${data.firstName} ${data.lastName}`,
+        firstName: data.firstName,
+        lastName: data.lastName,
         email: data.email,
         password: data.password,
         role: 'customer',

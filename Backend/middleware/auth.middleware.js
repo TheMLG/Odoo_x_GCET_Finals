@@ -1,9 +1,7 @@
 import asyncHandler from "../utils/asyncHandler.js"
 import ApiError from "../utils/ApiError.js"
 import jwt from "jsonwebtoken"
-import { PrismaClient } from "../generated/prisma/client.ts"
-
-const prisma = new PrismaClient()
+import prisma from "../config/prisma.js"
 
 
 export const verifyJWT = asyncHandler(async (req, res, next) => {

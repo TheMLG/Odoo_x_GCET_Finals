@@ -68,16 +68,17 @@ const productCategories = [
 
 export default function VendorSignupPage() {
   const navigate = useNavigate();
-  const { signup, isAuthenticated } = useAuthStore();
+  const { signup, isAuthenticated, getDashboardPath } = useAuthStore();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/', { replace: true });
+      const dashboardPath = getDashboardPath();
+      navigate(dashboardPath, { replace: true });
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, navigate, getDashboardPath]);
 
   const form = useForm<VendorSignupFormData>({
     resolver: zodResolver(vendorSignupSchema),
@@ -97,13 +98,14 @@ export default function VendorSignupPage() {
     setIsLoading(true);
     try {
       const success = await signup({
-        name: `${data.firstName} ${data.lastName}`,
+        firstName: data.firstName,
+        lastName: data.lastName,
         email: data.email,
         password: data.password,
         role: 'vendor',
         companyName: data.companyName,
-        productCategory: data.productCategory,
         gstNo: data.gstNo,
+        product_category: data.productCategory,
       });
 
       if (success) {
