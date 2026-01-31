@@ -40,10 +40,10 @@ const queryClient = new QueryClient();
 // Protected Route Component
 function ProtectedRoute({
   children,
-  allowedRoles,
+  allowedRoles
 }: {
   children: React.ReactNode;
-  allowedRoles?: ("ADMIN" | "VENDOR" | "CUSTOMER")[];
+  allowedRoles?: ('ADMIN' | 'VENDOR' | 'CUSTOMER')[];
 }) {
   const { isAuthenticated, getUserRole } = useAuthStore();
 
@@ -87,7 +87,7 @@ function DashboardRouter() {
   const { getUserRole } = useAuthStore();
   const role = getUserRole();
 
-  if (role === "ADMIN") {
+  if (role === 'ADMIN') {
     return <Navigate to="/admin/dashboard" replace />;
   }
   if (role === "VENDOR") {
@@ -109,6 +109,7 @@ const App = () => (
           <Route path="/products" element={<ProductsPage />} />
           <Route path="/products/:id" element={<ProductDetailPage />} />
           <Route path="/cart" element={<CartPage />} />
+          <Route path="/wishlist" element={<WishlistPage />} />
 
           {/* Auth Routes - Only accessible when not authenticated */}
           <Route
