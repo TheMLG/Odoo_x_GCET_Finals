@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { CouponSelector } from '@/components/coupon/CouponSelector';
 import { cn } from '@/lib/utils';
 
 const steps = [
@@ -26,6 +27,7 @@ export default function CheckoutPage() {
   const [currentStep, setCurrentStep] = useState(1);
   const [showCoupons, setShowCoupons] = useState(false);
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
+  const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number } | null>(null);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -48,6 +50,8 @@ export default function CheckoutPage() {
   const deliveryDate = addDays(new Date(), 10); // Feb 10
   const pickupDate = addDays(new Date(), 13); // Feb 13
   const totalAmount = getTotalAmount();
+  const discountAmount = appliedCoupon?.discount || 0;
+  const totalAfterDiscount = totalAmount - discountAmount;
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-IN', {
@@ -55,6 +59,14 @@ export default function CheckoutPage() {
       currency: 'INR',
       maximumFractionDigits: 0,
     }).format(price);
+  };
+
+  const handleCouponApplied = (code: string, discount: number) => {
+    if (code && discount > 0) {
+      setAppliedCoupon({ code, discount });
+    } else {
+      setAppliedCoupon(null);
+    }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -500,22 +512,11 @@ export default function CheckoutPage() {
 
               {/* Coupon Code */}
               <div className="mb-5 space-y-2">
-                <div className="flex gap-2">
-                  <div className="relative flex-1">
-                    <Input placeholder="Enter coupon code" className="pr-10 bg-gray-50 border-gray-300" />
-                    <Tag className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-                  </div>
-                  <Button variant="outline" className="font-semibold">Apply</Button>
-                </div>
-                <button
-                  onClick={() => setShowCoupons(!showCoupons)}
-                  className="flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-700"
-                >
-                  View Coupons
-                  <ChevronDown
-                    className={cn('h-4 w-4 transition-transform', showCoupons && 'rotate-180')}
-                  />
-                </button>
+                <CouponSelector
+                  totalAmount={totalAmount}
+                  onCouponApplied={handleCouponApplied}
+                  appliedCouponCode={appliedCoupon?.code}
+                />
               </div>
 
               {/* Bill Summary */}
@@ -525,9 +526,35 @@ export default function CheckoutPage() {
                     Bill Summary
                     <ChevronDown className="h-4 w-4" />
                   </button>
-                  <div className="text-2xl font-bold text-gray-900">{formatPrice(totalAmount)}</div>
+                  <div className="text-2xl font-bold text-gray-900">{formatPrice(totalAfterDiscount)}</div>
                 </div>
                 <p className="text-xs text-gray-500">Price incl. of all taxes</p>
+
+                {/* Order breakdown */}
+                <div className="mt-4 space-y-2 border-t border-gray-200 pt-3">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Subtotal</span>
+                    <span className="font-medium">{formatPrice(totalAmount)}</span>
+                  </div>
+                  {appliedCoupon && (
+                    <div className="flex justify-between text-sm text-green-600 font-medium">
+                      <span>Coupon Discount ({appliedCoupon.code})</span>
+                      <span>-{formatPrice(discountAmount)}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Base Amount</span>
+                    <span className="font-medium">{formatPrice(totalAfterDiscount / 1.18)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">GST (18%)</span>
+                    <span className="font-medium">{formatPrice(totalAfterDiscount - (totalAfterDiscount / 1.18))}</span>
+                  </div>
+                  <div className="flex justify-between border-t border-gray-200 pt-2 font-semibold">
+                    <span>Total Amount</span>
+                    <span className="text-lg text-primary">{formatPrice(totalAfterDiscount)}</span>
+                  </div>
+                </div>
               </div>
 
               {/* Savings Message */}

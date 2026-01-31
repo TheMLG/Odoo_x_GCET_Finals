@@ -2,6 +2,7 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { ProductCard } from "@/components/products/ProductCard";
 import { ProductFilters } from "@/components/products/ProductFilters";
 import { FilterSidebar } from "@/components/products/FilterSidebar";
+import { WelcomeCouponDialog } from "@/components/coupon/WelcomeCouponDialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -23,7 +24,7 @@ export default function ProductsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState("featured");
-  
+
   // Sidebar filter states
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
   const [selectedColors, setSelectedColors] = useState<string[]>([]);
@@ -57,7 +58,7 @@ export default function ProductsPage() {
   }, [products]);
 
   // Count active filters
-  const activeFilterCount = selectedBrands.length + selectedColors.length + selectedDurations.length + 
+  const activeFilterCount = selectedBrands.length + selectedColors.length + selectedDurations.length +
     (priceRange[0] !== 0 || priceRange[1] !== 10000 ? 1 : 0);
 
   const filteredProducts = useMemo(() => {
@@ -81,14 +82,14 @@ export default function ProductsPage() {
 
     // Brand filter
     if (selectedBrands.length > 0) {
-      result = result.filter((p) => 
+      result = result.filter((p) =>
         p.attributes?.brand && selectedBrands.includes(p.attributes.brand)
       );
     }
 
     // Color filter
     if (selectedColors.length > 0) {
-      result = result.filter((p) => 
+      result = result.filter((p) =>
         p.attributes?.color && selectedColors.includes(p.attributes.color.toLowerCase())
       );
     }
@@ -102,7 +103,7 @@ export default function ProductsPage() {
     }
 
     // Price range filter
-    result = result.filter((p) => 
+    result = result.filter((p) =>
       p.pricePerDay >= priceRange[0] && p.pricePerDay <= priceRange[1]
     );
 
@@ -133,6 +134,7 @@ export default function ProductsPage() {
 
   return (
     <MainLayout>
+      <WelcomeCouponDialog />
       <div className="container px-4 py-8 md:px-6 md:py-12">
         {/* Header */}
         <motion.div
@@ -167,7 +169,7 @@ export default function ProductsPage() {
                 onSortChange={setSortBy}
               />
             </div>
-            
+
             {/* Mobile Sidebar Filters Button */}
             <Sheet open={mobileFiltersOpen} onOpenChange={setMobileFiltersOpen}>
               <SheetTrigger asChild>

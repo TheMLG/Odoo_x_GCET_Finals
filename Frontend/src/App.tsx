@@ -7,16 +7,18 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
 // Pages
+import AboutUsPage from "./pages/AboutUsPage";
+import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage"; // Add this import
 import LoginPage from "./pages/auth/LoginPage";
 import SignupPage from "./pages/auth/SignupPage";
 import UserSignupPage from "./pages/auth/UserSignupPage";
 import VendorSignupPage from "./pages/auth/VendorSignupPage";
-import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";  // Add this import
 import CartPage from "./pages/CartPage";
-import ContactDetailsPage from "./pages/checkout/ContactDetailsPage";
 import AddressPage from "./pages/checkout/AddressPage";
+import ContactDetailsPage from "./pages/checkout/ContactDetailsPage";
 import DeliveryTimePage from "./pages/checkout/DeliveryTimePage";
 import PaymentPage from "./pages/checkout/PaymentPage";
+import ContactPage from "./pages/ContactPage";
 import AdminDashboard from "./pages/dashboard/AdminDashboard";
 import AdminSettings from "./pages/dashboard/AdminSettings";
 import ManageOrders from "./pages/dashboard/ManageOrders";
@@ -38,8 +40,6 @@ import OrderDetailPage from "./pages/OrderDetailPage";
 import ProductDetailPage from "./pages/ProductDetailPage";
 import ProductsPage from "./pages/ProductsPage";
 import WishlistPage from "./pages/WishlistPage";
-import AboutUsPage from "./pages/AboutUsPage";
-import ContactPage from "./pages/ContactPage";
 
 const queryClient = new QueryClient();
 
@@ -69,8 +69,8 @@ function ProtectedRoute({
     // Redirect to appropriate dashboard based on role
     const redirectPath =
       userRole === "ADMIN" ? "/admin/dashboard"
-        : userRole === "VENDOR" ? "/vendor/dashboard"
-          : "/";
+      : userRole === "VENDOR" ? "/vendor/dashboard"
+      : "/";
     return <Navigate to={redirectPath} replace />;
   }
 
@@ -87,8 +87,6 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
 
   return <>{children}</>;
 }
-
-
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -152,7 +150,7 @@ const App = () => (
           {/* Protected Routes - Require Authentication */}
           <Route
             path="/checkout"
-            element={<Navigate to="/checkout/contact" replace />}
+            element={<Navigate to="/checkout/address" replace />}
           />
           <Route
             path="/checkout/contact"

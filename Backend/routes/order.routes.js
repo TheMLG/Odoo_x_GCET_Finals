@@ -1,11 +1,11 @@
 import express from "express";
-import { verifyJWT } from "../middleware/auth.middleware.js";
 import {
-    createOrder,
-    getUserOrders,
-    getOrderDetails,
-    generateInvoicePDF,
+  createOrder,
+  generateInvoicePDF,
+  getOrderDetails,
+  getUserOrders,
 } from "../controllers/order.controller.js";
+import { verifyJWT } from "../middleware/auth.middleware.js";
 
 const router = express.Router();
 
