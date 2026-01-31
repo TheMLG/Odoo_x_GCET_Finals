@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { MainLayout } from "@/components/layout/MainLayout";
 import { RentalConfigurator } from "@/components/products/RentalConfigurator";
 import { Badge } from "@/components/ui/badge";
@@ -21,15 +22,43 @@ import {
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
+=======
+import { useParams, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { ArrowLeft, Check, Star, Package, Shield, Clock, Share2, Heart } from 'lucide-react';
+import { MainLayout } from '@/components/layout/MainLayout';
+import { RentalConfigurator } from '@/components/products/RentalConfigurator';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useRentalStore } from '@/stores/rentalStore';
+import { useWishlistStore } from '@/stores/wishlistStore';
+import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
+import { useEffect } from 'react';
+>>>>>>> 4968aec0092750d53f950ed54ee59be6aeadc6d8
 
 export default function ProductDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+<<<<<<< HEAD
   const [product, setProduct] = useState<Product | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const { addItem, removeItem, isInWishlist } = useWishlistStore();
+=======
+  const { products, fetchProducts, isLoadingProducts } = useRentalStore();
+  const { addItem, removeItem, isInWishlist } = useWishlistStore();
+
+  const product = products.find((p) => p.id === id);
+>>>>>>> 4968aec0092750d53f950ed54ee59be6aeadc6d8
+
+  useEffect(() => {
+    if (!product && products.length === 0) {
+      fetchProducts();
+    }
+  }, [product, products, fetchProducts]);
 
   const inWishlist = product ? isInWishlist(product.id) : false;
 
@@ -45,6 +74,7 @@ export default function ProductDetailPage() {
     }
   };
 
+<<<<<<< HEAD
   useEffect(() => {
     const fetchProduct = async () => {
       if (!id) return;
@@ -87,6 +117,9 @@ export default function ProductDetailPage() {
   }, [id]);
 
   if (isLoading) {
+=======
+  if (isLoadingProducts) {
+>>>>>>> 4968aec0092750d53f950ed54ee59be6aeadc6d8
     return (
       <MainLayout>
         <div className="container flex min-h-[50vh] flex-col items-center justify-center px-4 py-12">
@@ -96,7 +129,7 @@ export default function ProductDetailPage() {
     );
   }
 
-  if (error || !product) {
+  if (!product) {
     return (
       <MainLayout>
         <div className="container flex min-h-[50vh] flex-col items-center justify-center px-4 py-12">
@@ -113,12 +146,15 @@ export default function ProductDetailPage() {
     );
   }
 
+<<<<<<< HEAD
   const features = [
     { icon: Package, label: "Free delivery on orders above \u20B95,000" },
     { icon: Shield, label: "Fully insured equipment" },
     { icon: Clock, label: "Flexible rental periods" },
   ];
 
+=======
+>>>>>>> 4968aec0092750d53f950ed54ee59be6aeadc6d8
   return (
     <MainLayout>
       <div className="container px-4 py-8 md:px-6 md:py-12">
@@ -258,6 +294,7 @@ export default function ProductDetailPage() {
                   Product Specifications
                 </h3>
                 <div className="grid gap-4 sm:grid-cols-2">
+<<<<<<< HEAD
                   {Object.entries(product.attributes).map(([key, value]) => (
                     <div
                       key={key}
@@ -266,6 +303,11 @@ export default function ProductDetailPage() {
                       <span className="text-muted-foreground capitalize">
                         {key}
                       </span>
+=======
+                  {product.attributes && Object.entries(product.attributes).map(([key, value]) => (
+                    <div key={key} className="flex justify-between border-b border-border pb-2">
+                      <span className="text-muted-foreground capitalize">{key}</span>
+>>>>>>> 4968aec0092750d53f950ed54ee59be6aeadc6d8
                       <span className="font-medium">{value}</span>
                     </div>
                   ))}

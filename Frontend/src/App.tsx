@@ -16,6 +16,11 @@ import CheckoutPage from "./pages/CheckoutPage";
 import AdminDashboard from "./pages/dashboard/AdminDashboard";
 import AdminSettings from "./pages/dashboard/AdminSettings";
 import CustomerDashboard from "./pages/dashboard/CustomerDashboard";
+import ManageOrders from "./pages/dashboard/ManageOrders";
+import ManageProducts from "./pages/dashboard/ManageProducts";
+import ManageUsers from "./pages/dashboard/ManageUsers";
+import ManageVendors from "./pages/dashboard/ManageVendors";
+import ReportsAnalytics from "./pages/dashboard/ReportsAnalytics";
 import VendorAddProduct from "./pages/dashboard/VendorAddProduct";
 import VendorDashboard from "./pages/dashboard/VendorDashboard";
 import VendorEditProduct from "./pages/dashboard/VendorEditProduct";
@@ -41,10 +46,17 @@ const queryClient = new QueryClient();
 // Protected Route Component
 function ProtectedRoute({
   children,
+<<<<<<< HEAD
   allowedRoles,
 }: {
   children: React.ReactNode;
   allowedRoles?: ("ADMIN" | "VENDOR" | "CUSTOMER")[];
+=======
+  allowedRoles
+}: {
+  children: React.ReactNode;
+  allowedRoles?: ('ADMIN' | 'VENDOR' | 'CUSTOMER')[];
+>>>>>>> 4968aec0092750d53f950ed54ee59be6aeadc6d8
 }) {
   const { isAuthenticated, getUserRole } = useAuthStore();
 
@@ -64,8 +76,8 @@ function ProtectedRoute({
     // Redirect to appropriate dashboard based on role
     const redirectPath =
       userRole === "ADMIN" ? "/admin/dashboard"
-      : userRole === "VENDOR" ? "/vendor/dashboard"
-      : "/dashboard";
+        : userRole === "VENDOR" ? "/vendor/dashboard"
+          : "/dashboard";
     return <Navigate to={redirectPath} replace />;
   }
 
@@ -88,7 +100,11 @@ function DashboardRouter() {
   const { getUserRole } = useAuthStore();
   const role = getUserRole();
 
+<<<<<<< HEAD
   if (role === "ADMIN") {
+=======
+  if (role === 'ADMIN') {
+>>>>>>> 4968aec0092750d53f950ed54ee59be6aeadc6d8
     return <Navigate to="/admin/dashboard" replace />;
   }
   if (role === "VENDOR") {
@@ -110,6 +126,7 @@ const App = () => (
           <Route path="/products" element={<ProductsPage />} />
           <Route path="/products/:id" element={<ProductDetailPage />} />
           <Route path="/cart" element={<CartPage />} />
+          <Route path="/wishlist" element={<WishlistPage />} />
 
           {/* Auth Routes - Only accessible when not authenticated */}
           <Route

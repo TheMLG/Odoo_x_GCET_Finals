@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { MainLayout } from "@/components/layout/MainLayout";
 import { ProductCard } from "@/components/products/ProductCard";
 import { ProductFilters } from "@/components/products/ProductFilters";
@@ -11,9 +12,24 @@ export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+=======
+import { useState, useMemo, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { MainLayout } from '@/components/layout/MainLayout';
+import { ProductCard } from '@/components/products/ProductCard';
+import { ProductFilters } from '@/components/products/ProductFilters';
+import { useRentalStore } from '@/stores/rentalStore';
+import { Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
+
+export default function ProductsPage() {
+  const { products, isLoadingProducts, productsError, fetchProducts } = useRentalStore();
+  const [searchQuery, setSearchQuery] = useState('');
+>>>>>>> 4968aec0092750d53f950ed54ee59be6aeadc6d8
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState("featured");
 
+<<<<<<< HEAD
   useEffect(() => {
     const fetchProducts = async () => {
       setIsLoading(true);
@@ -47,6 +63,21 @@ export default function ProductsPage() {
 
     fetchProducts();
   }, []);
+=======
+  // Fetch products on mount
+  useEffect(() => {
+    fetchProducts();
+  }, [fetchProducts]);
+
+  // Show error toast if fetching fails
+  useEffect(() => {
+    if (productsError) {
+      toast.error('Failed to load products', {
+        description: productsError,
+      });
+    }
+  }, [productsError]);
+>>>>>>> 4968aec0092750d53f950ed54ee59be6aeadc6d8
 
   const filteredProducts = useMemo(() => {
     let result = products.filter((p) => p.isPublished);
