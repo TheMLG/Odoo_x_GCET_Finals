@@ -29,6 +29,21 @@ import {
   Pie,
   Cell,
 } from 'recharts';
+import {
+  ChartConfig,
+  ChartContainer,
+  ChartLegend,
+  ChartLegendContent,
+  ChartTooltip,
+  ChartTooltipContent,
+} from '@/components/ui/chart';
+
+const chartConfig = {
+  orders: {
+    label: "Orders",
+    color: "hsl(221, 83%, 53%)",
+  },
+} satisfies ChartConfig;
 
 const ordersByMonth = [
   { month: 'Jan', orders: 45 },
@@ -214,25 +229,34 @@ export default function AdminDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="h-[300px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={ordersByMonth}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                      <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" />
-                      <YAxis stroke="hsl(var(--muted-foreground))" />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: 'hsl(var(--card))',
-                          border: '1px solid hsl(var(--border))',
-                          borderRadius: '12px',
-                        }}
+                  <ChartContainer config={chartConfig} className="h-full w-full">
+                    <BarChart data={ordersByMonth} barGap={8}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                      <XAxis
+                        dataKey="month"
+                        stroke="hsl(var(--muted-foreground))"
+                        fontSize={12}
+                        tickLine={false}
+                        axisLine={false}
+                      />
+                      <YAxis
+                        stroke="hsl(var(--muted-foreground))"
+                        fontSize={12}
+                        tickLine={false}
+                        axisLine={false}
+                      />
+                      <ChartTooltip
+                        content={<ChartTooltipContent />}
+                        cursor={{ fill: 'hsl(var(--muted) / 0.4)' }}
                       />
                       <Bar
                         dataKey="orders"
-                        fill="hsl(221, 83%, 53%)"
-                        radius={[8, 8, 0, 0]}
+                        fill="var(--color-orders)"
+                        radius={[6, 6, 0, 0]}
+                        maxBarSize={50}
                       />
                     </BarChart>
-                  </ResponsiveContainer>
+                  </ChartContainer>
                 </div>
               </CardContent>
             </Card>
@@ -250,7 +274,7 @@ export default function AdminDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="h-[200px]">
-                  <ResponsiveContainer width="100%" height="100%">
+                  <ChartContainer config={chartConfig} className="h-full w-full">
                     <PieChart>
                       <Pie
                         data={categoryData}
@@ -258,22 +282,20 @@ export default function AdminDashboard() {
                         cy="50%"
                         innerRadius={50}
                         outerRadius={80}
-                        paddingAngle={5}
+                        paddingAngle={2}
                         dataKey="value"
+                        stroke="hsl(var(--card))"
+                        strokeWidth={2}
                       >
                         {categoryData.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
                       </Pie>
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: 'hsl(var(--card))',
-                          border: '1px solid hsl(var(--border))',
-                          borderRadius: '12px',
-                        }}
+                      <ChartTooltip
+                        content={<ChartTooltipContent hideLabel />}
                       />
                     </PieChart>
-                  </ResponsiveContainer>
+                  </ChartContainer>
                 </div>
                 <div className="mt-4 space-y-2">
                   {categoryData.map((cat) => (

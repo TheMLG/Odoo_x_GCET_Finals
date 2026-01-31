@@ -38,6 +38,14 @@ import {
   Area,
   AreaChart,
 } from 'recharts';
+import {
+  ChartConfig,
+  ChartContainer,
+  ChartLegend,
+  ChartLegendContent,
+  ChartTooltip,
+  ChartTooltipContent,
+} from '@/components/ui/chart';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { Button } from '@/components/ui/button';
@@ -45,6 +53,21 @@ import { useToast } from '@/hooks/use-toast';
 import api from '@/lib/api';
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#6b7280'];
+
+const chartConfig = {
+  revenue: {
+    label: "Revenue",
+    color: "#3b82f6",
+  },
+  orders: {
+    label: "Orders",
+    color: "#3b82f6",
+  },
+  users: {
+    label: "New Users",
+    color: "#10b981",
+  },
+} satisfies ChartConfig;
 
 export default function ReportsAnalytics() {
   const { toast } = useToast();
@@ -347,26 +370,38 @@ export default function ReportsAnalytics() {
               </CardHeader>
               <CardContent>
                 <div className="h-[300px]">
-                  <ResponsiveContainer width="100%" height="100%">
+                  <ChartContainer config={chartConfig} className="h-full w-full">
                     <AreaChart data={analyticsData.revenueData}>
-                      <defs>
-                        <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
-                          <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                      <XAxis dataKey="month" stroke="#6b7280" />
-                      <YAxis stroke="#6b7280" />
-                      <Tooltip />
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                      <XAxis
+                        dataKey="month"
+                        stroke="hsl(var(--muted-foreground))"
+                        fontSize={12}
+                        tickLine={false}
+                        axisLine={false}
+                      />
+                      <YAxis
+                        stroke="hsl(var(--muted-foreground))"
+                        fontSize={12}
+                        tickLine={false}
+                        axisLine={false}
+                        tickFormatter={(value) => `\u20B9${value}`}
+                      />
+                      <ChartTooltip
+                        content={<ChartTooltipContent indicator="line" />}
+                        cursor={false}
+                      />
                       <Area
                         type="monotone"
                         dataKey="revenue"
-                        stroke="#3b82f6"
-                        fill="url(#colorRevenue)"
+                        stroke="var(--color-revenue)"
+                        strokeWidth={2}
+                        fill="var(--color-revenue)"
+                        fillOpacity={0.1}
+                        activeDot={{ r: 6, strokeWidth: 0 }}
                       />
                     </AreaChart>
-                  </ResponsiveContainer>
+                  </ChartContainer>
                 </div>
               </CardContent>
             </Card>
@@ -385,25 +420,32 @@ export default function ReportsAnalytics() {
               </CardHeader>
               <CardContent>
                 <div className="h-[300px]">
-                  <ResponsiveContainer width="100%" height="100%">
+                  <ChartContainer config={chartConfig} className="h-full w-full">
                     <PieChart>
                       <Pie
                         data={analyticsData.categoryData}
                         cx="50%"
                         cy="50%"
                         innerRadius={60}
-                        outerRadius={100}
-                        paddingAngle={5}
+                        outerRadius={90}
+                        paddingAngle={2}
                         dataKey="value"
+                        stroke="hsl(var(--card))"
+                        strokeWidth={2}
                       >
                         {analyticsData.categoryData.map((entry: any, index: number) => (
                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                         ))}
                       </Pie>
-                      <Tooltip />
-                      <Legend />
+                      <ChartTooltip
+                        content={<ChartTooltipContent hideLabel />}
+                      />
+                      <Legend
+                        content={<ChartLegendContent />}
+                        wrapperStyle={{ paddingTop: '20px' }}
+                      />
                     </PieChart>
-                  </ResponsiveContainer>
+                  </ChartContainer>
                 </div>
               </CardContent>
             </Card>
@@ -424,17 +466,41 @@ export default function ReportsAnalytics() {
             </CardHeader>
             <CardContent>
               <div className="h-[350px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={analyticsData.revenueData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                    <XAxis dataKey="month" stroke="#6b7280" />
-                    <YAxis stroke="#6b7280" />
-                    <Tooltip />
-                    <Legend />
-                    <Bar dataKey="orders" fill="#3b82f6" name="Orders" radius={[8, 8, 0, 0]} />
-                    <Bar dataKey="users" fill="#10b981" name="New Users" radius={[8, 8, 0, 0]} />
+                <ChartContainer config={chartConfig} className="h-full w-full">
+                  <BarChart data={analyticsData.revenueData} barGap={8}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                    <XAxis
+                      dataKey="month"
+                      stroke="hsl(var(--muted-foreground))"
+                      fontSize={12}
+                      tickLine={false}
+                      axisLine={false}
+                    />
+                    <YAxis
+                      stroke="hsl(var(--muted-foreground))"
+                      fontSize={12}
+                      tickLine={false}
+                      axisLine={false}
+                    />
+                    <ChartTooltip
+                      content={<ChartTooltipContent indicator="dashed" />}
+                      cursor={false}
+                    />
+                    <Legend content={<ChartLegendContent />} />
+                    <Bar
+                      dataKey="orders"
+                      fill="var(--color-orders)"
+                      radius={[4, 4, 0, 0]}
+                      maxBarSize={50}
+                    />
+                    <Bar
+                      dataKey="users"
+                      fill="var(--color-users)"
+                      radius={[4, 4, 0, 0]}
+                      maxBarSize={50}
+                    />
                   </BarChart>
-                </ResponsiveContainer>
+                </ChartContainer>
               </div>
             </CardContent>
           </Card>

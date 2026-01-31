@@ -23,9 +23,20 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
 } from 'recharts';
+import {
+  ChartConfig,
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from '@/components/ui/chart';
+
+const chartConfig = {
+  revenue: {
+    label: "Revenue",
+    color: "hsl(221, 83%, 53%)",
+  },
+} satisfies ChartConfig;
 
 const revenueData = [
   { month: 'Jan', revenue: 45000 },
@@ -166,34 +177,38 @@ export default function VendorDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="h-[300px]">
-                  <ResponsiveContainer width="100%" height="100%">
+                  <ChartContainer config={chartConfig} className="h-full w-full">
                     <AreaChart data={revenueData}>
-                      <defs>
-                        <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="hsl(221, 83%, 53%)" stopOpacity={0.3} />
-                          <stop offset="95%" stopColor="hsl(221, 83%, 53%)" stopOpacity={0} />
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                      <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" />
-                      <YAxis stroke="hsl(var(--muted-foreground))" />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: 'hsl(var(--card))',
-                          border: '1px solid hsl(var(--border))',
-                          borderRadius: '12px',
-                        }}
-                        formatter={(value: number) => [`\u20B9${value.toLocaleString()} `, 'Revenue']}
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                      <XAxis
+                        dataKey="month"
+                        stroke="hsl(var(--muted-foreground))"
+                        fontSize={12}
+                        tickLine={false}
+                        axisLine={false}
+                      />
+                      <YAxis
+                        stroke="hsl(var(--muted-foreground))"
+                        fontSize={12}
+                        tickLine={false}
+                        axisLine={false}
+                        tickFormatter={(value) => `\u20B9${value / 1000}k`}
+                      />
+                      <ChartTooltip
+                        content={<ChartTooltipContent />}
+                        cursor={{ stroke: 'hsl(var(--muted-foreground))', strokeWidth: 1, strokeDasharray: '4 4' }}
                       />
                       <Area
                         type="monotone"
                         dataKey="revenue"
-                        stroke="hsl(221, 83%, 53%)"
-                        fillOpacity={1}
-                        fill="url(#colorRevenue)"
+                        stroke="var(--color-revenue)"
+                        strokeWidth={2}
+                        fill="var(--color-revenue)"
+                        fillOpacity={0.1}
+                        activeDot={{ r: 6, strokeWidth: 0 }}
                       />
                     </AreaChart>
-                  </ResponsiveContainer>
+                  </ChartContainer>
                 </div>
               </CardContent>
             </Card>
