@@ -169,6 +169,7 @@ model Order {
   deliveryAddressId String?
   couponId  String?
   discountAmount Decimal  @default(0)
+  orderNumber String      @unique @default(cuid())
   status    String      // Valid: CONFIRMED, INVOICED, RETURNED, CANCELLED
   createdAt DateTime    @default(now())
 
@@ -208,6 +209,7 @@ model Reservation {
 
 model Invoice {
   id          String        @id @default(uuid())
+  invoiceNumber String      @unique @default(cuid())
   orderId     String        @unique
   totalAmount Decimal
   gstAmount   Decimal
@@ -224,7 +226,9 @@ model Payment {
   amount    Decimal
   mode      String
   status    String        // Valid: PENDING, SUCCESS, FAILED
+  transactionId String?
   paidAt    DateTime?
+  createdAt DateTime      @default(now())
 
   invoice Invoice @relation(fields: [invoiceId], references: [id])
 }

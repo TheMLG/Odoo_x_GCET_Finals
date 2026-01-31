@@ -12,7 +12,7 @@ export const verifyJWT = asyncHandler(async (req, res, next) => {
         if (!token) {
             throw new ApiError(401, "Unauthorized Request")
         }
-        
+
         const decodeToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
 
         const user = await prisma.user.findUnique({
@@ -32,7 +32,7 @@ export const verifyJWT = asyncHandler(async (req, res, next) => {
         })
 
         if (!user) {
-            throw new ApiError(404, "Invalid Access Token");
+            throw new ApiError(401, "Invalid Access Token");
         }
         req.user = user;
         next()
@@ -57,7 +57,7 @@ export const verifyAdminJWT = asyncHandler(async (req, res, next) => {
         if (!token) {
             throw new ApiError(401, "Unauthorized Request")
         }
-        
+
         const decodeToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
 
         const user = await prisma.user.findUnique({
@@ -77,7 +77,7 @@ export const verifyAdminJWT = asyncHandler(async (req, res, next) => {
         })
 
         if (!user) {
-            throw new ApiError(404, "Invalid Access Token");
+            throw new ApiError(401, "Invalid Access Token");
         }
 
         // Check if user has ADMIN role
@@ -105,13 +105,13 @@ export const verifyUserOrAdmin = asyncHandler(async (req, res, next) => {
     try {
         // Prioritize Authorization header over cookies
         const token = req.header("Authorization")?.replace("Bearer ", "") || req.cookies?.accessToken;
-        
+
         if (!token) {
             throw new ApiError(401, "Unauthorized Request")
         }
-        
+
         const decodeToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
-        
+
         // Find user with roles
         const user = await prisma.user.findUnique({
             where: { id: decodeToken?._id },
@@ -128,22 +128,22 @@ export const verifyUserOrAdmin = asyncHandler(async (req, res, next) => {
                 }
             }
         })
-        
+
         if (!user) {
-            throw new ApiError(404, "Invalid Access Token");
+            throw new ApiError(401, "Invalid Access Token");
         }
-        
+
         // Check if user has ADMIN role
         const isAdmin = user.roles.some(userRole => userRole.role.name === 'ADMIN')
-        
+
         if (isAdmin) {
             req.admin = user;
         } else {
             req.user = user;
         }
-        
+
         return next();
-        
+
     } catch (err) {
         console.error('Auth error:', err);
         if (err.name === 'JsonWebTokenError') {
@@ -166,7 +166,7 @@ export const verifyVendor = asyncHandler(async (req, res, next) => {
         if (!token) {
             throw new ApiError(401, "Unauthorized Request")
         }
-        
+
         const decodeToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
 
         const user = await prisma.user.findUnique({
@@ -187,7 +187,7 @@ export const verifyVendor = asyncHandler(async (req, res, next) => {
         })
 
         if (!user) {
-            throw new ApiError(404, "Invalid Access Token");
+            throw new ApiError(401, "Invalid Access Token");
         }
 
         // Check if user has VENDOR role

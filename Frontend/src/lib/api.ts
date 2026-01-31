@@ -50,7 +50,7 @@ api.interceptors.response.use(
       } catch (refreshError) {
         // If refresh fails, clear auth state and redirect to login
         localStorage.removeItem('accessToken');
-        window.location.href = '/auth/login';
+        window.location.href = '/login';
         return Promise.reject(refreshError);
       }
     }
