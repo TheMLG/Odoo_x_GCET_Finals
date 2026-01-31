@@ -14,7 +14,7 @@ import {
   MapPin,
   Heart
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -35,10 +35,17 @@ export function Navbar() {
   const location = useLocation();
   const { user, isAuthenticated, logout, getUserRole } = useAuthStore();
   const { items } = useCartStore();
-  const { items: wishlistItems } = useWishlistStore();
+  const { items: wishlistItems, fetchWishlist, isInitialized } = useWishlistStore();
   const { location: rentalLocation } = useRentalStore();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
+
+  // Fetch wishlist when user is authenticated
+  useEffect(() => {
+    if (isAuthenticated && !isInitialized) {
+      fetchWishlist();
+    }
+  }, [isAuthenticated, isInitialized, fetchWishlist]);
 
   const navLinks = [
     { href: '/', label: 'Home' },

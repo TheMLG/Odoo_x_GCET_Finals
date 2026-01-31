@@ -12,7 +12,10 @@ import SignupPage from "./pages/auth/SignupPage";
 import UserSignupPage from "./pages/auth/UserSignupPage";
 import VendorSignupPage from "./pages/auth/VendorSignupPage";
 import CartPage from "./pages/CartPage";
-import CheckoutPage from "./pages/CheckoutPage";
+import ContactDetailsPage from "./pages/checkout/ContactDetailsPage";
+import AddressPage from "./pages/checkout/AddressPage";
+import DeliveryTimePage from "./pages/checkout/DeliveryTimePage";
+import PaymentPage from "./pages/checkout/PaymentPage";
 import AdminDashboard from "./pages/dashboard/AdminDashboard";
 import AdminSettings from "./pages/dashboard/AdminSettings";
 import CustomerDashboard from "./pages/dashboard/CustomerDashboard";
@@ -102,6 +105,7 @@ const App = () => (
           <Route path="/products" element={<ProductsPage />} />
           <Route path="/products/:id" element={<ProductDetailPage />} />
           <Route path="/cart" element={<CartPage />} />
+          <Route path="/wishlist" element={<WishlistPage />} />
           
           {/* Auth Routes - Only accessible when not authenticated */}
           <Route
@@ -140,9 +144,37 @@ const App = () => (
           {/* Protected Routes - Require Authentication */}
           <Route
             path="/checkout"
+            element={<Navigate to="/checkout/contact" replace />}
+          />
+          <Route
+            path="/checkout/contact"
             element={
               <ProtectedRoute>
-                <CheckoutPage />
+                <ContactDetailsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/checkout/address"
+            element={
+              <ProtectedRoute>
+                <AddressPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/checkout/delivery-time"
+            element={
+              <ProtectedRoute>
+                <DeliveryTimePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/checkout/payment"
+            element={
+              <ProtectedRoute>
+                <PaymentPage />
               </ProtectedRoute>
             }
           />

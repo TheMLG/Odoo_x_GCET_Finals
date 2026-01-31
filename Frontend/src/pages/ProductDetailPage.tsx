@@ -20,14 +20,14 @@ export default function ProductDetailPage() {
   
   const inWishlist = product ? isInWishlist(product.id) : false;
 
-  const handleWishlistToggle = () => {
+  const handleWishlistToggle = async () => {
     if (!product) return;
     
     if (inWishlist) {
-      removeItem(product.id);
+      await removeItem(product.id);
       toast.success('Removed from wishlist');
     } else {
-      addItem(product);
+      await addItem(product);
       toast.success('Added to wishlist');
     }
   };

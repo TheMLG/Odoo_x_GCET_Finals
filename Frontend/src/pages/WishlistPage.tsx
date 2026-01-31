@@ -1,48 +1,53 @@
 import { motion } from 'framer-motion';
-import { Heart, ShoppingCart, Trash2, Package } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Heart, ShoppingCart, Trash2, Package, X } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { useWishlistStore } from '@/stores/wishlistStore';
-import { useCartStore } from '@/stores/cartStore';
-import { useState } from 'react';
-import { DatePickerDialog } from '@/components/DatePickerDialog';
-import { RentalDuration } from '@/types/rental';
+import { useAuthStore } from '@/stores/authStore';
+import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 
 export default function WishlistPage() {
-  const { items, removeItem, clearWishlist } = useWishlistStore();
-  const { addItem: addToCart } = useCartStore();
-  const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
-  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+  const { items, removeItem, clearWishlist, deleteWishlist, fetchWishlist, isLoading, isInitialized } = useWishlistStore();
+  const { isAuthenticated } = useAuthStore();
+  const navigate = useNavigate();
 
-  const handleAddToCart = (productId: string) => {
-    setSelectedProduct(productId);
-    setIsDatePickerOpen(true);
-  };
-
-  const handleDateSelect = (
-    startDate: Date,
-    duration: RentalDuration,
-    quantity: number
-  ) => {
-    const product = items.find((item) => item.id === selectedProduct);
-    if (product) {
-      addToCart(product, quantity, duration, startDate);
-      toast.success('Added to cart!');
-      setIsDatePickerOpen(false);
-      setSelectedProduct(null);
+  // Fetch wishlist from backend when authenticated
+  useEffect(() => {
+    if (isAuthenticated && !isInitialized) {
+      fetchWishlist();
     }
+  }, [isAuthenticated, isInitialized, fetchWishlist]);
+
+  const handleViewProduct = (productId: string) => {
+    navigate(`/products/${productId}`);
   };
 
-  const handleRemoveFromWishlist = (productId: string) => {
-    removeItem(productId);
+  const handleRemoveFromWishlist = async (productId: string) => {
+    await removeItem(productId);
     toast.success('Removed from wishlist');
   };
 
-  const handleClearWishlist = () => {
-    clearWishlist();
+  const handleClearWishlist = async () => {
+    await clearWishlist();
     toast.success('Wishlist cleared');
+  };
+
+  const handleDeleteWishlist = async () => {
+    await deleteWishlist();
+    toast.success('Wishlist deleted completely');
   };
 
   return (
@@ -57,19 +62,77 @@ export default function WishlistPage() {
             </p>
           </div>
           {items.length > 0 && (
-            <Button
-              variant="outline"
-              onClick={handleClearWishlist}
-              className="rounded-xl"
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              Clear All
-            </Button>
+            <div className="flex gap-2">
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="rounded-xl"
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Clear All
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Clear Wishlist?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will remove all {items.length} items from your wishlist. 
+                      You can add them back later.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleClearWishlist}>
+                      Clear All Items
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+              {isAuthenticated && (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="destructive"
+                      className="rounded-xl"
+                    >
+                      <X className="mr-2 h-4 w-4" />
+                      Delete Wishlist
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Delete Wishlist?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This will permanently delete your wishlist and all saved items. 
+                        This action cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={handleDeleteWishlist}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      >
+                        Delete Permanently
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              )}
+            </div>
           )}
         </div>
 
+        {/* Loading State */}
+        {isLoading && (
+          <div className="flex justify-center py-16">
+            <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+          </div>
+        )}
+
         {/* Wishlist Items */}
-        {items.length === 0 ? (
+        {!isLoading && items.length === 0 ? (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -140,21 +203,40 @@ export default function WishlistPage() {
                       {/* Actions */}
                       <div className="flex gap-2">
                         <Button
-                          onClick={() => handleAddToCart(product.id)}
+                          onClick={() => handleViewProduct(product.id)}
                           className="flex-1 rounded-xl"
                           size="sm"
                         >
                           <ShoppingCart className="mr-2 h-4 w-4" />
-                          Add to Cart
+                          View & Rent
                         </Button>
-                        <Button
-                          onClick={() => handleRemoveFromWishlist(product.id)}
-                          variant="outline"
-                          size="sm"
-                          className="rounded-xl"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="rounded-xl"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Remove from Wishlist?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to remove "{product.name}" from your wishlist?
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleRemoveFromWishlist(product.id)}
+                              >
+                                Remove
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </div>
                     </div>
                   </CardContent>
@@ -164,19 +246,6 @@ export default function WishlistPage() {
           </div>
         )}
       </div>
-
-      {/* Date Picker Dialog */}
-      {selectedProduct && items.find((item) => item.id === selectedProduct) && (
-        <DatePickerDialog
-          open={isDatePickerOpen}
-          onClose={() => {
-            setIsDatePickerOpen(false);
-            setSelectedProduct(null);
-          }}
-          onSelect={handleDateSelect}
-          product={items.find((item) => item.id === selectedProduct)!}
-        />
-      )}
     </div>
   );
 }

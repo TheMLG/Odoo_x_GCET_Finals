@@ -251,6 +251,19 @@ exports.Prisma.PaymentScalarFieldEnum = {
   paidAt: 'paidAt'
 };
 
+exports.Prisma.WishlistScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.WishlistItemScalarFieldEnum = {
+  id: 'id',
+  wishlistId: 'wishlistId',
+  productId: 'productId',
+  addedAt: 'addedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -284,7 +297,9 @@ exports.Prisma.ModelName = {
   OrderItem: 'OrderItem',
   Reservation: 'Reservation',
   Invoice: 'Invoice',
-  Payment: 'Payment'
+  Payment: 'Payment',
+  Wishlist: 'Wishlist',
+  WishlistItem: 'WishlistItem'
 };
 
 /**

@@ -29,10 +29,11 @@ model User {
   lastName  String
   createdAt DateTime @default(now())
 
-  roles  UserRole[]
-  vendor Vendor?
-  carts  Cart[]
-  orders Order[]
+  roles     UserRole[]
+  vendor    Vendor?
+  carts     Cart[]
+  orders    Order[]
+  wishlists Wishlist[]
 }
 
 model Role {
@@ -75,13 +76,14 @@ model Product {
   isPublished       Boolean  @default(false)
   createdAt         DateTime @default(now())
 
-  vendor       Vendor             @relation(fields: [vendorId], references: [id])
-  inventory    ProductInventory?
-  pricing      RentalPricing[]
-  attributes   ProductAttribute[]
-  cartItems    CartItem[]
-  orderItems   OrderItem[]
-  reservations Reservation[]
+  vendor        Vendor             @relation(fields: [vendorId], references: [id])
+  inventory     ProductInventory?
+  pricing       RentalPricing[]
+  attributes    ProductAttribute[]
+  cartItems     CartItem[]
+  orderItems    OrderItem[]
+  reservations  Reservation[]
+  wishlistItems WishlistItem[]
 }
 
 model ProductInventory {
@@ -215,4 +217,27 @@ model Payment {
   paidAt    DateTime?
 
   invoice Invoice @relation(fields: [invoiceId], references: [id])
+}
+
+model Wishlist {
+  id        String   @id @default(uuid())
+  userId    String
+  createdAt DateTime @default(now())
+
+  user  User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items WishlistItem[]
+
+  @@unique([userId])
+}
+
+model WishlistItem {
+  id         String   @id @default(uuid())
+  wishlistId String
+  productId  String
+  addedAt    DateTime @default(now())
+
+  wishlist Wishlist @relation(fields: [wishlistId], references: [id], onDelete: Cascade)
+  product  Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([wishlistId, productId])
 }

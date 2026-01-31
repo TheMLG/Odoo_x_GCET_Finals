@@ -26,15 +26,15 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
     }).format(price);
   };
 
-  const handleWishlistToggle = (e: React.MouseEvent) => {
+  const handleWishlistToggle = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     
     if (inWishlist) {
-      removeItem(product.id);
+      await removeItem(product.id);
       toast.success('Removed from wishlist');
     } else {
-      addItem(product);
+      await addItem(product);
       toast.success('Added to wishlist');
     }
   };
