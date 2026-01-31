@@ -57,6 +57,7 @@ export interface CartItem {
   startDate: string;
   endDate: string;
   totalPrice: number;
+  selectedAttributes?: Record<string, string>;
 }
 
 export type QuotationStatus = 'draft' | 'sent' | 'confirmed' | 'cancelled';

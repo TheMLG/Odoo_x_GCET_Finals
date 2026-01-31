@@ -624,6 +624,37 @@ export default function CheckoutPage() {
             >
               <h2 className="mb-6 text-xl font-bold">Order Summary</h2>
 
+              {/* Cart Items Preview */}
+              <div className="mb-5 space-y-3 max-h-48 overflow-y-auto">
+                {items.map((item) => (
+                  <div key={item.id} className="flex gap-3 rounded-lg bg-gray-50 p-2 border border-gray-100">
+                    <div className="h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg bg-white border border-gray-200">
+                      <img
+                        src={item.product.images[0] || 'https://via.placeholder.com/48'}
+                        alt={item.product.name}
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-sm font-medium text-gray-900 truncate">{item.product.name}</h4>
+                      <p className="text-xs text-gray-500">Qty: {item.quantity}</p>
+                      {item.selectedAttributes && Object.keys(item.selectedAttributes).length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-0.5">
+                          {Object.entries(item.selectedAttributes).map(([key, value]) => (
+                            <span key={key} className="text-xs text-gray-400">
+                              {key}: {value as string}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    <div className="text-sm font-semibold text-gray-900 whitespace-nowrap">
+                      {formatPrice(item.totalPrice)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
               {/* Rental Period */}
               <div className="mb-5 flex items-center gap-2 rounded-lg bg-gray-50 p-3 border border-gray-200">
                 <Calendar className="h-4 w-4 text-gray-600" />

@@ -67,8 +67,39 @@ export function CheckoutSidebar({ currentStep, deliveryCost = 0 }: CheckoutSideb
         </div>
 
         {/* Items Count */}
-        <div className="mb-6 text-sm text-muted-foreground">
+        <div className="mb-4 text-sm text-muted-foreground">
           {items.length} {items.length === 1 ? 'item' : 'items'} in your cart
+        </div>
+
+        {/* Cart Items Preview */}
+        <div className="mb-6 space-y-3 max-h-60 overflow-y-auto">
+          {items.map((item) => (
+            <div key={item.id} className="flex gap-3 rounded-lg bg-gray-50 p-2">
+              <div className="h-14 w-14 flex-shrink-0 overflow-hidden rounded-lg bg-white">
+                <img
+                  src={item.product.images[0] || 'https://via.placeholder.com/56'}
+                  alt={item.product.name}
+                  className="h-full w-full object-cover"
+                />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h4 className="text-sm font-medium truncate">{item.product.name}</h4>
+                <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
+                {item.selectedAttributes && Object.keys(item.selectedAttributes).length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {Object.entries(item.selectedAttributes).map(([key, value]) => (
+                      <span key={key} className="text-xs text-muted-foreground">
+                        {key}: {value as string}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div className="text-sm font-semibold whitespace-nowrap">
+                {formatPrice(item.totalPrice)}
+              </div>
+            </div>
+          ))}
         </div>
 
 
