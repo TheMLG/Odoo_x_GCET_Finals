@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import { CouponSelector } from '@/components/coupon/CouponSelector';
 import { useCartStore } from '@/stores/cartStore';
 import { format, addDays } from 'date-fns';
 import { useState } from 'react';
@@ -15,13 +16,22 @@ interface CheckoutSidebarProps {
 
 export function CheckoutSidebar({ currentStep, deliveryCost = 0 }: CheckoutSidebarProps) {
   const { items, getTotalAmount } = useCartStore();
-  const [showCoupons, setShowCoupons] = useState(false);
+  const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number } | null>(null);
   const [showBillDetails, setShowBillDetails] = useState(true);
 
   const subtotalAmount = getTotalAmount();
-  const totalAmount = subtotalAmount + deliveryCost;
+  const discountAmount = appliedCoupon?.discount || 0;
+  const totalAfterDiscount = subtotalAmount - discountAmount + deliveryCost;
   const deliveryDate = addDays(new Date(), 10);
   const pickupDate = addDays(new Date(), 13);
+
+  const handleCouponApplied = (code: string, discount: number) => {
+    if (code && discount > 0) {
+      setAppliedCoupon({ code, discount });
+    } else {
+      setAppliedCoupon(null);
+    }
+  };
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-IN', {
@@ -32,8 +42,8 @@ export function CheckoutSidebar({ currentStep, deliveryCost = 0 }: CheckoutSideb
   };
 
   // Calculate savings (assuming 70% savings by renting)
-  const originalPrice = totalAmount * 3.33; // Approximate retail price
-  const savings = originalPrice - totalAmount;
+  const originalPrice = totalAfterDiscount * 3.33; // Approximate retail price
+  const savings = originalPrice - totalAfterDiscount;
 
   return (
     <motion.div
@@ -64,23 +74,11 @@ export function CheckoutSidebar({ currentStep, deliveryCost = 0 }: CheckoutSideb
 
         {/* Coupon Code */}
         <div className="mb-6 space-y-2">
-          <div className="flex gap-2">
-            <div className="relative flex-1">
-              <Input placeholder="Enter coupon code" className="pr-10" />
-              <Tag className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            </div>
-            <Button variant="outline">Apply</Button>
-          </div>
-          <button
-            onClick={() => setShowCoupons(!showCoupons)}
-            className="flex items-center gap-1 text-sm text-blue-600 hover:underline"
-          >
-            View Coupons
-            <ChevronDown
-              className={`h-4 w-4 transition-transform ${showCoupons ? 'rotate-180' : ''
-                }`}
-            />
-          </button>
+          <CouponSelector
+            totalAmount={subtotalAmount}
+            onCouponApplied={handleCouponApplied}
+            appliedCouponCode={appliedCoupon?.code}
+          />
         </div>
 
         {/* Bill Summary */}
@@ -93,19 +91,29 @@ export function CheckoutSidebar({ currentStep, deliveryCost = 0 }: CheckoutSideb
               Bill Summary
               <ChevronDown className={`h-4 w-4 transition-transform ${showBillDetails ? 'rotate-180' : ''}`} />
             </span>
-            <div className="text-2xl font-bold">{formatPrice(totalAmount)}</div>
+            <div className="text-2xl font-bold">{formatPrice(totalAfterDiscount)}</div>
           </button>
           <p className="text-xs text-muted-foreground">Price incl. of all taxes</p>
 
           {showBillDetails && (
             <div className="mt-4 space-y-2 border-t border-border pt-4">
               <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Subtotal</span>
+                <span className="font-medium">{formatPrice(subtotalAmount)}</span>
+              </div>
+              {appliedCoupon && (
+                <div className="flex justify-between text-sm text-green-600 font-medium">
+                  <span>Coupon Discount ({appliedCoupon.code})</span>
+                  <span>-{formatPrice(discountAmount)}</span>
+                </div>
+              )}
+              <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Rental Cost (Base)</span>
-                <span className="font-medium">{formatPrice(subtotalAmount / 1.18)}</span>
+                <span className="font-medium">{formatPrice((subtotalAmount - discountAmount) / 1.18)}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">GST (18%)</span>
-                <span className="font-medium">{formatPrice(subtotalAmount - (subtotalAmount / 1.18))}</span>
+                <span className="font-medium">{formatPrice((subtotalAmount - discountAmount) - ((subtotalAmount - discountAmount) / 1.18))}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Delivery Charges</span>
@@ -117,7 +125,7 @@ export function CheckoutSidebar({ currentStep, deliveryCost = 0 }: CheckoutSideb
               </div>
               <div className="flex justify-between border-t border-border pt-2">
                 <span className="font-semibold">Total Amount</span>
-                <span className="text-lg font-bold text-blue-600">{formatPrice(totalAmount)}</span>
+                <span className="text-lg font-bold text-blue-600">{formatPrice(totalAfterDiscount)}</span>
               </div>
             </div>
           )}

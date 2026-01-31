@@ -80,16 +80,16 @@ export function CartSheet({ open, onClose }: CartSheetProps) {
     <>
       <Sheet open={open} onOpenChange={onClose}>
         <SheetContent className="w-full sm:max-w-lg">
-          <SheetHeader>
-            <SheetTitle className="text-2xl font-bold">Cart Items</SheetTitle>
-            <div className="text-sm text-muted-foreground">
+          <SheetHeader className="pb-3">
+            <SheetTitle className="text-xl font-bold">Cart Items</SheetTitle>
+            <div className="text-xs text-muted-foreground">
               {items.length} item{items.length !== 1 ? 's' : ''} added
             </div>
           </SheetHeader>
 
-          <div className="mt-6 flex flex-col gap-6">
+          <div className="flex flex-col gap-4 overflow-y-auto max-h-[calc(100vh-100px)] pr-1">
             {/* Cart Items */}
-            <div className="flex-1 space-y-4">
+            <div className="flex-1 space-y-3">
               {items.length === 0 ? (
                 <div className="py-12 text-center">
                   <p className="text-muted-foreground">Your cart is empty</p>
@@ -99,11 +99,11 @@ export function CartSheet({ open, onClose }: CartSheetProps) {
                 </div>
               ) : (
                 items.map((item) => (
-                  <div key={item.id} className="flex gap-4 rounded-xl border border-border p-4">
+                  <div key={item.id} className="flex gap-3 rounded-lg border border-border p-3">
                     <Link
                       to={`/products/${item.productId}`}
                       onClick={onClose}
-                      className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-lg bg-muted"
+                      className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-md bg-muted"
                     >
                       <img
                         src={item.product.images[0]}
@@ -113,39 +113,33 @@ export function CartSheet({ open, onClose }: CartSheetProps) {
                     </Link>
 
                     <div className="flex flex-1 flex-col">
-                      <div className="mb-2 flex items-start justify-between">
+                      <div className="mb-1.5 flex items-start justify-between">
                         <div>
                           <Link
                             to={`/products/${item.productId}`}
                             onClick={onClose}
-                            className="font-semibold hover:text-primary"
+                            className="text-sm font-semibold hover:text-primary line-clamp-1"
                           >
                             {item.product.name}
                           </Link>
-                          <div className="text-sm text-muted-foreground">
-                            {item.product.category}
-                          </div>
-                          <div className="mt-1 text-sm text-muted-foreground">
-                            Rent for 2 days
+                          <div className="text-xs text-muted-foreground">
+                            {item.product.category} • Rent for 2 days
                           </div>
                         </div>
                         <div className="text-right">
-                          <div className="font-semibold">{formatPrice(item.totalPrice)}</div>
-                          <div className="text-xs text-muted-foreground">
-                            Base: {formatPrice(item.totalPrice / 1.18)}
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            + GST: {formatPrice(item.totalPrice - (item.totalPrice / 1.18))}
+                          <div className="text-sm font-bold">{formatPrice(item.totalPrice)}</div>
+                          <div className="text-[10px] text-muted-foreground">
+                            +GST {formatPrice(item.totalPrice - (item.totalPrice / 1.18))}
                           </div>
                         </div>
                       </div>
 
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1.5">
                           <Button
                             variant="outline"
                             size="icon"
-                            className="h-7 w-7 rounded-lg"
+                            className="h-6 w-6 rounded-md"
                             onClick={() =>
                               handleQuantityChange(
                                 item.id,
@@ -157,11 +151,11 @@ export function CartSheet({ open, onClose }: CartSheetProps) {
                           >
                             <Minus className="h-3 w-3" />
                           </Button>
-                          <span className="w-8 text-center font-medium">{item.quantity}</span>
+                          <span className="w-6 text-center text-sm font-medium">{item.quantity}</span>
                           <Button
                             variant="outline"
                             size="icon"
-                            className="h-7 w-7 rounded-lg"
+                            className="h-6 w-6 rounded-md"
                             onClick={() =>
                               handleQuantityChange(
                                 item.id,
@@ -178,13 +172,13 @@ export function CartSheet({ open, onClose }: CartSheetProps) {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-7 w-7 text-destructive hover:text-destructive"
+                          className="h-6 w-6 text-destructive hover:text-destructive"
                           onClick={() => {
                             removeItem(item.id);
                             toast.success('Item removed');
                           }}
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="h-3.5 w-3.5" />
                         </Button>
                       </div>
                     </div>
@@ -196,35 +190,37 @@ export function CartSheet({ open, onClose }: CartSheetProps) {
             {items.length > 0 && (
               <>
                 {/* Dates Section */}
-                <div className="space-y-3 border-t border-border pt-4">
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-2 text-sm">
-                      <Calendar className="h-4 w-4" />
-                      <span className="font-medium">Delivery Date:</span>
-                      <span>{format(defaultDeliveryDate, 'do MMM')}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm">
-                      <Calendar className="h-4 w-4" />
-                      <span className="font-medium">Pickup Date:</span>
-                      <span>{format(defaultPickupDate, 'do MMM')}</span>
+                <div className="space-y-2 border-t border-border pt-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-1.5 text-xs">
+                        <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
+                        <span className="font-medium">Delivery:</span>
+                        <span className="text-muted-foreground">{format(defaultDeliveryDate, 'do MMM')}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-xs">
+                        <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
+                        <span className="font-medium">Pickup:</span>
+                        <span className="text-muted-foreground">{format(defaultPickupDate, 'do MMM')}</span>
+                      </div>
                     </div>
                     <Button
                       variant="outline"
                       size="sm"
-                      className="ml-auto rounded-full bg-black text-white hover:bg-black/90"
+                      className="h-7 rounded-full bg-black px-3 text-xs text-white hover:bg-black/90"
                       onClick={() => setShowDateModal(true)}
                     >
                       Edit
                     </Button>
                   </div>
-                  <div className="flex items-center gap-1.5 text-sm text-emerald-600">
-                    <Zap className="h-4 w-4 fill-emerald-600" />
+                  <div className="flex items-center gap-1 text-xs text-emerald-600">
+                    <Zap className="h-3.5 w-3.5 fill-emerald-600" />
                     <span>Additional day at {'\u20B9'}108 only on this cart</span>
                   </div>
                 </div>
 
                 {/* Coupon Code - Use CouponSelector */}
-                <div className="space-y-3 border-t border-border pt-4">
+                <div className="space-y-2 border-t border-border pt-3">
                   <CouponSelector
                     totalAmount={totalAmount}
                     onCouponApplied={handleCouponApplied}
@@ -233,41 +229,41 @@ export function CartSheet({ open, onClose }: CartSheetProps) {
                 </div>
 
                 {/* Total Section */}
-                <div className="space-y-4 border-t border-border pt-4">
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between text-sm">
+                <div className="space-y-3 border-t border-border pt-3">
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between text-xs">
                       <span className="text-muted-foreground">Subtotal</span>
-                      <span>{formatPrice(totalAmount)}</span>
+                      <span className="font-medium">{formatPrice(totalAmount)}</span>
                     </div>
                     {appliedCoupon && (
-                      <div className="flex items-center justify-between text-sm text-green-600 font-medium">
-                        <span>Coupon Discount ({appliedCoupon.code})</span>
+                      <div className="flex items-center justify-between text-xs text-green-600 font-medium">
+                        <span>Discount ({appliedCoupon.code})</span>
                         <span>-{formatPrice(discountAmount)}</span>
                       </div>
                     )}
-                    <div className="flex items-center justify-between text-sm">
+                    <div className="flex items-center justify-between text-xs">
                       <span className="text-muted-foreground">Base Amount</span>
-                      <span>{formatPrice(baseAmount)}</span>
+                      <span className="font-medium">{formatPrice(baseAmount)}</span>
                     </div>
-                    <div className="flex items-center justify-between text-sm">
+                    <div className="flex items-center justify-between text-xs">
                       <span className="text-muted-foreground">GST (18%)</span>
-                      <span>{formatPrice(gstAmount)}</span>
+                      <span className="font-medium">{formatPrice(gstAmount)}</span>
                     </div>
-                    <div className="flex items-center justify-between pt-2">
+                    <div className="flex items-center justify-between border-t border-border pt-2">
                       <div>
-                        <div className="text-lg font-semibold">Total Charges</div>
-                        <div className="text-xs text-muted-foreground">Price incl. of all taxes</div>
+                        <div className="text-sm font-bold">Total Charges</div>
+                        <div className="text-[10px] text-muted-foreground">Price incl. of all taxes</div>
                       </div>
-                      <div className="text-2xl font-bold">{formatPrice(totalAfterDiscount)}</div>
+                      <div className="text-xl font-bold">{formatPrice(totalAfterDiscount)}</div>
                     </div>
                   </div>
 
                   <Button
                     onClick={handleCheckout}
-                    className="w-full rounded-xl bg-blue-600 py-6 text-lg font-semibold hover:bg-blue-700"
+                    className="w-full rounded-lg bg-blue-600 py-5 text-base font-semibold hover:bg-blue-700"
                     size="lg"
                   >
-                    <ShoppingBag className="mr-2 h-5 w-5" />
+                    <ShoppingBag className="mr-2 h-4 w-4" />
                     Go to Checkout
                   </Button>
                 </div>

@@ -157,6 +157,23 @@ export const updateVendorProfile = async (data: {
   return response.data.data;
 };
 
+export const updateVendorUser = async (data: {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+}) => {
+  const response = await api.put("/vendor/profile/user", data);
+  return response.data.data;
+};
+
+export const changeVendorPassword = async (data: {
+  currentPassword: string;
+  newPassword: string;
+}) => {
+  const response = await api.post("/vendor/profile/change-password", data);
+  return response.data;
+};
+
 // Update Order Status
 export const updateOrderStatus = async (orderId: string, status: string) => {
   const response = await api.patch(`/vendor/orders/${orderId}/status`, {

@@ -12,7 +12,7 @@ export function Footer() {
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary">
                 <Package className="h-5 w-5 text-primary-foreground" />
               </div>
-              <span className="text-xl font-bold">RentalPro</span>
+              <span className="text-xl font-bold">RentX</span>
             </Link>
             <p className="text-sm text-muted-foreground">
               Professional equipment rental platform for businesses. Rent
@@ -118,7 +118,7 @@ export function Footer() {
 
         <div className="mt-12 border-t border-border pt-6">
           <p className="text-center text-sm text-muted-foreground">
-            © {new Date().getFullYear()} RentalPro. All rights reserved.
+            © {new Date().getFullYear()} RentX. All rights reserved.
           </p>
         </div>
       </div>

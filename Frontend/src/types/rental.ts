@@ -127,3 +127,24 @@ export interface DashboardStats {
   topProducts: { productId: string; name: string; rentals: number }[];
   revenueByMonth: { month: string; revenue: number }[];
 }
+
+export interface Review {
+  id: string;
+  productId: string;
+  userId: string;
+  rating: number;
+  comment: string | null;
+  createdAt: string;
+  updatedAt: string;
+  user: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
+  product: {
+    id: string;
+    name: string;
+    category: string;
+  };
+}

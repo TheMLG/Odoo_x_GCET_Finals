@@ -1,5 +1,6 @@
 import { Router } from "express";
 import {
+  changeVendorPassword,
   createProduct,
   deleteProduct,
   deleteVendorOrder,
@@ -12,6 +13,7 @@ import {
   updateOrderStatus,
   updateProduct,
   updateVendorProfile,
+  updateVendorUser,
 } from "../controllers/vendor.controller.js";
 import { verifyJWT } from "../middleware/auth.middleware.js";
 import { upload } from "../middleware/multer.middleware.js";
@@ -24,6 +26,8 @@ router.use(verifyJWT, isVendor);
 
 // Vendor profile routes
 router.route("/profile").get(getVendorProfile).put(updateVendorProfile);
+router.route("/profile/user").put(updateVendorUser);
+router.route("/profile/change-password").post(changeVendorPassword);
 
 // Vendor products routes
 router

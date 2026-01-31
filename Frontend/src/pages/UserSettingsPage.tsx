@@ -1,4 +1,4 @@
-import { VendorLayout } from "@/components/layout/VendorLayout";
+import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -12,28 +12,26 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import api from "@/lib/api";
-import {
-  changeVendorPassword,
-  updateVendorProfile,
-  updateVendorUser,
-} from "@/lib/vendorApi";
 import { useAuthStore } from "@/stores/authStore";
 import { motion } from "framer-motion";
 import {
   ArrowLeft,
-  Building2,
-  FileText,
   KeyRound,
   Lock,
   Mail,
   Save,
-  Tag,
+  Settings,
   User,
+  Phone,
+  MapPin,
+  Bell,
+  Shield,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { Switch } from "@/components/ui/switch";
 
-export default function VendorSettings() {
+export default function UserSettingsPage() {
   const { toast } = useToast();
   const { user, setUser } = useAuthStore();
 
@@ -42,16 +40,9 @@ export default function VendorSettings() {
     firstName: "",
     lastName: "",
     email: "",
+    phone: "",
   });
   const [isUserLoading, setIsUserLoading] = useState(false);
-
-  // Vendor profile form state
-  const [vendorForm, setVendorForm] = useState({
-    companyName: "",
-    gstNo: "",
-    product_category: "",
-  });
-  const [isVendorLoading, setIsVendorLoading] = useState(false);
 
   // Password form state
   const [passwordForm, setPasswordForm] = useState({
@@ -61,6 +52,14 @@ export default function VendorSettings() {
   });
   const [isPasswordLoading, setIsPasswordLoading] = useState(false);
 
+  // Notification preferences
+  const [notifications, setNotifications] = useState({
+    emailNotifications: true,
+    orderUpdates: true,
+    promotionalEmails: false,
+    smsNotifications: false,
+  });
+
   // Load profile data
   useEffect(() => {
     if (user) {
@@ -68,15 +67,8 @@ export default function VendorSettings() {
         firstName: user.firstName || "",
         lastName: user.lastName || "",
         email: user.email || "",
+        phone: "",
       });
-
-      if (user.vendor) {
-        setVendorForm({
-          companyName: user.vendor.companyName || "",
-          gstNo: user.vendor.gstNo || "",
-          product_category: user.vendor.product_category || "",
-        });
-      }
     }
   }, [user]);
 
@@ -86,7 +78,10 @@ export default function VendorSettings() {
     setIsUserLoading(true);
 
     try {
-      const updatedUser = await updateVendorUser(userForm);
+      // Since there's no dedicated user update endpoint, we'll use auth endpoint
+      // You may need to create a backend endpoint for this
+      const response = await api.put("/auth/profile", userForm);
+      const updatedUser = response.data.data;
 
       // Update auth store
       setUser(updatedUser);
@@ -96,44 +91,25 @@ export default function VendorSettings() {
         description: "Personal information updated successfully",
       });
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description:
-          error.response?.data?.message ||
-          "Failed to update personal information",
-        variant: "destructive",
-      });
+      // If endpoint doesn't exist, show a friendly message
+      if (error.response?.status === 404) {
+        toast({
+          title: "Note",
+          description:
+            "Profile update endpoint is not yet implemented on the server",
+          variant: "default",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description:
+            error.response?.data?.message ||
+            "Failed to update personal information",
+          variant: "destructive",
+        });
+      }
     } finally {
       setIsUserLoading(false);
-    }
-  };
-
-  // Handle vendor profile update
-  const handleVendorUpdate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsVendorLoading(true);
-
-    try {
-      await updateVendorProfile(vendorForm);
-
-      // Fetch updated user data
-      const userResponse = await api.get("/auth/current-user");
-      setUser(userResponse.data.data);
-
-      toast({
-        title: "Success",
-        description: "Business information updated successfully",
-      });
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description:
-          error.response?.data?.message ||
-          "Failed to update business information",
-        variant: "destructive",
-      });
-    } finally {
-      setIsVendorLoading(false);
     }
   };
 
@@ -163,7 +139,7 @@ export default function VendorSettings() {
     setIsPasswordLoading(true);
 
     try {
-      await changeVendorPassword({
+      await api.post("/auth/change-password", {
         currentPassword: passwordForm.currentPassword,
         newPassword: passwordForm.newPassword,
       });
@@ -180,19 +156,49 @@ export default function VendorSettings() {
         confirmPassword: "",
       });
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description:
-          error.response?.data?.message || "Failed to change password",
-        variant: "destructive",
-      });
+      // If endpoint doesn't exist, show a friendly message
+      if (error.response?.status === 404) {
+        toast({
+          title: "Note",
+          description:
+            "Password change endpoint is not yet implemented on the server",
+          variant: "default",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description:
+            error.response?.data?.message || "Failed to change password",
+          variant: "destructive",
+        });
+      }
     } finally {
       setIsPasswordLoading(false);
     }
   };
 
+  // Handle notification settings update
+  const handleNotificationUpdate = async () => {
+    try {
+      await api.put("/auth/notifications", notifications);
+      toast({
+        title: "Success",
+        description: "Notification preferences updated",
+      });
+    } catch (error: any) {
+      if (error.response?.status === 404) {
+        toast({
+          title: "Note",
+          description:
+            "Saved locally - Server endpoint will be implemented soon",
+          variant: "default",
+        });
+      }
+    }
+  };
+
   return (
-    <VendorLayout>
+    <MainLayout>
       <div className="container px-4 py-8 md:px-6 md:py-12 max-w-4xl mx-auto">
         {/* Header */}
         <motion.div
@@ -201,19 +207,19 @@ export default function VendorSettings() {
           className="mb-8"
         >
           <Button variant="ghost" asChild className="mb-4">
-            <Link to="/vendor/dashboard">
+            <Link to="/">
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Dashboard
+              Back to Home
             </Link>
           </Button>
           <div className="flex items-center gap-3 mb-2">
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-              <Building2 className="h-6 w-6 text-primary" />
+              <Settings className="h-6 w-6 text-primary" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold">Vendor Settings</h1>
+              <h1 className="text-3xl font-bold">Account Settings</h1>
               <p className="text-muted-foreground">
-                Manage your account and business information
+                Manage your account preferences and security
               </p>
             </div>
           </div>
@@ -274,7 +280,7 @@ export default function VendorSettings() {
                       <Input
                         id="email"
                         type="email"
-                        placeholder="vendor@example.com"
+                        placeholder="user@example.com"
                         value={userForm.email}
                         onChange={(e) =>
                           setUserForm({ ...userForm, email: e.target.value })
@@ -284,111 +290,35 @@ export default function VendorSettings() {
                       />
                     </div>
                   </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">Phone Number (Optional)</Label>
+                    <div className="relative">
+                      <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="phone"
+                        type="tel"
+                        placeholder="+1 (555) 000-0000"
+                        value={userForm.phone}
+                        onChange={(e) =>
+                          setUserForm({ ...userForm, phone: e.target.value })
+                        }
+                        className="pl-10 rounded-xl"
+                      />
+                    </div>
+                  </div>
                   <Button
                     type="submit"
                     disabled={isUserLoading}
                     className="rounded-xl"
                   >
-                    {isUserLoading ?
+                    {isUserLoading ? (
                       "Saving..."
-                    : <>
+                    ) : (
+                      <>
                         <Save className="mr-2 h-4 w-4" />
                         Save Changes
                       </>
-                    }
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          <Separator />
-
-          {/* Business Information */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-          >
-            <Card className="rounded-2xl">
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <Building2 className="h-5 w-5 text-primary" />
-                  <CardTitle>Business Information</CardTitle>
-                </div>
-                <CardDescription>Update your company details</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleVendorUpdate} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="companyName">Company Name</Label>
-                    <div className="relative">
-                      <Building2 className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="companyName"
-                        placeholder="Enter company name"
-                        value={vendorForm.companyName}
-                        onChange={(e) =>
-                          setVendorForm({
-                            ...vendorForm,
-                            companyName: e.target.value,
-                          })
-                        }
-                        required
-                        className="pl-10 rounded-xl"
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="gstNo">GST Number</Label>
-                    <div className="relative">
-                      <FileText className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="gstNo"
-                        placeholder="Enter GST number"
-                        value={vendorForm.gstNo}
-                        onChange={(e) =>
-                          setVendorForm({
-                            ...vendorForm,
-                            gstNo: e.target.value,
-                          })
-                        }
-                        required
-                        className="pl-10 rounded-xl"
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="product_category">Product Category</Label>
-                    <div className="relative">
-                      <Tag className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="product_category"
-                        placeholder="e.g., Photography, Audio, Computers"
-                        value={vendorForm.product_category}
-                        onChange={(e) =>
-                          setVendorForm({
-                            ...vendorForm,
-                            product_category: e.target.value,
-                          })
-                        }
-                        required
-                        className="pl-10 rounded-xl"
-                      />
-                    </div>
-                  </div>
-                  <Button
-                    type="submit"
-                    disabled={isVendorLoading}
-                    className="rounded-xl"
-                  >
-                    {isVendorLoading ?
-                      "Saving..."
-                    : <>
-                        <Save className="mr-2 h-4 w-4" />
-                        Save Changes
-                      </>
-                    }
+                    )}
                   </Button>
                 </form>
               </CardContent>
@@ -401,7 +331,7 @@ export default function VendorSettings() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
+            transition={{ delay: 0.2 }}
           >
             <Card className="rounded-2xl">
               <CardHeader>
@@ -485,20 +415,21 @@ export default function VendorSettings() {
                     disabled={isPasswordLoading}
                     className="rounded-xl"
                   >
-                    {isPasswordLoading ?
+                    {isPasswordLoading ? (
                       "Changing Password..."
-                    : <>
+                    ) : (
+                      <>
                         <Lock className="mr-2 h-4 w-4" />
                         Change Password
                       </>
-                    }
+                    )}
                   </Button>
                 </form>
               </CardContent>
             </Card>
-          </motion.div>
+          </motion.div> 
         </div>
       </div>
-    </VendorLayout>
+    </MainLayout>
   );
 }

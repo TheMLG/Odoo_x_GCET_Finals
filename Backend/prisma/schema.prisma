@@ -18,10 +18,12 @@ model User {
   otpExpiry DateTime?
   addresses Address[]
   carts     Cart[]
+  coupons   Coupon[]
   orders    Order[]
   roles     UserRole[]
   vendor    Vendor?
   wishlists Wishlist?
+  reviews    Review[]
 }
 
 model Role {
@@ -68,6 +70,7 @@ model Product {
   pricing           RentalPricing[]
   reservations      Reservation[]
   wishlistItems     WishlistItem[]
+  reviews      Review[]
 }
 
 model ProductInventory {
@@ -234,6 +237,21 @@ model Address {
   orders       Order[]
 }
 
+model Review {
+  id        String   @id @default(uuid())
+  productId String
+  userId    String
+  rating    Int      // 1-5 stars
+  comment   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, userId]) // One review per user per product
+}
+
 model Coupon {
   id                String    @id @default(uuid())
   code              String    @unique
@@ -247,4 +265,8 @@ model Coupon {
   isActive          Boolean   @default(true)
   createdAt         DateTime  @default(now())
   orders            Order[]
+  userId            String?
+  user              User?     @relation(fields: [userId], references: [id])
+  isWelcomeCoupon   Boolean   @default(false)
 }
+

@@ -11,6 +11,7 @@ import orderRoutes from "./routes/order.routes.js";
 import productRoutes from "./routes/product.routes.js";
 import vendorRoutes from "./routes/vendor.routes.js";
 import wishlistRoutes from "./routes/wishlist.routes.js";
+import reviewRoutes from "./routes/review.routes.js";
 
 // Restart trigger
 dotenv.config();
@@ -51,6 +52,7 @@ app.use("/api/v1/wishlist", wishlistRoutes);
 app.use("/api/v1/coupons", couponRoutes);
 app.use("/api/v1/orders", orderRoutes);
 app.use("/api/v1/addresses", addressRoutes);
+app.use("/api/v1/reviews", reviewRoutes);
 
 // 404 handler
 app.use((req, res) => {
