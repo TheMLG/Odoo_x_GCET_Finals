@@ -763,3 +763,351 @@ export const generateInvoicePDF = asyncHandler(async (req, res) => {
     throw new ApiError(500, `Failed to generate PDF: ${error.message}`);
   }
 });
+
+/**
+ * Generate Combined Invoice PDF for User (all products from multiple vendor orders)
+ * @route POST /api/orders/invoice/combined
+ * @access Private
+ */
+export const generateCombinedInvoicePDF = asyncHandler(async (req, res) => {
+  const { orderIds } = req.body;
+
+  if (!orderIds || !Array.isArray(orderIds) || orderIds.length === 0) {
+    throw new ApiError(400, "Order IDs are required");
+  }
+
+  try {
+    // Fetch all orders for the user
+    const orders = await prisma.order.findMany({
+      where: {
+        id: { in: orderIds },
+        userId: req.user.id,
+      },
+      include: {
+        user: {
+          select: {
+            firstName: true,
+            lastName: true,
+            email: true,
+          },
+        },
+        vendor: {
+          include: {
+            user: {
+              select: {
+                firstName: true,
+                lastName: true,
+              },
+            },
+          },
+        },
+        items: {
+          include: {
+            product: true,
+          },
+        },
+        invoice: {
+          include: {
+            payments: true,
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    if (!orders || orders.length === 0) {
+      throw new ApiError(404, "Orders not found");
+    }
+
+    // Create PDF document
+    const doc = new PDFDocument({ margin: 50, size: "A4" });
+
+    // Generate combined invoice number
+    const combinedInvoiceNumber = `COMB-${Date.now()}`;
+
+    // Set response headers
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=combined-invoice-${combinedInvoiceNumber}.pdf`,
+    );
+
+    // Pipe PDF to response
+    doc.pipe(res);
+
+    // Helper function for drawing rounded rectangles
+    const drawRoundedRect = (x, y, width, height, radius, fillColor) => {
+      doc.roundedRect(x, y, width, height, radius).fill(fillColor);
+    };
+
+    // ========== HEADER SECTION ==========
+    drawRoundedRect(40, 40, 515, 80, 8, "#1e40af");
+
+    doc
+      .fontSize(28)
+      .fillColor("#ffffff")
+      .text("RentX", 60, 55, { continued: false });
+
+    doc
+      .fontSize(10)
+      .fillColor("#93c5fd")
+      .text("Premium Rental Service Platform", 60, 88);
+
+    doc
+      .fontSize(24)
+      .fillColor("#ffffff")
+      .text("COMBINED INVOICE", 350, 65, { align: "right", width: 190 });
+
+    doc.moveDown(4);
+
+    // ========== INVOICE DETAILS BOX ==========
+    const detailsY = 140;
+    drawRoundedRect(40, detailsY, 250, 100, 6, "#f1f5f9");
+    drawRoundedRect(305, detailsY, 250, 100, 6, "#f1f5f9");
+
+    // Left box - Invoice details
+    doc.fontSize(8).fillColor("#64748b");
+    doc.text("Combined Invoice Number", 55, detailsY + 12);
+    doc.fontSize(9).fillColor("#1e293b");
+    doc.text(combinedInvoiceNumber, 55, detailsY + 24, { width: 180 });
+
+    doc.fontSize(8).fillColor("#64748b");
+    doc.text("Total Orders", 55, detailsY + 52);
+    doc.fontSize(9).fillColor("#1e293b");
+    doc.text(`${orders.length} order(s)`, 55, detailsY + 64);
+
+    doc.fontSize(8).fillColor("#64748b");
+    doc.text("Date", 160, detailsY + 52);
+    doc.fontSize(9).fillColor("#1e293b");
+    doc.text(
+      new Date().toLocaleDateString("en-IN", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      }),
+      160,
+      detailsY + 64,
+    );
+
+    // Right box - Customer details
+    const user = orders[0].user;
+    doc
+      .fontSize(11)
+      .fillColor("#1e40af")
+      .text("Bill To:", 320, detailsY + 12);
+    doc.fontSize(10).fillColor("#1e293b");
+    doc.text(`${user.firstName} ${user.lastName}`, 320, detailsY + 32);
+    doc.fontSize(9).fillColor("#64748b");
+    doc.text(user.email, 320, detailsY + 50);
+
+    // ========== ITEMS TABLE ==========
+    const tableTop = 265;
+
+    // Table header background
+    drawRoundedRect(40, tableTop, 515, 30, 4, "#1e40af");
+
+    // Table headers
+    doc.fontSize(9).fillColor("#ffffff");
+    doc.text("Item Description", 55, tableTop + 10, { width: 140 });
+    doc.text("Vendor", 200, tableTop + 10, { width: 80 });
+    doc.text("Period", 285, tableTop + 10, { width: 70 });
+    doc.text("Qty", 360, tableTop + 10, { width: 30, align: "center" });
+    doc.text("Rate", 400, tableTop + 10, { width: 60, align: "right" });
+    doc.text("Amount", 470, tableTop + 10, { width: 70, align: "right" });
+
+    // Table rows - combine all items from all orders
+    let yPosition = tableTop + 40;
+    let itemIndex = 0;
+    let grandSubtotal = 0;
+
+    doc.fontSize(8);
+
+    for (const order of orders) {
+      for (const item of order.items) {
+        const startDate = new Date(item.rentalStart).toLocaleDateString("en-IN", {
+          day: "2-digit",
+          month: "short",
+        });
+        const endDate = new Date(item.rentalEnd).toLocaleDateString("en-IN", {
+          day: "2-digit",
+          month: "short",
+        });
+
+        // Alternate row background
+        if (itemIndex % 2 === 0) {
+          doc.rect(40, yPosition - 5, 515, 25).fill("#f8fafc");
+        }
+
+        // Get vendor name
+        const vendorName = order.vendor?.companyName || 
+          (order.vendor?.user ? `${order.vendor.user.firstName} ${order.vendor.user.lastName}` : "N/A");
+
+        doc
+          .fillColor("#1e293b")
+          .text(item.product.name, 55, yPosition, { width: 140 });
+        doc
+          .fillColor("#64748b")
+          .text(vendorName.substring(0, 12), 200, yPosition, { width: 80 });
+        doc
+          .fillColor("#64748b")
+          .text(`${startDate}-${endDate}`, 285, yPosition, { width: 70 });
+        doc.fillColor("#1e293b").text(item.quantity.toString(), 360, yPosition, {
+          width: 30,
+          align: "center",
+        });
+        doc.text(`Rs. ${parseFloat(item.unitPrice).toFixed(2)}`, 400, yPosition, {
+          width: 60,
+          align: "right",
+        });
+
+        const lineTotal = item.quantity * parseFloat(item.unitPrice);
+        grandSubtotal += lineTotal;
+        doc
+          .fillColor("#1e40af")
+          .text(`Rs. ${lineTotal.toFixed(2)}`, 470, yPosition, {
+            width: 70,
+            align: "right",
+          });
+
+        yPosition += 25;
+        itemIndex++;
+
+        // Check if we need a new page
+        if (yPosition > 650) {
+          doc.addPage();
+          yPosition = 50;
+        }
+      }
+    }
+
+    // Table bottom border
+    doc
+      .moveTo(40, yPosition + 5)
+      .lineTo(555, yPosition + 5)
+      .strokeColor("#e2e8f0")
+      .stroke();
+
+    // ========== TOTALS SECTION ==========
+    yPosition += 25;
+
+    // Check if totals section needs new page
+    if (yPosition > 620) {
+      doc.addPage();
+      yPosition = 50;
+    }
+
+    // Totals box
+    drawRoundedRect(350, yPosition, 205, 100, 6, "#f1f5f9");
+
+    const gstRate = 0.18;
+    const baseAmount = grandSubtotal / (1 + gstRate);
+    const gstAmount = grandSubtotal - baseAmount;
+
+    // Totals text
+    doc.fontSize(9).fillColor("#64748b");
+    doc.text("Subtotal (excl. GST):", 365, yPosition + 15);
+    doc.text("GST (18%):", 365, yPosition + 35);
+
+    doc.fillColor("#1e293b");
+    doc.text(`Rs. ${baseAmount.toFixed(2)}`, 480, yPosition + 15, {
+      width: 60,
+      align: "right",
+    });
+    doc.text(`Rs. ${gstAmount.toFixed(2)}`, 480, yPosition + 35, {
+      width: 60,
+      align: "right",
+    });
+
+    // Divider line
+    doc
+      .moveTo(365, yPosition + 55)
+      .lineTo(540, yPosition + 55)
+      .strokeColor("#cbd5e1")
+      .stroke();
+
+    // Grand total
+    doc.fontSize(12).fillColor("#1e40af");
+    doc.text("Grand Total:", 365, yPosition + 70);
+    doc.fontSize(14).fillColor("#1e40af");
+    doc.text(`Rs. ${grandSubtotal.toFixed(2)}`, 460, yPosition + 68, {
+      width: 80,
+      align: "right",
+    });
+
+    // ========== PAYMENT STATUS ==========
+    yPosition += 120;
+
+    // Check all orders for payment status
+    const allPaid = orders.every(order => 
+      order.invoice?.payments?.some(p => p.status === "SUCCESS")
+    );
+
+    const badgeColor = allPaid ? "#dcfce7" : "#fef3c7";
+    const textColor = allPaid ? "#16a34a" : "#d97706";
+    const statusText = allPaid ? "PAID" : "PENDING";
+
+    drawRoundedRect(40, yPosition, 80, 25, 4, badgeColor);
+    doc
+      .fontSize(10)
+      .fillColor(textColor)
+      .text(statusText, 55, yPosition + 7);
+
+    // ========== ORDER BREAKDOWN ==========
+    yPosition += 45;
+
+    if (yPosition > 650) {
+      doc.addPage();
+      yPosition = 50;
+    }
+
+    doc.fontSize(10).fillColor("#1e40af").text("Order Breakdown:", 40, yPosition);
+    yPosition += 18;
+
+    doc.fontSize(8).fillColor("#64748b");
+    for (const order of orders) {
+      const orderTotal = order.items.reduce(
+        (sum, item) => sum + item.quantity * parseFloat(item.unitPrice),
+        0
+      );
+      const vendorName = order.vendor?.companyName || 
+        (order.vendor?.user ? `${order.vendor.user.firstName} ${order.vendor.user.lastName}` : "N/A");
+      
+      doc.text(
+        `Order #${order.orderNumber} (${vendorName}): Rs. ${orderTotal.toFixed(2)}`,
+        55,
+        yPosition
+      );
+      yPosition += 14;
+    }
+
+    // ========== FOOTER ==========
+    const footerY = Math.max(yPosition + 30, 730);
+    
+    doc
+      .fontSize(9)
+      .fillColor("#64748b")
+      .text("Thank you for choosing RentX!", 40, footerY, {
+        align: "center",
+        width: 515,
+      });
+
+    doc
+      .fontSize(8)
+      .fillColor("#94a3b8")
+      .text(
+        "For any queries, contact us at support@rentx.com | www.rentx.com",
+        40,
+        footerY + 15,
+        { align: "center", width: 515 },
+      );
+
+    // Footer line
+    doc.moveTo(40, footerY - 10).lineTo(555, footerY - 10).strokeColor("#e2e8f0").stroke();
+
+    // Finalize PDF
+    doc.end();
+  } catch (error) {
+    console.error("Combined PDF Generation Error:", error);
+    throw new ApiError(500, `Failed to generate combined PDF: ${error.message}`);
+  }
+});

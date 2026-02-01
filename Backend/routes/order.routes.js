@@ -4,6 +4,7 @@ import {
   createRazorpayOrder,
   verifyPayment,
   generateInvoicePDF,
+  generateCombinedInvoicePDF,
   getOrderDetails,
   getUserOrders,
 } from "../controllers/order.controller.js";
@@ -18,6 +19,7 @@ router.use(verifyJWT);
 router.route("/").post(createOrder).get(getUserOrders);
 router.route("/razorpay/create-order").post(createRazorpayOrder);
 router.route("/razorpay/verify").post(verifyPayment);
+router.route("/invoice/combined").post(generateCombinedInvoicePDF);
 router.route("/:orderId").get(getOrderDetails);
 router.route("/:orderId/invoice/pdf").get(generateInvoicePDF);
 

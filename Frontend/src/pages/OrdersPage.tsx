@@ -12,7 +12,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { downloadInvoicePDF, getUserOrders, Order } from "@/lib/orderApi";
+import { downloadInvoicePDF, downloadCombinedInvoicePDF, getUserOrders, Order } from "@/lib/orderApi";
 import { useAuthStore } from "@/stores/authStore";
 import { format } from "date-fns";
 import { motion } from "framer-motion";
@@ -104,6 +104,7 @@ export default function OrdersPage() {
   const [downloadingInvoice, setDownloadingInvoice] = useState<string | null>(
     null,
   );
+  const [downloadingCombinedInvoice, setDownloadingCombinedInvoice] = useState<string | null>(null);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
 
@@ -142,6 +143,19 @@ export default function OrdersPage() {
     }
   };
 
+  const handleDownloadCombinedInvoice = async (orderIds: string[], groupKey: string) => {
+    try {
+      setDownloadingCombinedInvoice(groupKey);
+      await downloadCombinedInvoicePDF(orderIds);
+      toast.success("Combined invoice downloaded successfully");
+    } catch (err: any) {
+      console.error("Failed to download combined invoice:", err);
+      toast.error("Failed to download combined invoice");
+    } finally {
+      setDownloadingCombinedInvoice(null);
+    }
+  };
+
   const handleViewDetails = (order: Order) => {
     setSelectedOrder(order);
     setDetailsDialogOpen(true);
@@ -167,10 +181,28 @@ export default function OrdersPage() {
     }, 0);
   };
 
+  // Group orders by creation timestamp (orders placed together in same checkout)
+  const groupOrdersByCheckout = (orders: Order[]) => {
+    const grouped: { [key: string]: Order[] } = {};
+    orders.forEach((order) => {
+      // Round to nearest minute to group orders from same checkout
+      const timestamp = new Date(order.createdAt);
+      timestamp.setSeconds(0, 0);
+      const key = timestamp.toISOString();
+      if (!grouped[key]) {
+        grouped[key] = [];
+      }
+      grouped[key].push(order);
+    });
+    return grouped;
+  };
+
   const filteredOrders = orders.filter((order) => {
     if (selectedTab === "all") return true;
     return order.status.toLowerCase() === selectedTab;
   });
+
+  const groupedOrders = groupOrdersByCheckout(filteredOrders);
 
   if (loading) {
     return (
@@ -241,129 +273,166 @@ export default function OrdersPage() {
                     </Button>
                   </CardContent>
                 </Card>
-              : filteredOrders.map((order) => {
-                  const status =
-                    statusConfig[
-                      order.status.toLowerCase() as keyof typeof statusConfig
-                    ] || statusConfig.draft;
+              : Object.entries(groupedOrders).map(([groupKey, groupOrders]) => (
+                  <div key={groupKey} className="mb-6">
+                    {/* Group Header with Combined Invoice Button */}
+                    {groupOrders.length > 1 && (
+                      <div className="mb-3 flex items-center justify-between rounded-lg bg-blue-50 p-3">
+                        <div className="flex items-center gap-2">
+                          <FileText className="h-5 w-5 text-blue-600" />
+                          <span className="font-medium text-blue-900">
+                            {groupOrders.length} orders placed on{" "}
+                            {format(new Date(groupKey), "MMM d, yyyy 'at' h:mm a")}
+                          </span>
+                        </div>
+                        <Button
+                          variant="default"
+                          size="sm"
+                          className="bg-blue-600 hover:bg-blue-700"
+                          onClick={() =>
+                            handleDownloadCombinedInvoice(
+                              groupOrders.map((o) => o.id),
+                              groupKey
+                            )
+                          }
+                          disabled={downloadingCombinedInvoice === groupKey}
+                        >
+                          {downloadingCombinedInvoice === groupKey ? (
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          ) : (
+                            <Download className="mr-2 h-4 w-4" />
+                          )}
+                          Combined Invoice
+                        </Button>
+                      </div>
+                    )}
+                    
+                    {/* Individual Orders */}
+                    {groupOrders.map((order) => {
+                      const status =
+                        statusConfig[
+                          order.status.toLowerCase() as keyof typeof statusConfig
+                        ] || statusConfig.draft;
 
-                  return (
-                    <motion.div
-                      key={order.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="mb-4"
-                    >
-                      <Card className="overflow-hidden border-none shadow-sm transition-all hover:shadow-md">
-                        <CardContent className="p-0">
-                          {/* Header */}
-                          <div className="border-b bg-gray-50/50 p-4">
-                            <div className="flex flex-wrap items-center justify-between gap-4">
-                              <div className="flex items-center gap-4">
-                                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-sm">
-                                  <Package className="h-5 w-5 text-blue-600" />
-                                </div>
-                                <div>
-                                  <p className="font-medium">
-                                    Order #{order.orderNumber}
-                                  </p>
-                                  <p className="text-sm text-muted-foreground">
-                                    Placed on{" "}
-                                    {format(
-                                      new Date(order.createdAt),
-                                      "MMM d, yyyy",
-                                    )}
-                                  </p>
-                                </div>
-                              </div>
-                              <StatusBadge
-                                label={status.label}
-                                variant={status.variant}
-                                icon={status.icon}
-                              />
-                            </div>
-                          </div>
-                          {/* Items */}
-                          <div className="p-4">
-                            {order.items.map((item) => (
-                              <div
-                                key={item.id}
-                                className="mb-4 last:mb-0 flex items-center justify-between"
-                              >
-                                <div className="flex items-center gap-4">
-                                  <div className="relative h-16 w-16 overflow-hidden rounded-lg border bg-white">
-                                    <img
-                                      src={item.product?.product_image_url}
-                                      alt={item.product?.name}
-                                      className="h-full w-full object-cover"
-                                    />
+                      return (
+                        <motion.div
+                          key={order.id}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="mb-4"
+                        >
+                          <Card className="overflow-hidden border-none shadow-sm transition-all hover:shadow-md">
+                            <CardContent className="p-0">
+                              {/* Header */}
+                              <div className="border-b bg-gray-50/50 p-4">
+                                <div className="flex flex-wrap items-center justify-between gap-4">
+                                  <div className="flex items-center gap-4">
+                                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-sm">
+                                      <Package className="h-5 w-5 text-blue-600" />
+                                    </div>
+                                    <div>
+                                      <p className="font-medium">
+                                        Order #{order.orderNumber}
+                                      </p>
+                                      <p className="text-sm text-muted-foreground">
+                                        Placed on{" "}
+                                        {format(
+                                          new Date(order.createdAt),
+                                          "MMM d, yyyy",
+                                        )}
+                                      </p>
+                                    </div>
                                   </div>
-                                  <div>
-                                    <h4 className="font-medium">
-                                      {item.product?.name}
-                                    </h4>
-                                    <p className="text-sm text-muted-foreground">
-                                      Qty: {item.quantity} •{" "}
-                                      {formatPrice(item.unitPrice)}/day
-                                    </p>
-                                  </div>
-                                </div>
-                                <div className="text-right">
-                                  <p className="font-medium">
-                                    {formatPrice(
-                                      Number(item.unitPrice) * item.quantity,
-                                    )}
-                                  </p>
+                                  <StatusBadge
+                                    label={status.label}
+                                    variant={status.variant}
+                                    icon={status.icon}
+                                  />
                                 </div>
                               </div>
-                            ))}
-                            {/* Footer */}
-                            <div className="mt-4 flex flex-wrap items-center justify-between gap-4 border-t pt-4">
-                              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                <MapPin className="h-4 w-4" />
-                                {order.vendor?.companyName ||
-                                  order.vendor?.user?.firstName ||
-                                  "Unknown Vendor"}
-                              </div>
-                              <div className="flex items-center gap-4">
-                                <div className="flex gap-2">
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="rounded-lg"
-                                    onClick={() => handleViewDetails(order)}
+                              {/* Items */}
+                              <div className="p-4">
+                                {order.items.map((item) => (
+                                  <div
+                                    key={item.id}
+                                    className="mb-4 last:mb-0 flex items-center justify-between"
                                   >
-                                    <Eye className="mr-2 h-4 w-4" />
-                                    View Details
-                                  </Button>
-                                  {order.invoice && (
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      className="rounded-lg"
-                                      onClick={() =>
-                                        handleDownloadInvoice(
-                                          order.id,
-                                          order.orderNumber,
-                                        )
-                                      }
-                                      disabled={downloadingInvoice === order.id}
-                                    >
-                                      {downloadingInvoice === order.id ?
-                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                      : <Download className="mr-2 h-4 w-4" />}
-                                      Invoice
-                                    </Button>
-                                  )}
+                                    <div className="flex items-center gap-4">
+                                      <div className="relative h-16 w-16 overflow-hidden rounded-lg border bg-white">
+                                        <img
+                                          src={item.product?.product_image_url}
+                                          alt={item.product?.name}
+                                          className="h-full w-full object-cover"
+                                        />
+                                      </div>
+                                      <div>
+                                        <h4 className="font-medium">
+                                          {item.product?.name}
+                                        </h4>
+                                        <p className="text-sm text-muted-foreground">
+                                          Qty: {item.quantity} •{" "}
+                                          {formatPrice(item.unitPrice)}/day
+                                        </p>
+                                      </div>
+                                    </div>
+                                    <div className="text-right">
+                                      <p className="font-medium">
+                                        {formatPrice(
+                                          Number(item.unitPrice) * item.quantity,
+                                        )}
+                                      </p>
+                                    </div>
+                                  </div>
+                                ))}
+                                {/* Footer */}
+                                <div className="mt-4 flex flex-wrap items-center justify-between gap-4 border-t pt-4">
+                                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                    <MapPin className="h-4 w-4" />
+                                    {order.vendor?.companyName ||
+                                      order.vendor?.user?.firstName ||
+                                      "Unknown Vendor"}
+                                  </div>
+                                  <div className="flex items-center gap-4">
+                                    <div className="flex gap-2">
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="rounded-lg"
+                                        onClick={() => handleViewDetails(order)}
+                                      >
+                                        <Eye className="mr-2 h-4 w-4" />
+                                        View Details
+                                      </Button>
+                                      {order.invoice && (
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          className="rounded-lg"
+                                          onClick={() =>
+                                            handleDownloadInvoice(
+                                              order.id,
+                                              order.orderNumber,
+                                            )
+                                          }
+                                          disabled={downloadingInvoice === order.id}
+                                        >
+                                          {downloadingInvoice === order.id ?
+                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                          : <Download className="mr-2 h-4 w-4" />}
+                                          Invoice
+                                        </Button>
+                                      )}
+                                    </div>
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </motion.div>
-                  );
-                })
+                            </CardContent>
+                          </Card>
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+                ))
               }
             </TabsContent>
           </Tabs>

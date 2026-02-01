@@ -130,3 +130,25 @@ export async function downloadInvoicePDF(
     link.parentNode?.removeChild(link);
     window.URL.revokeObjectURL(url);
 }
+
+/**
+ * Download combined invoice PDF for multiple orders
+ * @param orderIds Array of order IDs
+ */
+export async function downloadCombinedInvoicePDF(
+    orderIds: string[]
+): Promise<void> {
+    const response = await api.post(`/orders/invoice/combined`, { orderIds }, {
+        responseType: 'blob',
+    });
+
+    // Create blob link to download
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `combined-invoice-${Date.now()}.pdf`);
+    document.body.appendChild(link);
+    link.click();
+    link.parentNode?.removeChild(link);
+    window.URL.revokeObjectURL(url);
+}
