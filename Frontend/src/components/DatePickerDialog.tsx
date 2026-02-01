@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Calendar as CalendarIcon, X, Info } from "lucide-react";
-import { format, addDays, differenceInDays, isSameDay } from "date-fns";
+import { format, addDays, differenceInDays, isSameDay, isWithinInterval } from "date-fns";
 import {
   Dialog,
   DialogContent,
@@ -59,6 +59,18 @@ export function DatePickerDialog({ open, onClose }: DatePickerDialogProps) {
     }
   };
 
+  // Get dates between delivery and pickup for range highlighting
+  const getDatesBetween = () => {
+    if (!localDeliveryDate || !localPickupDate) return [];
+    const dates = [];
+    let currentDate = addDays(localDeliveryDate, 1);
+    while (currentDate < localPickupDate) {
+      dates.push(new Date(currentDate));
+      currentDate = addDays(currentDate, 1);
+    }
+    return dates;
+  };
+
   const rentalDays =
     localDeliveryDate && localPickupDate
       ? differenceInDays(localPickupDate, localDeliveryDate)
@@ -67,9 +79,9 @@ export function DatePickerDialog({ open, onClose }: DatePickerDialogProps) {
   const chargeablePeriod =
     localDeliveryDate && localPickupDate
       ? `${format(localDeliveryDate, "do MMM")} - ${format(
-          localPickupDate,
-          "do MMM"
-        )}`
+        localPickupDate,
+        "do MMM"
+      )}`
       : "";
 
   const discountPercentage =
@@ -86,13 +98,12 @@ export function DatePickerDialog({ open, onClose }: DatePickerDialogProps) {
 
         {/* Bento Grid Layout */}
         <div className="grid grid-cols-12 gap-3 auto-rows-[minmax(80px,auto)]">
-          
+
           {/* Calendar - Large centered box (spans 6 columns, 4 rows) */}
           <div className="col-span-12 md:col-span-6 md:row-span-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm p-3 flex items-center justify-center">
             <Calendar
               mode="single"
-              selected={selectingFor === 'delivery' ? localDeliveryDate : localPickupDate}
-              onSelect={handleDateSelect}
+              onSelect={handleDateSelect as any}
               disabled={(date) => {
                 if (selectingFor === 'delivery') {
                   return date < new Date();
@@ -103,10 +114,31 @@ export function DatePickerDialog({ open, onClose }: DatePickerDialogProps) {
               modifiers={{
                 delivery: localDeliveryDate ? [localDeliveryDate] : [],
                 pickup: localPickupDate ? [localPickupDate] : [],
+                between: getDatesBetween(),
               }}
-              modifiersClassNames={{
-                delivery: "bg-lime-400 text-gray-900 hover:bg-lime-500 font-medium",
-                pickup: "bg-blue-500 text-white hover:bg-blue-600 font-medium",
+              modifiersStyles={{
+                delivery: {
+                  backgroundColor: '#a3e635', // Brighter lime-400
+                  color: '#000000',
+                  fontWeight: '600',
+                  borderRadius: '0.5rem 0 0 0.5rem', // Rounded left only
+                  opacity: 1,
+                },
+                pickup: {
+                  backgroundColor: '#a3e635', // Brighter lime-400
+                  color: '#000000',
+                  fontWeight: '600',
+                  borderRadius: '0 0.5rem 0.5rem 0', // Rounded right only
+                  opacity: 1,
+                },
+                between: {
+                  backgroundColor: '#d9f99d', // lime-200
+                  color: '#000000',
+                  opacity: 1,
+                },
+              }}
+              classNames={{
+                day_selected: "!bg-transparent !text-current !opacity-100", // Override default selected styling
               }}
             />
           </div>
@@ -120,8 +152,8 @@ export function DatePickerDialog({ open, onClose }: DatePickerDialogProps) {
               onClick={() => setSelectingFor('delivery')}
               className={cn(
                 "flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left transition-all duration-200",
-                selectingFor === 'delivery' 
-                  ? "bg-lime-500 text-white" 
+                selectingFor === 'delivery'
+                  ? "bg-lime-500 text-white"
                   : "bg-white/60 dark:bg-gray-800/60 hover:bg-white dark:hover:bg-gray-800"
               )}
             >
@@ -143,8 +175,8 @@ export function DatePickerDialog({ open, onClose }: DatePickerDialogProps) {
               onClick={() => setSelectingFor('pickup')}
               className={cn(
                 "flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left transition-all duration-200",
-                selectingFor === 'pickup' 
-                  ? "bg-blue-500 text-white" 
+                selectingFor === 'pickup'
+                  ? "bg-blue-500 text-white"
                   : "bg-white/60 dark:bg-gray-800/60 hover:bg-white dark:hover:bg-gray-800"
               )}
             >
