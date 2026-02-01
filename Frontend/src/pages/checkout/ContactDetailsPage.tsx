@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import api from "@/lib/api";
 import { useAuthStore } from "@/stores/authStore";
 import { useCheckoutStore } from "@/stores/checkoutStore";
 import { motion } from "framer-motion";
@@ -37,7 +38,7 @@ export default function ContactDetailsPage() {
           firstName: user.firstName || "",
           lastName: user.lastName || "",
           email: user.email || "",
-          // Phone number might not be in the user object, keep existing value
+          phone: (user as any).phone || "",
         }));
       }
     };
@@ -52,7 +53,7 @@ export default function ContactDetailsPage() {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (
@@ -78,11 +79,27 @@ export default function ContactDetailsPage() {
       return;
     }
 
-    // Save to store
-    setContactDetails(formData);
+    setIsLoading(true);
+    try {
+      // Update user phone in profile if it's different or not set
+      const userPhone = (user as any)?.phone;
+      if (formData.phone && formData.phone !== userPhone) {
+        await api.put("/auth/profile", { phone: formData.phone });
+      }
 
-    toast.success("Details saved successfully!");
-    navigate("/checkout/address");
+      // Save to store
+      setContactDetails(formData);
+
+      toast.success("Details saved successfully!");
+      navigate("/checkout/address");
+    } catch (error) {
+      console.error("Error updating phone:", error);
+      // Still proceed even if phone update fails
+      setContactDetails(formData);
+      navigate("/checkout/address");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -175,8 +192,9 @@ export default function ContactDetailsPage() {
                   type="submit"
                   className="w-full rounded-lg bg-blue-600 hover:bg-blue-700 py-5 text-base font-semibold shadow-sm"
                   size="lg"
+                  disabled={isLoading}
                 >
-                  Continue to Address
+                  {isLoading ? "Saving..." : "Continue to Address"}
                 </Button>
               </form>
             </motion.div>

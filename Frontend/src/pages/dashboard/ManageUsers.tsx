@@ -1,34 +1,4 @@
-import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { AdminLayout } from '@/components/layout/AdminLayout';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Label } from '@/components/ui/label';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { AdminLayout } from "@/components/layout/AdminLayout";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -38,34 +8,72 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { toast } from "sonner";
-import api from '@/lib/api';
+} from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
-  Users,
-  Search,
-  UserPlus,
-  Edit,
-  Trash2,
-  Mail,
-  Calendar,
-  Shield,
-  LayoutGrid,
-  List,
-  MoreHorizontal
-} from 'lucide-react';
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import api from "@/lib/api";
+import { motion } from "framer-motion";
+import {
+  Calendar,
+  Edit,
+  LayoutGrid,
+  List,
+  Mail,
+  MoreHorizontal,
+  Phone,
+  Search,
+  Shield,
+  Trash2,
+  UserPlus,
+  Users,
+} from "lucide-react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 interface User {
   id: string;
   email: string;
   firstName: string;
   lastName: string;
+  phone?: string;
   createdAt: string;
   roles: Array<{
     role: {
@@ -82,21 +90,22 @@ interface User {
 export default function ManageUsers() {
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [roleFilter, setRoleFilter] = useState('all');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [roleFilter, setRoleFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [editForm, setEditForm] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
   });
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [deletingUser, setDeletingUser] = useState<User | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [viewMode, setViewMode] = useState<'list' | 'kanban'>('list');
+  const [viewMode, setViewMode] = useState<"list" | "kanban">("list");
 
   useEffect(() => {
     fetchUsers();
@@ -106,16 +115,16 @@ export default function ManageUsers() {
     setIsLoading(true);
     try {
       const params: any = { page: currentPage, limit: 10 };
-      if (roleFilter !== 'all') {
+      if (roleFilter !== "all") {
         params.role = roleFilter;
       }
 
-      const response = await api.get('/admin/users', { params });
+      const response = await api.get("/admin/users", { params });
       setUsers(response.data.data.users);
       setTotalPages(response.data.data.pagination.totalPages);
     } catch (error: any) {
-      toast.error('Failed to fetch users', {
-        description: error.response?.data?.message
+      toast.error("Failed to fetch users", {
+        description: error.response?.data?.message,
       });
     } finally {
       setIsLoading(false);
@@ -123,16 +132,16 @@ export default function ManageUsers() {
   };
 
   const handleDeleteUser = async (userId: string) => {
-    if (!confirm('Are you sure you want to delete this user?')) return;
+    if (!confirm("Are you sure you want to delete this user?")) return;
 
     try {
       await api.delete(`/admin/users/${userId}`);
       await api.delete(`/admin/users/${userId}`);
-      toast.success('User deleted successfully');
+      toast.success("User deleted successfully");
       fetchUsers();
     } catch (error: any) {
-      toast.error('Failed to delete user', {
-        description: error.response?.data?.message
+      toast.error("Failed to delete user", {
+        description: error.response?.data?.message,
       });
     }
   };
@@ -150,14 +159,16 @@ export default function ManageUsers() {
       await api.delete(`/admin/users/${deletingUser.id}`);
 
       // Update local state instead of refetching
-      setUsers(prevUsers => prevUsers.filter(u => u.id !== deletingUser.id));
+      setUsers((prevUsers) =>
+        prevUsers.filter((u) => u.id !== deletingUser.id),
+      );
 
-      toast.success('User deleted successfully');
+      toast.success("User deleted successfully");
       setIsDeleteDialogOpen(false);
       setDeletingUser(null);
     } catch (error: any) {
-      toast.error('Failed to delete user', {
-        description: error.response?.data?.message
+      toast.error("Failed to delete user", {
+        description: error.response?.data?.message,
       });
     } finally {
       setIsDeleting(false);
@@ -170,6 +181,7 @@ export default function ManageUsers() {
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.email,
+      phone: user.phone || "",
     });
     setIsEditDialogOpen(true);
   };
@@ -181,25 +193,23 @@ export default function ManageUsers() {
       await api.put(`/admin/users/${editingUser.id}`, editForm);
 
       // Update local state instead of refetching
-      setUsers(prevUsers =>
-        prevUsers.map(u =>
-          u.id === editingUser.id
-            ? { ...u, ...editForm }
-            : u
-        )
+      setUsers((prevUsers) =>
+        prevUsers.map((u) =>
+          u.id === editingUser.id ? { ...u, ...editForm } : u,
+        ),
       );
 
-      toast.success('User updated successfully');
+      toast.success("User updated successfully");
       setIsEditDialogOpen(false);
       setEditingUser(null);
     } catch (error: any) {
-      toast.error('Failed to update user', {
-        description: error.response?.data?.message
+      toast.error("Failed to update user", {
+        description: error.response?.data?.message,
       });
     }
   };
 
-  const filteredUsers = users.filter(user => {
+  const filteredUsers = users.filter((user) => {
     const searchLower = searchQuery.toLowerCase();
     return (
       user.email.toLowerCase().includes(searchLower) ||
@@ -210,10 +220,14 @@ export default function ManageUsers() {
 
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
-      case 'ADMIN': return 'bg-red-100 text-red-700';
-      case 'VENDOR': return 'bg-blue-100 text-blue-700';
-      case 'CUSTOMER': return 'bg-green-100 text-green-700';
-      default: return 'bg-gray-100 text-gray-700';
+      case "ADMIN":
+        return "bg-red-100 text-red-700";
+      case "VENDOR":
+        return "bg-blue-100 text-blue-700";
+      case "CUSTOMER":
+        return "bg-green-100 text-green-700";
+      default:
+        return "bg-gray-100 text-gray-700";
     }
   };
 
@@ -263,18 +277,18 @@ export default function ManageUsers() {
                 </div>
                 <div className="flex items-center rounded-xl border bg-background p-1">
                   <Button
-                    variant={viewMode === 'list' ? 'default' : 'ghost'}
+                    variant={viewMode === "list" ? "default" : "ghost"}
                     size="sm"
                     className="rounded-lg px-3"
-                    onClick={() => setViewMode('list')}
+                    onClick={() => setViewMode("list")}
                   >
                     <List className="h-4 w-4" />
                   </Button>
                   <Button
-                    variant={viewMode === 'kanban' ? 'default' : 'ghost'}
+                    variant={viewMode === "kanban" ? "default" : "ghost"}
                     size="sm"
                     className="rounded-lg px-3"
-                    onClick={() => setViewMode('kanban')}
+                    onClick={() => setViewMode("kanban")}
                   >
                     <LayoutGrid className="h-4 w-4" />
                   </Button>
@@ -296,13 +310,13 @@ export default function ManageUsers() {
         </motion.div>
 
         {/* Users View - List or Kanban */}
-        {isLoading ? (
+        {isLoading ?
           <div className="text-center py-8">Loading users...</div>
-        ) : filteredUsers.length === 0 ? (
+        : filteredUsers.length === 0 ?
           <div className="text-center py-8 text-muted-foreground">
             No users found
           </div>
-        ) : viewMode === 'list' ? (
+        : viewMode === "list" ?
           /* List View */
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -342,13 +356,17 @@ export default function ManageUsers() {
                             </div>
                           </TableCell>
                           <TableCell>
-                            <Badge className={getRoleBadgeColor(user.roles[0]?.role.name)}>
+                            <Badge
+                              className={getRoleBadgeColor(
+                                user.roles[0]?.role.name,
+                              )}
+                            >
                               <Shield className="mr-1 h-3 w-3" />
                               {user.roles[0]?.role.name}
                             </Badge>
                           </TableCell>
                           <TableCell>
-                            {user.vendor?.companyName || '-'}
+                            {user.vendor?.companyName || "-"}
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -392,7 +410,9 @@ export default function ManageUsers() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                        onClick={() =>
+                          setCurrentPage((prev) => Math.max(1, prev - 1))
+                        }
                         disabled={currentPage === 1}
                       >
                         Previous
@@ -400,7 +420,11 @@ export default function ManageUsers() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                        onClick={() =>
+                          setCurrentPage((prev) =>
+                            Math.min(totalPages, prev + 1),
+                          )
+                        }
                         disabled={currentPage === totalPages}
                       >
                         Next
@@ -411,8 +435,7 @@ export default function ManageUsers() {
               </CardContent>
             </Card>
           </motion.div>
-        ) : (
-          /* Grid View */
+        : /* Grid View */
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {filteredUsers.map((user) => (
               <motion.div
@@ -458,7 +481,9 @@ export default function ManageUsers() {
                       <span className="truncate">{user.email}</span>
                     </div>
                     <div>
-                      <Badge className={getRoleBadgeColor(user.roles[0]?.role.name)}>
+                      <Badge
+                        className={getRoleBadgeColor(user.roles[0]?.role.name)}
+                      >
                         <Shield className="mr-1 h-3 w-3" />
                         {user.roles[0]?.role.name}
                       </Badge>
@@ -477,7 +502,7 @@ export default function ManageUsers() {
               </motion.div>
             ))}
           </div>
-        )}
+        }
       </div>
 
       {/* Edit User Dialog */}
@@ -495,7 +520,9 @@ export default function ManageUsers() {
               <Input
                 id="firstName"
                 value={editForm.firstName}
-                onChange={(e) => setEditForm({ ...editForm, firstName: e.target.value })}
+                onChange={(e) =>
+                  setEditForm({ ...editForm, firstName: e.target.value })
+                }
                 placeholder="Enter first name"
               />
             </div>
@@ -504,7 +531,9 @@ export default function ManageUsers() {
               <Input
                 id="lastName"
                 value={editForm.lastName}
-                onChange={(e) => setEditForm({ ...editForm, lastName: e.target.value })}
+                onChange={(e) =>
+                  setEditForm({ ...editForm, lastName: e.target.value })
+                }
                 placeholder="Enter last name"
               />
             </div>
@@ -514,13 +543,34 @@ export default function ManageUsers() {
                 id="email"
                 type="email"
                 value={editForm.email}
-                onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                onChange={(e) =>
+                  setEditForm({ ...editForm, email: e.target.value })
+                }
                 placeholder="Enter email"
               />
             </div>
+            <div className="grid gap-2">
+              <Label htmlFor="phone">Phone (Optional)</Label>
+              <div className="relative">
+                <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="phone"
+                  type="tel"
+                  value={editForm.phone}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, phone: e.target.value })
+                  }
+                  placeholder="Enter phone number"
+                  className="pl-10"
+                />
+              </div>
+            </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setIsEditDialogOpen(false)}
+            >
               Cancel
             </Button>
             <Button onClick={handleUpdateUser}>Save Changes</Button>
@@ -529,14 +579,21 @@ export default function ManageUsers() {
       </Dialog>
 
       {/* Delete Confirmation Dialog */}
-      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+      <AlertDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the user account
-              for <span className="font-semibold">{deletingUser?.firstName} {deletingUser?.lastName}</span> ({deletingUser?.email})
-              and remove all associated data from the system.
+              This action cannot be undone. This will permanently delete the
+              user account for{" "}
+              <span className="font-semibold">
+                {deletingUser?.firstName} {deletingUser?.lastName}
+              </span>{" "}
+              ({deletingUser?.email}) and remove all associated data from the
+              system.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -546,7 +603,7 @@ export default function ManageUsers() {
               disabled={isDeleting}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {isDeleting ? 'Deleting...' : 'Delete User'}
+              {isDeleting ? "Deleting..." : "Delete User"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

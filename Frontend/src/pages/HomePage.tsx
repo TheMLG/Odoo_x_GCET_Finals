@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Package, Shield, Clock, Truck, Star, CheckCircle } from 'lucide-react';
+import { ArrowRight, Package, Shield, Clock, Truck, Star, CheckCircle, Camera, Drill, Headphones, Speaker, Monitor, Laptop, Projector, Mic, Video, Wrench, HardHat, Palette } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { MainLayout } from '@/components/layout/MainLayout';
@@ -11,6 +11,22 @@ import { RoleBasedRedirect } from '@/components/RoleBasedRedirect';
 import { useEffect, useState } from 'react';
 import api from '@/lib/api';
 import type { Review } from '@/types/rental';
+
+// Floating icons configuration for hero section
+const floatingIcons = [
+  { Icon: Camera, color: '#3B82F6', top: '15%', left: '8%', rotate: -15, size: 32 },
+  { Icon: Drill, color: '#F59E0B', top: '25%', right: '10%', rotate: 20, size: 36 },
+  { Icon: Headphones, color: '#8B5CF6', top: '60%', left: '5%', rotate: 12, size: 28 },
+  { Icon: Speaker, color: '#10B981', bottom: '20%', right: '8%', rotate: -25, size: 34 },
+  { Icon: Monitor, color: '#EC4899', top: '12%', right: '18%', rotate: 8, size: 30 },
+  { Icon: Laptop, color: '#06B6D4', bottom: '30%', left: '12%', rotate: -10, size: 32 },
+  { Icon: Projector, color: '#F97316', top: '45%', right: '5%', rotate: 15, size: 28 },
+  { Icon: Mic, color: '#6366F1', bottom: '15%', left: '18%', rotate: -20, size: 26 },
+  { Icon: Video, color: '#EF4444', top: '35%', left: '3%', rotate: 25, size: 30 },
+  { Icon: Wrench, color: '#14B8A6', bottom: '35%', right: '15%', rotate: -12, size: 28 },
+  { Icon: HardHat, color: '#FBBF24', top: '70%', right: '12%', rotate: 18, size: 32 },
+  { Icon: Palette, color: '#A855F7', top: '8%', left: '20%', rotate: -8, size: 26 },
+];
 
 const features = [
   {
@@ -80,6 +96,46 @@ export default function HomePage() {
           <div className="absolute left-1/4 top-1/4 h-96 w-96 rounded-full bg-primary/10 blur-3xl" />
           <div className="absolute bottom-1/4 right-1/4 h-96 w-96 rounded-full bg-primary/5 blur-3xl" />
         </div>
+        
+        {/* Floating Colorful Icons */}
+        {floatingIcons.map((item, index) => (
+          <motion.div
+            key={index}
+            className="absolute hidden md:block"
+            style={{
+              top: item.top,
+              left: item.left,
+              right: item.right,
+              bottom: item.bottom,
+            }}
+            initial={{ opacity: 0, scale: 0 }}
+            animate={{ 
+              opacity: 0.7, 
+              scale: 1,
+              y: [0, -10, 0],
+            }}
+            transition={{ 
+              duration: 0.5, 
+              delay: index * 0.1,
+              y: {
+                duration: 3 + index * 0.5,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }
+            }}
+          >
+            <div 
+              className="rounded-xl bg-white/80 p-3 shadow-lg backdrop-blur-sm"
+              style={{ transform: `rotate(${item.rotate}deg)` }}
+            >
+              <item.Icon 
+                size={item.size} 
+                style={{ color: item.color }}
+                strokeWidth={1.5}
+              />
+            </div>
+          </motion.div>
+        ))}
         
         <div className="container px-4 md:px-6">
           <motion.div

@@ -68,7 +68,7 @@ export const updateVendorProfile = asyncHandler(async (req, res) => {
 
 // Update vendor user information (personal details)
 export const updateVendorUser = asyncHandler(async (req, res) => {
-  const { firstName, lastName, email } = req.body;
+  const { firstName, lastName, email, phone } = req.body;
 
   // Check if email already exists for a different user
   if (email) {
@@ -87,6 +87,7 @@ export const updateVendorUser = asyncHandler(async (req, res) => {
       ...(firstName && { firstName }),
       ...(lastName && { lastName }),
       ...(email && { email }),
+      ...(phone !== undefined && { phone: phone || null }),
     },
     include: {
       vendor: true,

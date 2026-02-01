@@ -10,18 +10,12 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-import { toast } from "sonner";
 import api from "@/lib/api";
 import { useAuthStore } from "@/stores/authStore";
 import { motion } from "framer-motion";
-import {
-  Lock,
-  Mail,
-  Save,
-  Shield,
-  User,
-} from "lucide-react";
+import { Lock, Mail, Phone, Save, Shield, User } from "lucide-react";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 export default function AdminSettings() {
   const { user, setUser } = useAuthStore();
@@ -31,6 +25,7 @@ export default function AdminSettings() {
     firstName: "",
     lastName: "",
     email: "",
+    phone: "",
   });
   const [isProfileLoading, setIsProfileLoading] = useState(false);
 
@@ -52,6 +47,7 @@ export default function AdminSettings() {
         firstName: user.firstName || "",
         lastName: user.lastName || "",
         email: user.email || "",
+        phone: (user as any).phone || "",
       });
     }
   }, [user]);
@@ -70,9 +66,7 @@ export default function AdminSettings() {
 
       toast.success("Profile updated successfully");
     } catch (error: any) {
-      toast.error(
-        error.response?.data?.message || "Failed to update profile"
-      );
+      toast.error(error.response?.data?.message || "Failed to update profile");
     } finally {
       setIsProfileLoading(false);
     }
@@ -110,9 +104,7 @@ export default function AdminSettings() {
         confirmPassword: "",
       });
     } catch (error: any) {
-      toast.error(
-        error.response?.data?.message || "Failed to change password"
-      );
+      toast.error(error.response?.data?.message || "Failed to change password");
     } finally {
       setIsPasswordLoading(false);
     }
@@ -128,7 +120,7 @@ export default function AdminSettings() {
       toast.success("Rental reminder emails have been sent successfully");
     } catch (error: any) {
       toast.error(
-        error.response?.data?.message || "Failed to send rental reminders"
+        error.response?.data?.message || "Failed to send rental reminders",
       );
     } finally {
       setIsReminderLoading(false);
@@ -230,6 +222,25 @@ export default function AdminSettings() {
                       />
                     </div>
                   </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">Phone Number (Optional)</Label>
+                    <div className="relative">
+                      <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="phone"
+                        type="tel"
+                        placeholder="+1 (555) 000-0000"
+                        value={profileForm.phone}
+                        onChange={(e) =>
+                          setProfileForm({
+                            ...profileForm,
+                            phone: e.target.value,
+                          })
+                        }
+                        className="pl-10 rounded-xl"
+                      />
+                    </div>
+                  </div>
                   <div className="flex justify-end pt-4">
                     <Button
                       type="submit"
@@ -238,7 +249,7 @@ export default function AdminSettings() {
                     >
                       {isProfileLoading ?
                         "Saving..."
-                        : <>
+                      : <>
                           <Save className="mr-2 h-4 w-4" />
                           Save Changes
                         </>
@@ -341,7 +352,7 @@ export default function AdminSettings() {
                     >
                       {isPasswordLoading ?
                         "Changing Password..."
-                        : <>
+                      : <>
                           <Lock className="mr-2 h-4 w-4" />
                           Change Password
                         </>

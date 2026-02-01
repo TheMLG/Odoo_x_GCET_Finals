@@ -161,6 +161,7 @@ export const updateVendorUser = async (data: {
   firstName?: string;
   lastName?: string;
   email?: string;
+  phone?: string;
 }) => {
   const response = await api.put("/vendor/profile/user", data);
   return response.data.data;
