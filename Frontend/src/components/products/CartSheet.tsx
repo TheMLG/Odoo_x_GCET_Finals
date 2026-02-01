@@ -1,20 +1,18 @@
-import { useState } from 'react';
-import { format } from 'date-fns';
-import { Calendar, Trash2, Minus, Plus, X, ChevronDown, Tag, Zap, ShoppingBag } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
+import { DatePickerDialog } from "@/components/DatePickerDialog";
+import { Button } from "@/components/ui/button";
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
-} from '@/components/ui/sheet';
-import { Input } from '@/components/ui/input';
-import { useCartStore } from '@/stores/cartStore';
-import { useRentalStore } from '@/stores/rentalStore';
-import { DatePickerDialog } from '@/components/DatePickerDialog';
-import { CouponSelector } from '@/components/coupon/CouponSelector';
-import { toast } from 'sonner';
+} from "@/components/ui/sheet";
+import { useCartStore } from "@/stores/cartStore";
+import { useRentalStore } from "@/stores/rentalStore";
+import { format } from "date-fns";
+import { Calendar, Minus, Plus, ShoppingBag, Trash2, Zap } from "lucide-react";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 interface CartSheetProps {
   open: boolean;
@@ -26,29 +24,24 @@ export function CartSheet({ open, onClose }: CartSheetProps) {
   const { items, removeItem, updateItem, getTotalAmount } = useCartStore();
   const { deliveryDate, pickupDate } = useRentalStore();
   const [showDateModal, setShowDateModal] = useState(false);
-  const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number } | null>(null);
 
   // Default dates for display
   const defaultDeliveryDate = deliveryDate || new Date(2026, 1, 10); // Feb 10, 2026
   const defaultPickupDate = pickupDate || new Date(2026, 1, 13); // Feb 13, 2026
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
+    return new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
       maximumFractionDigits: 0,
     }).format(price);
   };
 
-  const handleCouponApplied = (code: string, discount: number) => {
-    if (code && discount > 0) {
-      setAppliedCoupon({ code, discount });
-    } else {
-      setAppliedCoupon(null);
-    }
-  };
-
-  const handleQuantityChange = (itemId: string, newQuantity: number, maxQuantity: number) => {
+  const handleQuantityChange = (
+    itemId: string,
+    newQuantity: number,
+    maxQuantity: number,
+  ) => {
     if (newQuantity < 1) return;
     if (newQuantity > maxQuantity) {
       toast.error(`Only ${maxQuantity} units available`);
@@ -67,14 +60,12 @@ export function CartSheet({ open, onClose }: CartSheetProps) {
 
   const handleCheckout = () => {
     onClose();
-    navigate('/checkout/contact');
+    navigate("/checkout/contact");
   };
 
   const totalAmount = getTotalAmount();
-  const discountAmount = appliedCoupon?.discount || 0;
-  const totalAfterDiscount = totalAmount - discountAmount;
-  const baseAmount = totalAfterDiscount / 1.18;
-  const gstAmount = totalAfterDiscount - baseAmount;
+  const baseAmount = totalAmount / 1.18;
+  const gstAmount = totalAmount - baseAmount;
 
   return (
     <>
@@ -83,23 +74,25 @@ export function CartSheet({ open, onClose }: CartSheetProps) {
           <SheetHeader className="pb-3">
             <SheetTitle className="text-xl font-bold">Cart Items</SheetTitle>
             <div className="text-xs text-muted-foreground">
-              {items.length} item{items.length !== 1 ? 's' : ''} added
+              {items.length} item{items.length !== 1 ? "s" : ""} added
             </div>
           </SheetHeader>
 
           <div className="flex flex-col gap-4 overflow-y-auto max-h-[calc(100vh-100px)] pr-1">
             {/* Cart Items */}
             <div className="flex-1 space-y-3">
-              {items.length === 0 ? (
+              {items.length === 0 ?
                 <div className="py-12 text-center">
                   <p className="text-muted-foreground">Your cart is empty</p>
                   <Button asChild className="mt-4" onClick={onClose}>
                     <Link to="/products">Browse Products</Link>
                   </Button>
                 </div>
-              ) : (
-                items.map((item) => (
-                  <div key={item.id} className="flex gap-3 rounded-lg border border-border p-3">
+              : items.map((item) => (
+                  <div
+                    key={item.id}
+                    className="flex gap-3 rounded-lg border border-border p-3"
+                  >
                     <Link
                       to={`/products/${item.productId}`}
                       onClick={onClose}
@@ -127,9 +120,14 @@ export function CartSheet({ open, onClose }: CartSheetProps) {
                           </div>
                         </div>
                         <div className="text-right">
-                          <div className="text-sm font-bold">{formatPrice(item.totalPrice)}</div>
+                          <div className="text-sm font-bold">
+                            {formatPrice(item.totalPrice)}
+                          </div>
                           <div className="text-[10px] text-muted-foreground">
-                            +GST {formatPrice(item.totalPrice - (item.totalPrice / 1.18))}
+                            +GST{" "}
+                            {formatPrice(
+                              item.totalPrice - item.totalPrice / 1.18,
+                            )}
                           </div>
                         </div>
                       </div>
@@ -144,14 +142,16 @@ export function CartSheet({ open, onClose }: CartSheetProps) {
                               handleQuantityChange(
                                 item.id,
                                 item.quantity - 1,
-                                item.product.quantityOnHand
+                                item.product.quantityOnHand,
                               )
                             }
                             disabled={item.quantity <= 1}
                           >
                             <Minus className="h-3 w-3" />
                           </Button>
-                          <span className="w-6 text-center text-sm font-medium">{item.quantity}</span>
+                          <span className="w-6 text-center text-sm font-medium">
+                            {item.quantity}
+                          </span>
                           <Button
                             variant="outline"
                             size="icon"
@@ -160,10 +160,12 @@ export function CartSheet({ open, onClose }: CartSheetProps) {
                               handleQuantityChange(
                                 item.id,
                                 item.quantity + 1,
-                                item.product.quantityOnHand
+                                item.product.quantityOnHand,
                               )
                             }
-                            disabled={item.quantity >= item.product.quantityOnHand}
+                            disabled={
+                              item.quantity >= item.product.quantityOnHand
+                            }
                           >
                             <Plus className="h-3 w-3" />
                           </Button>
@@ -175,7 +177,7 @@ export function CartSheet({ open, onClose }: CartSheetProps) {
                           className="h-6 w-6 text-destructive hover:text-destructive"
                           onClick={() => {
                             removeItem(item.id);
-                            toast.success('Item removed');
+                            toast.success("Item removed");
                           }}
                         >
                           <Trash2 className="h-3.5 w-3.5" />
@@ -184,7 +186,7 @@ export function CartSheet({ open, onClose }: CartSheetProps) {
                     </div>
                   </div>
                 ))
-              )}
+              }
             </div>
 
             {items.length > 0 && (
@@ -196,12 +198,16 @@ export function CartSheet({ open, onClose }: CartSheetProps) {
                       <div className="flex items-center gap-1.5 text-xs">
                         <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
                         <span className="font-medium">Delivery:</span>
-                        <span className="text-muted-foreground">{format(defaultDeliveryDate, 'do MMM')}</span>
+                        <span className="text-muted-foreground">
+                          {format(defaultDeliveryDate, "do MMM")}
+                        </span>
                       </div>
                       <div className="flex items-center gap-1.5 text-xs">
                         <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
                         <span className="font-medium">Pickup:</span>
-                        <span className="text-muted-foreground">{format(defaultPickupDate, 'do MMM')}</span>
+                        <span className="text-muted-foreground">
+                          {format(defaultPickupDate, "do MMM")}
+                        </span>
                       </div>
                     </div>
                     <Button
@@ -215,17 +221,10 @@ export function CartSheet({ open, onClose }: CartSheetProps) {
                   </div>
                   <div className="flex items-center gap-1 text-xs text-emerald-600">
                     <Zap className="h-3.5 w-3.5 fill-emerald-600" />
-                    <span>Additional day at {'\u20B9'}108 only on this cart</span>
+                    <span>
+                      Additional day at {"\u20B9"}108 only on this cart
+                    </span>
                   </div>
-                </div>
-
-                {/* Coupon Code - Use CouponSelector */}
-                <div className="space-y-2 border-t border-border pt-3">
-                  <CouponSelector
-                    totalAmount={totalAmount}
-                    onCouponApplied={handleCouponApplied}
-                    appliedCouponCode={appliedCoupon?.code}
-                  />
                 </div>
 
                 {/* Total Section */}
@@ -233,28 +232,32 @@ export function CartSheet({ open, onClose }: CartSheetProps) {
                   <div className="space-y-1.5">
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-muted-foreground">Subtotal</span>
-                      <span className="font-medium">{formatPrice(totalAmount)}</span>
+                      <span className="font-medium">
+                        {formatPrice(totalAmount)}
+                      </span>
                     </div>
-                    {appliedCoupon && (
-                      <div className="flex items-center justify-between text-xs text-green-600 font-medium">
-                        <span>Discount ({appliedCoupon.code})</span>
-                        <span>-{formatPrice(discountAmount)}</span>
-                      </div>
-                    )}
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-muted-foreground">Base Amount</span>
-                      <span className="font-medium">{formatPrice(baseAmount)}</span>
+                      <span className="font-medium">
+                        {formatPrice(baseAmount)}
+                      </span>
                     </div>
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-muted-foreground">GST (18%)</span>
-                      <span className="font-medium">{formatPrice(gstAmount)}</span>
+                      <span className="font-medium">
+                        {formatPrice(gstAmount)}
+                      </span>
                     </div>
                     <div className="flex items-center justify-between border-t border-border pt-2">
                       <div>
                         <div className="text-sm font-bold">Total Charges</div>
-                        <div className="text-[10px] text-muted-foreground">Price incl. of all taxes</div>
+                        <div className="text-[10px] text-muted-foreground">
+                          Price incl. of all taxes
+                        </div>
                       </div>
-                      <div className="text-xl font-bold">{formatPrice(totalAfterDiscount)}</div>
+                      <div className="text-xl font-bold">
+                        {formatPrice(totalAmount)}
+                      </div>
                     </div>
                   </div>
 

@@ -1,22 +1,23 @@
-import { motion } from 'framer-motion';
-import { Calendar, ChevronDown, Tag, Zap, CreditCard } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
-import { CouponSelector } from '@/components/coupon/CouponSelector';
-import { useCartStore } from '@/stores/cartStore';
-import { format, addDays } from 'date-fns';
-import { useState } from 'react';
+import { CouponSelector } from "@/components/coupon/CouponSelector";
+import { Button } from "@/components/ui/button";
+import { useCartStore } from "@/stores/cartStore";
+import { addDays, format } from "date-fns";
+import { motion } from "framer-motion";
+import { Calendar, ChevronDown, CreditCard, Zap } from "lucide-react";
+import { useState } from "react";
 
 interface CheckoutSidebarProps {
   currentStep: number;
   deliveryCost?: number;
 }
 
-export function CheckoutSidebar({ currentStep, deliveryCost = 0 }: CheckoutSidebarProps) {
-  const { items, getTotalAmount } = useCartStore();
-  const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number } | null>(null);
+export function CheckoutSidebar({
+  currentStep,
+  deliveryCost = 0,
+}: CheckoutSidebarProps) {
+  // Use global cartStore for coupon state to persist across all checkout pages
+  const { items, getTotalAmount, appliedCoupon, applyCoupon, removeCoupon } =
+    useCartStore();
   const [showBillDetails, setShowBillDetails] = useState(true);
 
   const subtotalAmount = getTotalAmount();
@@ -27,16 +28,16 @@ export function CheckoutSidebar({ currentStep, deliveryCost = 0 }: CheckoutSideb
 
   const handleCouponApplied = (code: string, discount: number) => {
     if (code && discount > 0) {
-      setAppliedCoupon({ code, discount });
+      applyCoupon({ code, discount });
     } else {
-      setAppliedCoupon(null);
+      removeCoupon();
     }
   };
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
+    return new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
       maximumFractionDigits: 0,
     }).format(price);
   };
@@ -58,17 +59,21 @@ export function CheckoutSidebar({ currentStep, deliveryCost = 0 }: CheckoutSideb
         <div className="mb-6 flex items-center gap-2 rounded-xl bg-gray-50 p-3">
           <Calendar className="h-5 w-5 text-gray-600" />
           <span className="text-sm font-medium">
-            Rent for: {format(deliveryDate, 'do MMM')} •{' '}
-            {format(pickupDate, 'do MMM')}
+            Rent for: {format(deliveryDate, "do MMM")} •{" "}
+            {format(pickupDate, "do MMM")}
           </span>
-          <Button variant="ghost" size="sm" className="ml-auto rounded-full text-xs">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="ml-auto rounded-full text-xs"
+          >
             Edit
           </Button>
         </div>
 
         {/* Items Count */}
         <div className="mb-4 text-sm text-muted-foreground">
-          {items.length} {items.length === 1 ? 'item' : 'items'} in your cart
+          {items.length} {items.length === 1 ? "item" : "items"} in your cart
         </div>
 
         {/* Cart Items Preview */}
@@ -77,23 +82,35 @@ export function CheckoutSidebar({ currentStep, deliveryCost = 0 }: CheckoutSideb
             <div key={item.id} className="flex gap-3 rounded-lg bg-gray-50 p-2">
               <div className="h-14 w-14 flex-shrink-0 overflow-hidden rounded-lg bg-white">
                 <img
-                  src={item.product.images[0] || 'https://via.placeholder.com/56'}
+                  src={
+                    item.product.images[0] || "https://via.placeholder.com/56"
+                  }
                   alt={item.product.name}
                   className="h-full w-full object-cover"
                 />
               </div>
               <div className="flex-1 min-w-0">
-                <h4 className="text-sm font-medium truncate">{item.product.name}</h4>
-                <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
-                {item.selectedAttributes && Object.keys(item.selectedAttributes).length > 0 && (
-                  <div className="flex flex-wrap gap-1 mt-1">
-                    {Object.entries(item.selectedAttributes).map(([key, value]) => (
-                      <span key={key} className="text-xs text-muted-foreground">
-                        {key}: {value as string}
-                      </span>
-                    ))}
-                  </div>
-                )}
+                <h4 className="text-sm font-medium truncate">
+                  {item.product.name}
+                </h4>
+                <p className="text-xs text-muted-foreground">
+                  Qty: {item.quantity}
+                </p>
+                {item.selectedAttributes &&
+                  Object.keys(item.selectedAttributes).length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {Object.entries(item.selectedAttributes).map(
+                        ([key, value]) => (
+                          <span
+                            key={key}
+                            className="text-xs text-muted-foreground"
+                          >
+                            {key}: {value as string}
+                          </span>
+                        ),
+                      )}
+                    </div>
+                  )}
               </div>
               <div className="text-sm font-semibold whitespace-nowrap">
                 {formatPrice(item.totalPrice)}
@@ -101,7 +118,6 @@ export function CheckoutSidebar({ currentStep, deliveryCost = 0 }: CheckoutSideb
             </div>
           ))}
         </div>
-
 
         {/* Coupon Code */}
         <div className="mb-6 space-y-2">
@@ -120,17 +136,25 @@ export function CheckoutSidebar({ currentStep, deliveryCost = 0 }: CheckoutSideb
           >
             <span className="flex items-center gap-1 text-sm font-semibold">
               Bill Summary
-              <ChevronDown className={`h-4 w-4 transition-transform ${showBillDetails ? 'rotate-180' : ''}`} />
+              <ChevronDown
+                className={`h-4 w-4 transition-transform ${showBillDetails ? "rotate-180" : ""}`}
+              />
             </span>
-            <div className="text-2xl font-bold">{formatPrice(totalAfterDiscount)}</div>
+            <div className="text-2xl font-bold">
+              {formatPrice(totalAfterDiscount)}
+            </div>
           </button>
-          <p className="text-xs text-muted-foreground">Price incl. of all taxes</p>
+          <p className="text-xs text-muted-foreground">
+            Price incl. of all taxes
+          </p>
 
           {showBillDetails && (
             <div className="mt-4 space-y-2 border-t border-border pt-4">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Subtotal</span>
-                <span className="font-medium">{formatPrice(subtotalAmount)}</span>
+                <span className="font-medium">
+                  {formatPrice(subtotalAmount)}
+                </span>
               </div>
               {appliedCoupon && (
                 <div className="flex justify-between text-sm text-green-600 font-medium">
@@ -139,24 +163,37 @@ export function CheckoutSidebar({ currentStep, deliveryCost = 0 }: CheckoutSideb
                 </div>
               )}
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Rental Cost (Base)</span>
-                <span className="font-medium">{formatPrice((subtotalAmount - discountAmount) / 1.18)}</span>
+                <span className="text-muted-foreground">
+                  Rental Cost (Base)
+                </span>
+                <span className="font-medium">
+                  {formatPrice((subtotalAmount - discountAmount) / 1.18)}
+                </span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">GST (18%)</span>
-                <span className="font-medium">{formatPrice((subtotalAmount - discountAmount) - ((subtotalAmount - discountAmount) / 1.18))}</span>
+                <span className="font-medium">
+                  {formatPrice(
+                    subtotalAmount -
+                      discountAmount -
+                      (subtotalAmount - discountAmount) / 1.18,
+                  )}
+                </span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Delivery Charges</span>
-                {deliveryCost === 0 ? (
+                {deliveryCost === 0 ?
                   <span className="font-medium text-green-600">FREE</span>
-                ) : (
-                  <span className="font-medium">{formatPrice(deliveryCost)}</span>
-                )}
+                : <span className="font-medium">
+                    {formatPrice(deliveryCost)}
+                  </span>
+                }
               </div>
               <div className="flex justify-between border-t border-border pt-2">
                 <span className="font-semibold">Total Amount</span>
-                <span className="text-lg font-bold text-blue-600">{formatPrice(totalAfterDiscount)}</span>
+                <span className="text-lg font-bold text-blue-600">
+                  {formatPrice(totalAfterDiscount)}
+                </span>
               </div>
             </div>
           )}
@@ -190,7 +227,8 @@ export function CheckoutSidebar({ currentStep, deliveryCost = 0 }: CheckoutSideb
 
         {/* Info Text */}
         <p className="text-center text-xs text-muted-foreground">
-          By placing your order, you agree to our privacy notice and conditions of use.
+          By placing your order, you agree to our privacy notice and conditions
+          of use.
         </p>
       </div>
     </motion.div>
