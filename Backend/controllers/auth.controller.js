@@ -608,6 +608,10 @@ export const updateUserProfile = asyncHandler(async (req, res) => {
     }
   }
 
+  if (phone) {
+    phone.test("0-9");
+  }
+
   const updatedUser = await prisma.user.update({
     where: { id: req.user.id },
     data: {

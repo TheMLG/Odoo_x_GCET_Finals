@@ -200,12 +200,14 @@ export function CheckoutSidebar({
         </div>
 
         {/* Savings Message */}
-        <div className="mb-6 flex items-center gap-2 rounded-xl bg-green-50 p-4">
-          <Zap className="h-5 w-5 fill-green-600 text-green-600" />
-          <p className="text-sm font-medium text-green-800">
-            Yay! You're saving {formatPrice(savings)} by choosing to rent.
-          </p>
-        </div>
+        {appliedCoupon && (
+          <div className="mb-6 flex items-center gap-2 rounded-xl bg-green-50 p-4">
+            <Zap className="h-5 w-5 fill-green-600 text-green-600" />
+            <p className="text-sm font-medium text-green-800">
+              Yay! You're saving {formatPrice(savings)} by choosing to rent.
+            </p>
+          </div>
+        )}
 
         {/* Payment Mode */}
         {currentStep >= 4 && (

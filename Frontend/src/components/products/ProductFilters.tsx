@@ -1,37 +1,37 @@
-import { useState } from 'react';
-import { Search, SlidersHorizontal, X } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet';
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { Search, SlidersHorizontal, X } from "lucide-react";
+import { useState } from "react";
 
 // Categories list
 const categories = [
-  'Photography',
-  'Videography',
-  'Lighting',
-  'Audio',
-  'Gaming',
-  'Electronics',
-  'Tools',
-  'Sports',
-  'Events',
-  'Other'
+  "cameras",
+  "Videography",
+  "Lighting",
+  "Audio",
+  "Gaming",
+  "Electronics",
+  "Tools",
+  "Sports",
+  "Events",
+  "Other",
 ];
 
 interface ProductFiltersProps {
@@ -62,9 +62,9 @@ export function ProductFilters({
   };
 
   const clearFilters = () => {
-    onSearchChange('');
+    onSearchChange("");
     onCategoryChange([]);
-    onSortChange('featured');
+    onSortChange("featured");
   };
 
   const hasActiveFilters = searchQuery || selectedCategories.length > 0;
@@ -143,7 +143,9 @@ export function ProductFilters({
         {categories.map((category) => (
           <Badge
             key={category}
-            variant={selectedCategories.includes(category) ? 'default' : 'outline'}
+            variant={
+              selectedCategories.includes(category) ? "default" : "outline"
+            }
             className="cursor-pointer rounded-lg transition-colors"
             onClick={() => toggleCategory(category)}
           >
@@ -161,12 +163,16 @@ export function ProductFilters({
               Search: {searchQuery}
               <X
                 className="h-3 w-3 cursor-pointer"
-                onClick={() => onSearchChange('')}
+                onClick={() => onSearchChange("")}
               />
             </Badge>
           )}
           {selectedCategories.map((category) => (
-            <Badge key={category} variant="secondary" className="gap-1 rounded-lg">
+            <Badge
+              key={category}
+              variant="secondary"
+              className="gap-1 rounded-lg"
+            >
               {category}
               <X
                 className="h-3 w-3 cursor-pointer"
