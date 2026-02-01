@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import { Calendar as CalendarIcon, Clock, Minus, Plus, ShoppingCart, TrendingUp, Shield, Heart, ChevronRight, Tag, Zap, CheckCircle2, Loader2 } from 'lucide-react';
@@ -16,10 +16,13 @@ import { Badge } from '@/components/ui/badge';
 import { useCartStore } from '@/stores/cartStore';
 import { useRentalStore } from '@/stores/rentalStore';
 import { useAuthStore } from '@/stores/authStore';
+import { useWishlistStore } from '@/stores/wishlistStore';
 import { DatePickerDialog } from '@/components/DatePickerDialog';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import * as couponApi from '@/lib/couponApi';
+import type { Coupon } from '@/lib/couponApi';
 
 interface RentalConfiguratorProps {
   product: Product;
@@ -34,6 +37,10 @@ export function RentalConfigurator({ product }: RentalConfiguratorProps) {
   const { addItem } = useCartStore();
   const { deliveryDate, pickupDate } = useRentalStore();
   const { isAuthenticated } = useAuthStore();
+  const { addItem: addToWishlist, removeItem: removeFromWishlist, isInWishlist } = useWishlistStore();
+  const inWishlist = isInWishlist(product.id);
+  const [coupons, setCoupons] = useState<Coupon[]>([]);
+  const [isLoadingCoupons, setIsLoadingCoupons] = useState(false);
 
   const formatPrice = (price: number) => {
     if (!price || price === 0) return '-';
@@ -58,6 +65,25 @@ export function RentalConfigurator({ product }: RentalConfiguratorProps) {
   };
 
   const totalPrice = getPriceForDuration() * quantity;
+
+  // Fetch available coupons
+  useEffect(() => {
+    const fetchCoupons = async () => {
+      try {
+        setIsLoadingCoupons(true);
+        const data = await couponApi.getAvailableCoupons();
+        setCoupons(data);
+      } catch (error) {
+        console.error('Failed to fetch coupons:', error);
+      } finally {
+        setIsLoadingCoupons(false);
+      }
+    };
+
+    if (isAuthenticated) {
+      fetchCoupons();
+    }
+  }, [isAuthenticated]);
 
   const handleAddToCart = async () => {
     if (!isAuthenticated) {
@@ -100,6 +126,26 @@ export function RentalConfigurator({ product }: RentalConfiguratorProps) {
     }
   };
 
+  const handleWishlistToggle = async () => {
+    if (!isAuthenticated) {
+      toast.info('Please login to use wishlist', {
+        action: {
+          label: 'Login',
+          onClick: () => navigate('/login')
+        }
+      });
+      return;
+    }
+
+    if (inWishlist) {
+      await removeFromWishlist(product.id);
+      toast.success('Removed from wishlist');
+    } else {
+      await addToWishlist(product);
+      toast.success('Added to wishlist');
+    }
+  };
+
   const durationOptions = [
     { value: 'hourly', label: 'Hourly', price: product.pricePerHour, icon: Clock },
     { value: 'daily', label: 'Daily', price: product.pricePerDay, icon: CalendarIcon },
@@ -123,8 +169,14 @@ export function RentalConfigurator({ product }: RentalConfiguratorProps) {
             <span className="font-medium">210 booked this month</span>
           </div>
         </div>
-        <button className="flex h-10 w-10 items-center justify-center rounded-full border border-border hover:bg-muted">
-          <Heart className="h-5 w-5" />
+        <button
+          onClick={handleWishlistToggle}
+          className="flex h-10 w-10 items-center justify-center rounded-full border border-border hover:bg-muted transition-colors"
+        >
+          <Heart className={cn(
+            "h-5 w-5 transition-colors",
+            inWishlist ? "fill-pink-500 text-pink-500" : "text-gray-600"
+          )} />
         </button>
       </div>
 
@@ -139,18 +191,71 @@ export function RentalConfigurator({ product }: RentalConfiguratorProps) {
         <div className="text-xs text-muted-foreground">Price incl. of all taxes</div>
       </div>
 
-      {/* Select Usage Dates Button */}
-      <Button
-        size="lg"
-        variant="outline"
-        className="w-full rounded-xl border-2"
-        onClick={() => setIsDatePickerOpen(true)}
-      >
-        <CalendarIcon className="mr-2 h-5 w-5" />
-        {deliveryDate && pickupDate
-          ? `${format(deliveryDate, 'MMM dd')} - ${format(pickupDate, 'MMM dd')}`
-          : 'Select Usage Dates'}
-      </Button>
+      {/* Select Usage Dates Section */}
+      {deliveryDate && pickupDate ? (
+        <div className="space-y-4 rounded-xl border border-border bg-gradient-to-br from-green-50 to-emerald-50 p-4">
+          <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wider">Your Rental Dates</h3>
+
+          {/* Delivery Date */}
+          <div className="space-y-2">
+            <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">Delivery Date *</label>
+            <div className="flex items-center gap-3 rounded-lg bg-green-500 px-4 py-3 text-white">
+              <CalendarIcon className="h-5 w-5" />
+              <span className="font-semibold">{format(deliveryDate, 'MMM dd, yyyy')}</span>
+            </div>
+          </div>
+
+          {/* Pickup Date */}
+          <div className="space-y-2">
+            <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">Pickup Date *</label>
+            <div className="flex items-center gap-3 rounded-lg bg-white border-2 border-gray-200 px-4 py-3 text-gray-900">
+              <CalendarIcon className="h-5 w-5" />
+              <span className="font-semibold">{format(pickupDate, 'MMM dd, yyyy')}</span>
+            </div>
+          </div>
+
+          {/* Rental Period */}
+          <div className="space-y-2">
+            <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">Your Rental Period</label>
+            <div className="flex items-baseline gap-2">
+              <span className="text-5xl font-bold text-purple-600">
+                {Math.ceil((pickupDate.getTime() - deliveryDate.getTime()) / (1000 * 60 * 60 * 24)).toString().padStart(2, '0')}
+              </span>
+              <span className="text-lg text-gray-600">Days</span>
+            </div>
+          </div>
+
+          {/* Chargeable Period */}
+          <div className="space-y-2">
+            <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">Chargeable Period</label>
+            <div className="flex items-center gap-2 text-purple-600">
+              <CalendarIcon className="h-4 w-4" />
+              <span className="text-sm font-medium">
+                {format(deliveryDate, 'do MMM')} - {format(pickupDate, 'do MMM')}
+              </span>
+            </div>
+          </div>
+
+          {/* Change Dates Button */}
+          <Button
+            variant="outline"
+            className="w-full rounded-xl"
+            onClick={() => setIsDatePickerOpen(true)}
+          >
+            Change Dates
+          </Button>
+        </div>
+      ) : (
+        <Button
+          size="lg"
+          variant="outline"
+          className="w-full rounded-xl border-2"
+          onClick={() => setIsDatePickerOpen(true)}
+        >
+          <CalendarIcon className="mr-2 h-5 w-5" />
+          Select Usage Dates
+        </Button>
+      )}
 
       {/* Add to Cart Button */}
       <Button
@@ -175,109 +280,50 @@ export function RentalConfigurator({ product }: RentalConfiguratorProps) {
       {/* Date Picker Dialog */}
       <DatePickerDialog open={isDatePickerOpen} onClose={() => setIsDatePickerOpen(false)} />
 
-      {/* Available Offers */}
-      <div className="rounded-xl border border-border p-4">
+      {/* Available Coupons */}
+      <div className="rounded-xl border border-border bg-gradient-to-br from-blue-50 to-purple-50 p-4">
         <div className="mb-3 flex items-center justify-between">
-          <h3 className="font-semibold">Available Offers (3 Offers)</h3>
-          <ChevronRight className="h-5 w-5" />
+          <h3 className="font-semibold text-gray-900">
+            Available Coupons {coupons.length > 0 && `(${coupons.length} ${coupons.length === 1 ? 'Coupon' : 'Coupons'})`}
+          </h3>
+          <ChevronRight className="h-5 w-5 text-gray-600" />
         </div>
-        <div className="space-y-3">
-          <div className="flex gap-3">
-            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-emerald-100">
-              <Tag className="h-5 w-5 text-emerald-600" />
-            </div>
-            <div className="flex-1">
-              <div className="font-medium">RENTX10</div>
-              <div className="text-sm text-muted-foreground">
-                Use code RENTX10 & get 10% off on orders above {'\u20B9'}1500. Maximum discount: {'\u20B9'}300
-              </div>
-            </div>
+
+        {isLoadingCoupons ? (
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="h-6 w-6 animate-spin text-primary" />
+            <span className="ml-2 text-sm text-muted-foreground">Loading coupons...</span>
           </div>
-          <div className="flex gap-3">
-            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-blue-100">
-              <Tag className="h-5 w-5 text-blue-600" />
-            </div>
-            <div className="flex-1">
-              <div className="font-medium">EARLYE</div>
-              <div className="text-sm text-muted-foreground">
-                Use code EARLYE & get 15% off on orders above {'\u20B9'}2000
+        ) : coupons.length > 0 ? (
+          <div className="space-y-3">
+            {coupons.slice(0, 3).map((coupon, index) => (
+              <div key={coupon.id} className="flex gap-3">
+                <div className={cn(
+                  "flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl",
+                  index === 0 ? "bg-emerald-100" : index === 1 ? "bg-blue-100" : "bg-purple-100"
+                )}>
+                  <Tag className={cn(
+                    "h-5 w-5",
+                    index === 0 ? "text-emerald-600" : index === 1 ? "text-blue-600" : "text-purple-600"
+                  )} />
+                </div>
+                <div className="flex-1">
+                  <div className="font-medium">{coupon.code}</div>
+                  <div className="text-sm text-muted-foreground">
+                    {coupon.description}
+                    {coupon.minOrderAmount && ` Min order: ₹${coupon.minOrderAmount}`}
+                  </div>
+                </div>
               </div>
-            </div>
+            ))}
           </div>
-        </div>
+        ) : (
+          <div className="py-6 text-center text-sm text-muted-foreground">
+            {isAuthenticated ? 'No coupons available at the moment' : 'Login to view available coupons'}
+          </div>
+        )}
       </div>
 
-      {/* Duration Selection - Collapsed for simplicity */}
-      <details className="rounded-xl border border-border p-4">
-        <summary className="cursor-pointer font-semibold">Rental Options</summary>
-        <div className="mt-4 space-y-4">
-          <div className="space-y-3">
-            <Label className="text-sm font-medium">Rental Duration</Label>
-            <RadioGroup
-              value={duration}
-              onValueChange={(value) => setDuration(value as RentalDuration)}
-              className="grid grid-cols-3 gap-3"
-            >
-              {durationOptions.map((option) => (
-                <Label
-                  key={option.value}
-                  htmlFor={option.value}
-                  className={cn(
-                    'flex cursor-pointer flex-col items-center gap-2 rounded-xl border-2 p-4 transition-all',
-                    duration === option.value
-                      ? 'border-primary bg-primary/5'
-                      : 'border-border hover:border-primary/50'
-                  )}
-                >
-                  <RadioGroupItem value={option.value} id={option.value} className="sr-only" />
-                  <option.icon className={cn(
-                    'h-5 w-5',
-                    duration === option.value ? 'text-primary' : 'text-muted-foreground'
-                  )} />
-                  <span className="text-sm font-medium">{option.label}</span>
-                  <span className={cn(
-                    'text-lg font-bold',
-                    duration === option.value ? 'text-primary' : ''
-                  )}>
-                    {formatPrice(option.price)}
-                  </span>
-                </Label>
-              ))}
-            </RadioGroup>
-          </div>
-
-          {/* Quantity */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <Label className="text-sm font-medium">Quantity</Label>
-              <span className="text-sm text-muted-foreground">
-                {product.quantityOnHand} available
-              </span>
-            </div>
-            <div className="flex items-center gap-3">
-              <Button
-                variant="outline"
-                size="icon"
-                className="rounded-xl"
-                onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                disabled={quantity <= 1}
-              >
-                <Minus className="h-4 w-4" />
-              </Button>
-              <span className="w-12 text-center text-lg font-semibold">{quantity}</span>
-              <Button
-                variant="outline"
-                size="icon"
-                className="rounded-xl"
-                onClick={() => setQuantity(Math.min(product.quantityOnHand, quantity + 1))}
-                disabled={quantity >= product.quantityOnHand}
-              >
-                <Plus className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        </div>
-      </details>
     </motion.div>
   );
 }

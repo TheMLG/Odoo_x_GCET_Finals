@@ -3,7 +3,7 @@ import { Package, Mail, Phone, MapPin } from "lucide-react";
 
 export function Footer() {
   return (
-    <footer className="border-t border-border bg-card">
+    <footer className="border-t border-border bg-gray-900 text-gray-100">
       <div className="container px-4 py-12 md:px-6">
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
           {/* Brand */}
@@ -12,9 +12,9 @@ export function Footer() {
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary">
                 <Package className="h-5 w-5 text-primary-foreground" />
               </div>
-              <span className="text-xl font-bold">RentX</span>
+              <span className="text-xl font-bold text-white">RentX</span>
             </Link>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-gray-400">
               Professional equipment rental platform for businesses. Rent
               cameras, drones, computers, and more with flexible pricing.
             </p>
@@ -22,14 +22,14 @@ export function Footer() {
 
           {/* Quick Links */}
           <div className="space-y-4">
-            <h3 className="text-sm font-semibold uppercase tracking-wider">
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-300">
               Quick Links
             </h3>
             <ul className="space-y-2">
               <li>
                 <Link
                   to="/products"
-                  className="text-sm text-muted-foreground hover:text-primary"
+                  className="text-sm text-gray-400 hover:text-white transition-colors"
                 >
                   Browse Products
                 </Link>
@@ -37,7 +37,7 @@ export function Footer() {
               <li>
                 <Link
                   to="/about"
-                  className="text-sm text-muted-foreground hover:text-primary"
+                  className="text-sm text-gray-400 hover:text-white transition-colors"
                 >
                   About Us
                 </Link>
@@ -45,7 +45,7 @@ export function Footer() {
               <li>
                 <Link
                   to="/contact"
-                  className="text-sm text-muted-foreground hover:text-primary"
+                  className="text-sm text-gray-400 hover:text-white transition-colors"
                 >
                   Contact
                 </Link>
@@ -53,7 +53,7 @@ export function Footer() {
               <li>
                 <Link
                   to="/faq"
-                  className="text-sm text-muted-foreground hover:text-primary"
+                  className="text-sm text-gray-400 hover:text-white transition-colors"
                 >
                   FAQ
                 </Link>
@@ -63,14 +63,14 @@ export function Footer() {
 
           {/* Legal */}
           <div className="space-y-4">
-            <h3 className="text-sm font-semibold uppercase tracking-wider">
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-300">
               Legal
             </h3>
             <ul className="space-y-2">
               <li>
                 <Link
                   to="/terms"
-                  className="text-sm text-muted-foreground hover:text-primary"
+                  className="text-sm text-gray-400 hover:text-white transition-colors"
                 >
                   Terms of Service
                 </Link>
@@ -78,7 +78,7 @@ export function Footer() {
               <li>
                 <Link
                   to="/privacy"
-                  className="text-sm text-muted-foreground hover:text-primary"
+                  className="text-sm text-gray-400 hover:text-white transition-colors"
                 >
                   Privacy Policy
                 </Link>
@@ -86,7 +86,7 @@ export function Footer() {
               <li>
                 <Link
                   to="/refund"
-                  className="text-sm text-muted-foreground hover:text-primary"
+                  className="text-sm text-gray-400 hover:text-white transition-colors"
                 >
                   Refund Policy
                 </Link>
@@ -96,19 +96,19 @@ export function Footer() {
 
           {/* Contact */}
           <div className="space-y-4">
-            <h3 className="text-sm font-semibold uppercase tracking-wider">
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-300">
               Contact Us
             </h3>
             <ul className="space-y-3">
-              <li className="flex items-center gap-2 text-sm text-muted-foreground">
+              <li className="flex items-center gap-2 text-sm text-gray-400">
                 <Mail className="h-4 w-4" />
                 support@rentalx.com
               </li>
-              <li className="flex items-center gap-2 text-sm text-muted-foreground">
+              <li className="flex items-center gap-2 text-sm text-gray-400">
                 <Phone className="h-4 w-4" />
                 +91 98765 43210
               </li>
-              <li className="flex items-start gap-2 text-sm text-muted-foreground">
+              <li className="flex items-start gap-2 text-sm text-gray-400">
                 <MapPin className="h-4 w-4 mt-0.5" />
                 <span>Ahemdabad, Gujarat, India</span>
               </li>
@@ -116,8 +116,8 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-12 border-t border-border pt-6">
-          <p className="text-center text-sm text-muted-foreground">
+        <div className="mt-12 border-t border-gray-700 pt-6">
+          <p className="text-center text-sm text-gray-400">
             © {new Date().getFullYear()} RentX. All rights reserved.
           </p>
         </div>

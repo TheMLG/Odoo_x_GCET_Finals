@@ -79,13 +79,13 @@ export function ProductFilters({
             placeholder="Search products..."
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="rounded-xl pl-10"
+            className="rounded-xl pl-10 bg-white"
           />
         </div>
 
         {/* Sort */}
         <Select value={sortBy} onValueChange={onSortChange}>
-          <SelectTrigger className="w-full rounded-xl sm:w-[180px]">
+          <SelectTrigger className="w-full rounded-xl sm:w-[180px] bg-white">
             <SelectValue placeholder="Sort by" />
           </SelectTrigger>
           <SelectContent>

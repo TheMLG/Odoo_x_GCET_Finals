@@ -44,6 +44,10 @@ export const verifyJWT = asyncHandler(async (req, res, next) => {
         } else if (err instanceof ApiError) {
             throw err;
         } else {
+            // Only log unexpected errors in development
+            if (process.env.NODE_ENV !== 'production') {
+                console.error('Authentication error:', err.message);
+            }
             throw new ApiError(401, "Authentication failed");
         }
     }

@@ -3,11 +3,20 @@ import { VendorLayout } from "@/components/layout/VendorLayout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getVendorDashboardStats, VendorDashboardStats } from "@/lib/vendorApi";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { getVendorDashboardStats, VendorDashboardStats, getVendorOrders, VendorOrder } from "@/lib/vendorApi";
 import { motion } from "framer-motion";
 import {
   AlertTriangle,
   ArrowUpRight,
+  BarChart3,
   DollarSign,
   FileText,
   Loader2,
@@ -32,13 +41,18 @@ export default function VendorDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [stats, setStats] = useState<VendorDashboardStats | null>(null);
+  const [recentOrders, setRecentOrders] = useState<VendorOrder[]>([]);
 
   const fetchDashboardData = useCallback(async () => {
     try {
       // Don't set loading to true here to avoid flickering on refresh
       setError(null);
-      const dashboardStats = await getVendorDashboardStats();
+      const [dashboardStats, orders] = await Promise.all([
+        getVendorDashboardStats(),
+        getVendorOrders()
+      ]);
       setStats(dashboardStats);
+      setRecentOrders(orders.slice(0, 5));
     } catch (err: any) {
       console.error("Error fetching dashboard data:", err);
       // Only set error if we don't have stats yet
@@ -299,48 +313,112 @@ export default function VendorDashboard() {
                     Invoices
                   </Link>
                 </Button>
-              </CardContent>
-            </Card>
-
-            {/* Top Products */}
-            <Card className="mt-6 rounded-2xl">
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="text-lg">Top Products</CardTitle>
-                <Button variant="ghost" size="sm" asChild>
-                  <Link to="/vendor/products">
-                    View All
-                    <ArrowUpRight className="ml-1 h-4 w-4" />
+                <Button
+                  asChild
+                  className="justify-start rounded-xl bg-emerald-100 text-emerald-700 hover:bg-emerald-200 hover:text-emerald-800 border-0"
+                >
+                  <Link to="/vendor/reports">
+                    <BarChart3 className="mr-2 h-4 w-4" />
+                    Analytics
                   </Link>
                 </Button>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {stats?.topProducts && stats.topProducts.length > 0 ?
-                    stats.topProducts.slice(0, 3).map((product) => (
-                      <div key={product.id} className="flex items-center gap-3">
-                        <div className="h-12 w-12 rounded-lg bg-muted flex items-center justify-center">
-                          <Package className="h-6 w-6 text-muted-foreground" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="truncate font-medium">{product.name}</p>
-                          <p className="text-sm text-muted-foreground">
-                            ₹{Number(product.pricePerDay).toLocaleString()}/day
-                          </p>
-                        </div>
-                        <Badge variant="secondary" className="rounded-lg">
-                          {product.quantityOnHand} left
-                        </Badge>
-                      </div>
-                    ))
-                    : <p className="text-sm text-muted-foreground text-center py-4">
-                      No products yet. Add your first product!
-                    </p>
-                  }
-                </div>
+                <Button
+                  asChild
+                  className="justify-start rounded-xl bg-pink-100 text-pink-700 hover:bg-pink-200 hover:text-pink-800 border-0"
+                >
+                  <Link to="/vendor/settings">
+                    <Settings className="mr-2 h-4 w-4" />
+                    Settings
+                  </Link>
+                </Button>
               </CardContent>
             </Card>
           </motion.div>
         </div>
+
+        {/* Recent Orders */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          className="mt-8"
+        >
+          <Card className="rounded-2xl">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="text-lg">Recent Orders</CardTitle>
+              <Button variant="ghost" size="sm" asChild>
+                <Link to="/vendor/orders">
+                  View All
+                  <ArrowUpRight className="ml-1 h-4 w-4" />
+                </Link>
+              </Button>
+            </CardHeader>
+            <CardContent>
+              {recentOrders.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Order ID</TableHead>
+                        <TableHead>Customer</TableHead>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Items</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="text-right">Amount</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {recentOrders.map((order) => (
+                        <TableRow key={order.id}>
+                          <TableCell className="font-medium">
+                            #{order.id.slice(0, 8).toUpperCase()}
+                          </TableCell>
+                          <TableCell>
+                            {order.user.firstName} {order.user.lastName}
+                          </TableCell>
+                          <TableCell>
+                            {new Date(order.createdAt).toLocaleDateString('en-IN', {
+                              day: 'numeric',
+                              month: 'short',
+                              year: 'numeric'
+                            })}
+                          </TableCell>
+                          <TableCell>
+                            {order.items.length === 1
+                              ? order.items[0].product.name
+                              : `${order.items[0].product.name} +${order.items.length - 1} more`}
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              className={
+                                order.status === 'CONFIRMED'
+                                  ? 'bg-green-100 text-green-700'
+                                  : order.status === 'INVOICED'
+                                    ? 'bg-blue-100 text-blue-700'
+                                    : order.status === 'RETURNED'
+                                      ? 'bg-gray-100 text-gray-700'
+                                      : 'bg-red-100 text-red-700'
+                              }
+                            >
+                              {order.status}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right font-medium">
+                            ₹{order.invoice ? Number(order.invoice.totalAmount).toLocaleString() : '0'}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground text-center py-8">
+                  No orders yet. Orders will appear here once customers start renting your products.
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
       </div>
     </VendorLayout>
   );

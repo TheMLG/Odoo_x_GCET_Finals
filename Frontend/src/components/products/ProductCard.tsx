@@ -68,33 +68,35 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
     >
       <Card className="group h-full overflow-hidden rounded-2xl border-border/50 transition-all duration-300 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5">
         <Link to={`/products/${product.id}`}>
-          <div className="relative aspect-[4/3] overflow-hidden bg-muted">
-            <img
-              src={product.images[0]}
-              alt={product.name}
-              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-            />
-            {product.quantityOnHand < 3 && (
-              <Badge
-                variant="destructive"
-                className="absolute right-3 top-3 rounded-lg"
-              >
-                Only {product.quantityOnHand} left
-              </Badge>
-            )}
-            {/* Wishlist Button */}
-            <button
-              onClick={handleWishlistToggle}
-              className="absolute left-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 backdrop-blur-sm transition-all hover:bg-white hover:scale-110"
-            >
-              <Heart
-                className={cn(
-                  "h-5 w-5 transition-colors",
-                  inWishlist ? "fill-pink-500 text-pink-500" : "text-gray-600",
-                )}
+          <div className="relative p-3">
+            <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-muted">
+              <img
+                src={product.images[0]}
+                alt={product.name}
+                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
               />
-            </button>
-            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+              {product.quantityOnHand < 3 && (
+                <Badge
+                  variant="destructive"
+                  className="absolute right-3 top-3 rounded-lg"
+                >
+                  Only {product.quantityOnHand} left
+                </Badge>
+              )}
+              {/* Wishlist Button */}
+              <button
+                onClick={handleWishlistToggle}
+                className="absolute left-3 top-3 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 backdrop-blur-sm transition-all hover:bg-white hover:scale-110 shadow-sm group/wishlist"
+              >
+                <Heart
+                  className={cn(
+                    "h-5 w-5 transition-colors",
+                    inWishlist ? "fill-pink-500 text-pink-500" : "text-gray-600 group-hover/wishlist:text-red-600",
+                  )}
+                />
+              </button>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+            </div>
           </div>
         </Link>
 
@@ -143,7 +145,7 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
                 {formatPrice(
                   product.pricePerWeek && product.pricePerWeek > 0 ?
                     product.pricePerWeek
-                  : product.pricePerDay * 7,
+                    : product.pricePerDay * 7,
                 )}
               </p>
             </div>
