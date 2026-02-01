@@ -1,6 +1,6 @@
+import crypto from "crypto";
 import PDFDocument from "pdfkit";
 import Razorpay from "razorpay";
-import crypto from "crypto";
 import prisma from "../config/prisma.js";
 import ApiError from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
@@ -15,7 +15,12 @@ const razorpay = new Razorpay({
 /**
  * Helper to process order creation in DB
  */
-const processOrderCreation = async (userId, addressId, couponCode, paymentDetails = null) => {
+const processOrderCreation = async (
+  userId,
+  addressId,
+  couponCode,
+  paymentDetails = null,
+) => {
   console.log(`Processing Order Creation for User: ${userId}`);
   // 1. Get user's active cart
   const cart = await prisma.cart.findFirst({
@@ -54,7 +59,7 @@ const processOrderCreation = async (userId, addressId, couponCode, paymentDetail
       // Calculate totals
       const subTotal = items.reduce(
         (sum, item) => sum + Number(item.unitPrice) * item.quantity,
-        0
+        0,
       );
 
       let discountAmount = 0;
@@ -66,9 +71,9 @@ const processOrderCreation = async (userId, addressId, couponCode, paymentDetail
         });
 
         if (coupon) {
-          if (coupon.discountType === 'PERCENTAGE') {
+          if (coupon.discountType === "PERCENTAGE") {
             discountAmount = (subTotal * coupon.discountValue) / 100;
-          } else if (coupon.discountType === 'FIXED') {
+          } else if (coupon.discountType === "FIXED") {
             discountAmount = coupon.discountValue;
           }
         }
@@ -78,7 +83,7 @@ const processOrderCreation = async (userId, addressId, couponCode, paymentDetail
 
       // FIX: unitPrice is tax-inclusive. Extract GST, don't add it.
       const finalAmount = totalAfterDiscount;
-      const gstAmount = finalAmount - (finalAmount / 1.18);
+      const gstAmount = finalAmount - finalAmount / 1.18;
       // const gstAmount = totalAfterDiscount * 0.18; // OLD WRONG LOGIC
       // const finalAmount = totalAfterDiscount + gstAmount;
 
@@ -146,7 +151,7 @@ const processOrderCreation = async (userId, addressId, couponCode, paymentDetail
  * @access Private
  */
 export const createRazorpayOrder = asyncHandler(async (req, res) => {
-  const { couponCode } = req.body;
+  const { couponCode, deliveryCost = 0 } = req.body;
 
   // Calculate amount from cart
   const cart = await prisma.cart.findFirst({
@@ -171,16 +176,18 @@ export const createRazorpayOrder = asyncHandler(async (req, res) => {
   for (const items of Object.values(itemsByVendor)) {
     const subTotal = items.reduce(
       (sum, item) => sum + Number(item.unitPrice) * item.quantity,
-      0
+      0,
     );
 
     let discountAmount = 0;
     if (couponCode) {
-      const coupon = await prisma.coupon.findUnique({ where: { code: couponCode } });
+      const coupon = await prisma.coupon.findUnique({
+        where: { code: couponCode },
+      });
       if (coupon) {
-        if (coupon.discountType === 'PERCENTAGE') {
+        if (coupon.discountType === "PERCENTAGE") {
           discountAmount = (subTotal * coupon.discountValue) / 100;
-        } else if (coupon.discountType === 'FIXED') {
+        } else if (coupon.discountType === "FIXED") {
           discountAmount = coupon.discountValue;
         }
       }
@@ -190,11 +197,16 @@ export const createRazorpayOrder = asyncHandler(async (req, res) => {
     // START FIX: unitPrice is already GST inclusive (from frontend cartStore)
     // So we don't add GST on top. We extract it for records.
     const finalAmount = totalAfterDiscount;
-    const gstAmount = finalAmount - (finalAmount / 1.18);
+    const gstAmount = finalAmount - finalAmount / 1.18;
     totalPayable += finalAmount;
   }
 
-  console.log(`Razorpay Create Order: Total Payable (inc GST) = ${totalPayable}`);
+  // Add delivery cost to total
+  totalPayable += Number(deliveryCost) || 0;
+
+  console.log(
+    `Razorpay Create Order: Total Payable (inc GST + delivery) = ${totalPayable}`,
+  );
 
   // Create Razorpay order
   const options = {
@@ -205,7 +217,15 @@ export const createRazorpayOrder = asyncHandler(async (req, res) => {
 
   try {
     const order = await razorpay.orders.create(options);
-    res.status(200).json(new ApiResponse(200, { ...order, key: process.env.RAZORPAY_KEY_ID }, "Razorpay order created"));
+    res
+      .status(200)
+      .json(
+        new ApiResponse(
+          200,
+          { ...order, key: process.env.RAZORPAY_KEY_ID },
+          "Razorpay order created",
+        ),
+      );
   } catch (error) {
     console.error("Razorpay Error:", error);
     throw new ApiError(500, "Failed to create Razorpay order");
@@ -223,10 +243,14 @@ export const verifyPayment = asyncHandler(async (req, res) => {
     razorpay_payment_id,
     razorpay_signature,
     addressId,
-    couponCode
+    couponCode,
+    deliveryCost = 0,
   } = req.body;
 
-  console.log("Verifying Razorpay Payment:", { razorpay_order_id, razorpay_payment_id });
+  console.log("Verifying Razorpay Payment:", {
+    razorpay_order_id,
+    razorpay_payment_id,
+  });
 
   const generated_signature = crypto
     .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
@@ -243,10 +267,13 @@ export const verifyPayment = asyncHandler(async (req, res) => {
         couponCode,
         {
           mode: "RAZORPAY",
-          transactionId: razorpay_payment_id
-        }
+          transactionId: razorpay_payment_id,
+        },
       );
-      console.log("Order Created Successfully:", createdOrders.map(o => o.id));
+      console.log(
+        "Order Created Successfully:",
+        createdOrders.map((o) => o.id),
+      );
 
       res.status(201).json(
         new ApiResponse(
@@ -255,8 +282,8 @@ export const verifyPayment = asyncHandler(async (req, res) => {
             orderIds: createdOrders.map((order) => order.id),
             count: createdOrders.length,
           },
-          "Payment verified and order placed successfully"
-        )
+          "Payment verified and order placed successfully",
+        ),
       );
     } catch (error) {
       console.error("Order Creation Failed after Payment:", error);
@@ -264,10 +291,16 @@ export const verifyPayment = asyncHandler(async (req, res) => {
       if (error instanceof ApiError) {
         throw error;
       }
-      throw new ApiError(500, "Payment verified but order creation failed: " + error.message);
+      throw new ApiError(
+        500,
+        "Payment verified but order creation failed: " + error.message,
+      );
     }
   } else {
-    console.error("Signature Mismatch:", { generated_signature, received: razorpay_signature });
+    console.error("Signature Mismatch:", {
+      generated_signature,
+      received: razorpay_signature,
+    });
     throw new ApiError(400, "Payment verification failed: Signature Mismatch");
   }
 });
@@ -280,7 +313,11 @@ export const verifyPayment = asyncHandler(async (req, res) => {
 export const createOrder = asyncHandler(async (req, res) => {
   console.log("createOrder: Calling processOrderCreation directly");
   const { addressId, couponCode } = req.body;
-  const createdOrders = await processOrderCreation(req.user.id, addressId, couponCode);
+  const createdOrders = await processOrderCreation(
+    req.user.id,
+    addressId,
+    couponCode,
+  );
 
   res.status(201).json(
     new ApiResponse(
@@ -517,8 +554,8 @@ export const generateInvoicePDF = asyncHandler(async (req, res) => {
     // Status with color
     const statusColor =
       order.status === "CONFIRMED" ? "#16a34a"
-        : order.status === "CANCELLED" ? "#dc2626"
-          : "#f59e0b";
+      : order.status === "CANCELLED" ? "#dc2626"
+      : "#f59e0b";
     doc
       .fontSize(9)
       .fillColor(statusColor)
