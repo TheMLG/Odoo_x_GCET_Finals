@@ -1,14 +1,20 @@
-import { motion } from 'framer-motion';
-import { Link, useNavigate } from 'react-router-dom';
-import { Clock, Calendar, CalendarDays, ShoppingCart, Heart } from 'lucide-react';
-import { Product } from '@/types/rental';
-import { Card, CardContent, CardFooter } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
-import { useWishlistStore } from '@/stores/wishlistStore';
-import { useAuthStore } from '@/stores/authStore';
-import { toast } from 'sonner';
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
+import { useAuthStore } from "@/stores/authStore";
+import { useWishlistStore } from "@/stores/wishlistStore";
+import { Product } from "@/types/rental";
+import { motion } from "framer-motion";
+import {
+  Calendar,
+  CalendarDays,
+  Clock,
+  Heart,
+  ShoppingCart,
+} from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 interface ProductCardProps {
   product: Product;
@@ -20,10 +26,10 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
   const inWishlist = isInWishlist(product.id);
 
   const formatPrice = (price: number) => {
-    if (!price || price === 0) return '-';
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
+    if (!price || price === 0) return "-";
+    return new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
       maximumFractionDigits: 0,
     }).format(price);
   };
@@ -36,21 +42,21 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
     e.stopPropagation();
 
     if (!isAuthenticated) {
-      toast.info('Please login to use wishlist', {
+      toast.info("Please login to use wishlist", {
         action: {
-          label: 'Login',
-          onClick: () => navigate('/login')
-        }
+          label: "Login",
+          onClick: () => navigate("/login"),
+        },
       });
       return;
     }
 
     if (inWishlist) {
       await removeItem(product.id);
-      toast.success('Removed from wishlist');
+      toast.success("Removed from wishlist");
     } else {
       await addItem(product);
-      toast.success('Added to wishlist');
+      toast.success("Added to wishlist");
     }
   };
 
@@ -84,7 +90,7 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
               <Heart
                 className={cn(
                   "h-5 w-5 transition-colors",
-                  inWishlist ? "fill-pink-500 text-pink-500" : "text-gray-600"
+                  inWishlist ? "fill-pink-500 text-pink-500" : "text-gray-600",
                 )}
               />
             </button>
@@ -103,7 +109,7 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
               {product.name}
             </h3>
           </Link>
-          <p className="mb-4 line-clamp-2 text-sm text-muted-foreground">
+          <p className="mb-4 h-10 line-clamp-2 text-sm text-muted-foreground">
             {product.description}
           </p>
 
@@ -114,21 +120,32 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
                 <Clock className="h-3 w-3" />
                 Hour
               </div>
-              <p className="text-sm font-semibold">{formatPrice(product.pricePerHour)}</p>
+              <p className="text-sm font-semibold">
+                {formatPrice(product.pricePerHour)}
+              </p>
             </div>
             <div className="border-x border-border text-center">
               <div className="mb-1 flex items-center justify-center gap-1 text-xs text-muted-foreground">
                 <Calendar className="h-3 w-3" />
                 Day
               </div>
-              <p className="text-sm font-semibold">{formatPrice(product.pricePerDay)}</p>
+              <p className="text-sm font-semibold">
+                {formatPrice(product.pricePerDay)}
+              </p>
             </div>
             <div className="text-center">
               <div className="mb-1 flex items-center justify-center gap-1 text-xs text-muted-foreground">
                 <CalendarDays className="h-3 w-3" />
                 Week
               </div>
-              <p className="text-sm font-semibold">{formatPrice(product.pricePerWeek)}</p>
+              {/* Show vendor-set weekly price if available, otherwise calculate from daily price */}
+              <p className="text-sm font-semibold">
+                {formatPrice(
+                  product.pricePerWeek && product.pricePerWeek > 0 ?
+                    product.pricePerWeek
+                  : product.pricePerDay * 7,
+                )}
+              </p>
             </div>
           </div>
         </CardContent>
