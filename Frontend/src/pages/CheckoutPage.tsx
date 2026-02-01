@@ -721,14 +721,6 @@ export default function CheckoutPage() {
                 </div>
               </div>
 
-              {/* Savings Message */}
-              <div className="mb-5 flex items-center gap-2 rounded-lg bg-green-50 p-3 border border-green-100">
-                <Zap className="h-4 w-4 fill-green-600 text-green-600 flex-shrink-0" />
-                <p className="text-sm font-semibold text-green-700">
-                  Yay! You're saving {'\u20B9'}41,500 by choosing to rent.
-                </p>
-              </div>
-
               {/* Payment Mode */}
               <div className="mb-5">
                 <h3 className="mb-3 text-sm font-bold text-gray-900">Payment Mode:</h3>

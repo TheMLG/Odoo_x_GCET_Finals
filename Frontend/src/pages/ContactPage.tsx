@@ -75,46 +75,68 @@ const ContactPage = () => {
     <MainLayout>
       <div className="min-h-screen bg-background">
         {/* Hero Section */}
-        <section className="relative bg-primary/5 py-20">
+        <section className="relative bg-background py-24 md:py-32">
           <div className="container mx-auto px-4">
-            <motion.div className="mx-auto max-w-4xl text-center" {...fadeIn}>
-              <h1 className="mb-6 text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
-                Get in <span className="text-primary">Touch</span>
-              </h1>
-              <p className="text-lg text-muted-foreground sm:text-xl">
-                Have questions? We're here to help. Reach out to our friendly
-                team anytime.
-              </p>
+            <motion.div 
+              className="mx-auto max-w-4xl text-center"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, ease: "easeOut" }}
+            >
+              <motion.h1 
+                className="mb-6 text-5xl font-bold leading-tight tracking-tight text-foreground sm:text-6xl md:text-7xl"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2, duration: 0.6 }}
+              >
+                Get in <motion.span 
+                  className="text-primary"
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.4, duration: 0.5 }}
+                >Touch</motion.span>
+              </motion.h1>
+              <motion.p 
+                className="text-base leading-relaxed text-muted-foreground sm:text-lg"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5, duration: 0.6 }}
+              >
+                Have questions? We're here to help. Reach out to our friendly team anytime.
+              </motion.p>
             </motion.div>
           </div>
         </section>
 
         {/* Contact Info Cards */}
-        <section className="py-16">
+        <section className="py-24 bg-background">
           <div className="container mx-auto px-4">
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {contactInfo.map((info, index) => (
                 <motion.div
                   key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.6, delay: index * 0.1 }}
+                  initial={{ opacity: 0, y: 40, scale: 0.9 }}
+                  whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                  viewport={{ once: true, margin: "-50px" }}
+                  transition={{ duration: 0.6, delay: index * 0.12, ease: "easeOut" }}
+                  whileHover={{ y: -8, transition: { duration: 0.3 } }}
                 >
-                  <Card className="h-full text-center transition-shadow hover:shadow-lg">
-                    <CardContent className="p-6">
-                      <div
-                        className={`mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 ${info.color}`}
+                  <Card className="group h-full rounded-2xl border-2 border-border/50 bg-card text-center shadow-sm transition-all duration-300 hover:border-primary/30 hover:shadow-xl">
+                    <CardContent className="p-8">
+                      <motion.div
+                        className={`mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 ${info.color}`}
+                        whileHover={{ scale: 1.1, rotate: 5 }}
+                        transition={{ duration: 0.3 }}
                       >
-                        <info.icon className="h-7 w-7" />
-                      </div>
-                      <h3 className="mb-2 text-lg font-semibold">
+                        <info.icon className="h-8 w-8" />
+                      </motion.div>
+                      <h3 className="mb-3 text-lg font-bold text-foreground">
                         {info.title}
                       </h3>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-sm font-medium text-muted-foreground">
                         {info.details}
                       </p>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-sm font-medium text-muted-foreground">
                         {info.subDetails}
                       </p>
                     </CardContent>
@@ -126,37 +148,49 @@ const ContactPage = () => {
         </section>
 
         {/* FAQ Section */}
-        <section className="bg-muted/30 py-16">
+        <section className="bg-muted/30 py-24">
           <div className="container mx-auto px-4">
             <motion.div
-              className="mb-12 text-center"
-              initial={{ opacity: 0, y: 20 }}
+              className="mb-16 text-center"
+              initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 0.7 }}
             >
-              <h2 className="mb-4 text-3xl font-bold">
+              <motion.h2 
+                className="mb-4 text-4xl font-bold text-foreground md:text-5xl"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6 }}
+              >
                 Frequently Asked Questions
-              </h2>
-              <p className="mx-auto max-w-2xl text-muted-foreground">
-                Find quick answers to common questions. Can't find what you're
-                looking for? Contact us!
-              </p>
+              </motion.h2>
+              <motion.p 
+                className="mx-auto max-w-2xl text-base text-muted-foreground"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.2, duration: 0.6 }}
+              >
+                Find quick answers to common questions. Can't find what you're looking for? Contact us!
+              </motion.p>
             </motion.div>
 
             <div className="mx-auto max-w-3xl space-y-4">
               {faqs.map((faq, index) => (
                 <motion.div
                   key={index}
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={{ opacity: 0, y: 30 }}
                   whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.6, delay: index * 0.1 }}
+                  viewport={{ once: true, margin: "-50px" }}
+                  transition={{ duration: 0.6, delay: index * 0.1, ease: "easeOut" }}
+                  whileHover={{ scale: 1.02, transition: { duration: 0.2 } }}
                 >
-                  <Card>
+                  <Card className="rounded-2xl border-2 border-border/50 shadow-sm transition-all hover:border-primary/30 hover:shadow-lg">
                     <CardContent className="p-6">
-                      <h3 className="mb-2 font-semibold">{faq.question}</h3>
-                      <p className="text-sm text-muted-foreground">
+                      <h3 className="mb-3 text-lg font-bold text-foreground">{faq.question}</h3>
+                      <p className="text-sm leading-relaxed text-muted-foreground">
                         {faq.answer}
                       </p>
                     </CardContent>

@@ -78,25 +78,35 @@ export default function ProductsPage() {
       <div className="container px-4 py-8 md:px-6 md:py-12">
         {/* Header */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
+          transition={{ duration: 0.7, ease: "easeOut" }}
+          className="mb-12"
         >
-          <h1 className="mb-2 text-3xl font-bold md:text-4xl">
-            Rental Products
-          </h1>
-          <p className="text-muted-foreground">
-            Browse our extensive collection of professional equipment available
-            for rent
-          </p>
+          <motion.h1 
+            className="mb-4 text-5xl font-bold text-foreground md:text-6xl"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.6 }}
+          >
+            Rental <span className="text-primary">Products</span>
+          </motion.h1>
+          <motion.p 
+            className="text-base text-muted-foreground md:text-lg"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.6 }}
+          >
+            Browse our extensive collection of professional equipment available for rent. High quality, fully insured, and ready for your project.
+          </motion.p>
         </motion.div>
 
         {/* Filters */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="mb-8"
+          transition={{ delay: 0.4, duration: 0.6 }}
+          className="mb-10"
         >
           <ProductFilters
             searchQuery={searchQuery}
@@ -111,28 +121,45 @@ export default function ProductsPage() {
         {/* Products Section */}
         <div>
           {/* Results count */}
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3 }}
-            className="mb-6 text-sm text-muted-foreground"
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.5, duration: 0.5 }}
+            className="mb-8 flex items-center gap-3"
           >
-            Showing {filteredProducts.length} product
-            {filteredProducts.length !== 1 ? "s" : ""}
-          </motion.p>
+            <div className="h-1 w-12 rounded-full bg-primary" />
+            <p className="text-base font-semibold text-foreground">
+              Showing {filteredProducts.length} product{filteredProducts.length !== 1 ? "s" : ""}
+            </p>
+          </motion.div>
 
           {/* Loading state */}
           {isLoadingProducts ?
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              <span className="ml-3 text-muted-foreground">
+            <motion.div 
+              className="flex flex-col items-center justify-center py-20"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5 }}
+            >
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+              >
+                <Loader2 className="h-12 w-12 text-primary" />
+              </motion.div>
+              <span className="mt-4 text-base font-medium text-muted-foreground">
                 Loading products...
               </span>
-            </div>
+            </motion.div>
             : <>
               {/* Products Grid */}
               {filteredProducts.length > 0 ?
-                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
+                <motion.div 
+                  className="grid gap-6 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.2 }}
+                >
                   {filteredProducts.map((product, index) => (
                     <ProductCard
                       key={product.id}
@@ -140,19 +167,25 @@ export default function ProductsPage() {
                       index={index}
                     />
                   ))}
-                </div>
+                </motion.div>
                 : <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="flex flex-col items-center justify-center py-20 text-center"
+                  initial={{ opacity: 0, y: 30, scale: 0.9 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  transition={{ duration: 0.6 }}
+                  className="flex flex-col items-center justify-center py-24 text-center"
                 >
-                  <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-muted">
-                    <span className="text-2xl">🔍</span>
-                  </div>
-                  <h3 className="mb-2 text-lg font-semibold">
+                  <motion.div 
+                    className="mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-muted"
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+                  >
+                    <span className="text-4xl">🔍</span>
+                  </motion.div>
+                  <h3 className="mb-3 text-2xl font-bold text-foreground">
                     No products found
                   </h3>
-                  <p className="text-muted-foreground">
+                  <p className="text-base text-muted-foreground">
                     Try adjusting your search or filter criteria
                   </p>
                 </motion.div>
