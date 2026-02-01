@@ -91,13 +91,8 @@ export default function HomePage() {
     <RoleBasedRedirect>
       <MainLayout>
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-primary/10 py-20 md:py-32">
-        <div className="absolute inset-0 -z-10">
-          <div className="absolute left-1/4 top-1/4 h-96 w-96 rounded-full bg-primary/10 blur-3xl" />
-          <div className="absolute bottom-1/4 right-1/4 h-96 w-96 rounded-full bg-primary/5 blur-3xl" />
-        </div>
-        
-        {/* Floating Colorful Icons */}
+      <section className="relative overflow-hidden bg-background py-24 md:py-32">
+        {/* Floating Colorful Icons with Improved Animation */}
         {floatingIcons.map((item, index) => (
           <motion.div
             key={index}
@@ -108,94 +103,168 @@ export default function HomePage() {
               right: item.right,
               bottom: item.bottom,
             }}
-            initial={{ opacity: 0, scale: 0 }}
+            initial={{ opacity: 0, scale: 0, rotate: item.rotate }}
             animate={{ 
-              opacity: 0.7, 
-              scale: 1,
-              y: [0, -10, 0],
+              opacity: [0.4, 0.7, 0.4], 
+              scale: [0.9, 1, 0.9],
+              y: [0, -20, 0],
+              rotate: [item.rotate, item.rotate + 10, item.rotate],
             }}
             transition={{ 
-              duration: 0.5, 
-              delay: index * 0.1,
+              duration: 0.8, 
+              delay: index * 0.08,
+              opacity: {
+                duration: 4 + index * 0.3,
+                repeat: Infinity,
+                ease: "easeInOut",
+              },
+              scale: {
+                duration: 4 + index * 0.3,
+                repeat: Infinity,
+                ease: "easeInOut",
+              },
               y: {
-                duration: 3 + index * 0.5,
+                duration: 3 + index * 0.4,
+                repeat: Infinity,
+                ease: "easeInOut",
+              },
+              rotate: {
+                duration: 5 + index * 0.5,
                 repeat: Infinity,
                 ease: "easeInOut",
               }
             }}
           >
-            <div 
-              className="rounded-xl bg-white/80 p-3 shadow-lg backdrop-blur-sm"
-              style={{ transform: `rotate(${item.rotate}deg)` }}
+            <motion.div 
+              className="rounded-2xl bg-white p-3 shadow-xl"
+              whileHover={{ scale: 1.2, rotate: 0 }}
+              transition={{ duration: 0.3 }}
             >
               <item.Icon 
                 size={item.size} 
                 style={{ color: item.color }}
-                strokeWidth={1.5}
+                strokeWidth={2}
               />
-            </div>
+            </motion.div>
           </motion.div>
         ))}
         
         <div className="container px-4 md:px-6">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="mx-auto max-w-3xl text-center"
+            transition={{ duration: 0.7, ease: "easeOut" }}
+            className="mx-auto max-w-4xl text-center"
           >
             <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.1 }}
-              className="mb-6 inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 text-sm font-medium text-primary"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2, duration: 0.6 }}
+              className="mb-8 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-5 py-2.5 text-sm font-semibold text-primary"
             >
-              <Star className="h-4 w-4 fill-primary" />
+              <motion.div
+                animate={{ rotate: [0, 360] }}
+                transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+              >
+                <Star className="h-4 w-4 fill-primary" />
+              </motion.div>
               Trusted by 50,000+ businesses
             </motion.div>
             
-            <h1 className="mb-6 text-4xl font-bold tracking-tight md:text-6xl">
-              Rent Professional Equipment{' '}
-              <span className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                Anytime, Anywhere
-              </span>
-            </h1>
+            <motion.h1 
+              className="mb-6 text-5xl font-bold leading-tight tracking-tight text-foreground md:text-7xl"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.7 }}
+            >
+              Rental{' '}
+              <motion.span 
+                className="text-primary"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.5, duration: 0.5 }}
+              >
+                Products
+              </motion.span>
+            </motion.h1>
             
-            <p className="mb-8 text-lg text-muted-foreground md:text-xl">
-              From cameras and drones to construction tools and event equipment. 
-              Flexible rentals with competitive pricing for businesses of all sizes.
-            </p>
+            <motion.p 
+              className="mb-10 text-base leading-relaxed text-muted-foreground md:text-lg"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5, duration: 0.7 }}
+            >
+              Browse our extensive collection of professional equipment available for rent. High quality, fully insured, and ready for your project.
+            </motion.p>
             
-            <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
-              <Button size="lg" asChild className="rounded-xl px-8">
-                <Link to="/products">
-                  Browse Products
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
-              <Button size="lg" variant="outline" asChild className="rounded-xl px-8">
-                <Link to="/signup">Get Started Free</Link>
-              </Button>
-            </div>
+            <motion.div 
+              className="flex flex-col items-center justify-center gap-4 sm:flex-row"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.7, duration: 0.6 }}
+            >
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Button size="lg" asChild className="rounded-lg px-8 text-base font-semibold shadow-lg transition-all hover:shadow-xl">
+                  <Link to="/products">
+                    Browse Products
+                    <motion.div
+                      animate={{ x: [0, 5, 0] }}
+                      transition={{ duration: 1.5, repeat: Infinity }}
+                    >
+                      <ArrowRight className="ml-2 h-5 w-5" />
+                    </motion.div>
+                  </Link>
+                </Button>
+              </motion.div>
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Button size="lg" variant="outline" asChild className="rounded-lg border-2 px-8 text-base font-semibold transition-all hover:bg-primary/5">
+                  <Link to="/signup">Get Started Free</Link>
+                </Button>
+              </motion.div>
+            </motion.div>
           </motion.div>
         </div>
       </section>
 
       {/* Stats */}
-      <section className="border-y border-border bg-card py-12">
+      <section className="border-y border-border/50 bg-card py-16">
         <div className="container px-4 md:px-6">
           <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
             {stats.map((stat, index) => (
               <motion.div
                 key={stat.label}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-                viewport={{ once: true }}
+                initial={{ opacity: 0, y: 30, scale: 0.8 }}
+                whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ 
+                  delay: index * 0.15, 
+                  duration: 0.6,
+                  ease: "easeOut"
+                }}
+                viewport={{ once: true, margin: "-50px" }}
+                whileHover={{ 
+                  scale: 1.08, 
+                  transition: { duration: 0.3 } 
+                }}
                 className="text-center"
               >
-                <p className="text-3xl font-bold text-primary md:text-4xl">{stat.value}</p>
-                <p className="text-sm text-muted-foreground">{stat.label}</p>
+                <motion.p 
+                  className="text-4xl font-bold text-primary md:text-5xl"
+                  initial={{ scale: 0 }}
+                  whileInView={{ scale: 1 }}
+                  transition={{ delay: index * 0.15 + 0.3, duration: 0.5, type: "spring" }}
+                  viewport={{ once: true }}
+                >
+                  {stat.value}
+                </motion.p>
+                <motion.p 
+                  className="mt-2 text-sm font-medium text-muted-foreground"
+                  initial={{ opacity: 0 }}
+                  whileInView={{ opacity: 1 }}
+                  transition={{ delay: index * 0.15 + 0.5 }}
+                  viewport={{ once: true }}
+                >
+                  {stat.label}
+                </motion.p>
               </motion.div>
             ))}
           </div>
@@ -203,36 +272,66 @@ export default function HomePage() {
       </section>
 
       {/* Features */}
-      <section className="py-20">
+      <section className="py-24 bg-background">
         <div className="container px-4 md:px-6">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="mb-12 text-center"
+            transition={{ duration: 0.7 }}
+            viewport={{ once: true, margin: "-100px" }}
+            className="mb-16 text-center"
           >
-            <h2 className="mb-4 text-3xl font-bold md:text-4xl">Why Choose RentX?</h2>
-            <p className="mx-auto max-w-2xl text-muted-foreground">
+            <motion.h2 
+              className="mb-4 text-4xl font-bold text-foreground md:text-5xl"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              viewport={{ once: true }}
+            >
+              Why Choose RentX?
+            </motion.h2>
+            <motion.p 
+              className="mx-auto max-w-2xl text-base text-muted-foreground"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2, duration: 0.6 }}
+              viewport={{ once: true }}
+            >
               We make equipment rental simple, reliable, and affordable for businesses of all sizes.
-            </p>
+            </motion.p>
           </motion.div>
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
             {features.map((feature, index) => (
               <motion.div
                 key={feature.title}
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 40 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-                viewport={{ once: true }}
+                transition={{ 
+                  delay: index * 0.12, 
+                  duration: 0.6,
+                  ease: "easeOut"
+                }}
+                viewport={{ once: true, margin: "-50px" }}
+                whileHover={{ 
+                  y: -8,
+                  transition: { duration: 0.3 }
+                }}
               >
-                <Card className="h-full rounded-2xl border-border/50 transition-colors hover:border-primary/30">
+                <Card className="group h-full rounded-2xl border-2 border-border/50 bg-card shadow-sm transition-all duration-300 hover:border-primary/30 hover:shadow-xl">
                   <CardContent className="p-6">
-                    <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
-                      <feature.icon className="h-6 w-6 text-primary" />
-                    </div>
-                    <h3 className="mb-2 text-lg font-semibold">{feature.title}</h3>
-                    <p className="text-sm text-muted-foreground">{feature.description}</p>
+                    <motion.div 
+                      className="mb-5 flex h-14 w-14 items-center justify-center rounded-xl bg-primary/10"
+                      whileHover={{ 
+                        scale: 1.1, 
+                        rotate: 5,
+                        transition: { duration: 0.3 }
+                      }}
+                    >
+                      <feature.icon className="h-7 w-7 text-primary transition-transform group-hover:scale-110" />
+                    </motion.div>
+                    <h3 className="mb-3 text-xl font-bold text-foreground">{feature.title}</h3>
+                    <p className="text-sm leading-relaxed text-muted-foreground">{feature.description}</p>
                   </CardContent>
                 </Card>
               </motion.div>
@@ -242,65 +341,126 @@ export default function HomePage() {
       </section>
 
       {/* Featured Products */}
-      <section className="bg-muted/30 py-16">
+      <section className="bg-muted/30 py-24">
         <div className="container px-4 md:px-6">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="mb-12 flex items-end justify-between"
+            transition={{ duration: 0.7 }}
+            viewport={{ once: true, margin: "-100px" }}
+            className="mb-16 flex flex-col items-center justify-between gap-6 md:flex-row md:items-end"
           >
             <div>
-              <h2 className="mb-4 text-3xl font-bold md:text-4xl">Featured Products</h2>
-              <p className="text-muted-foreground">
+              <motion.h2 
+                className="mb-4 text-4xl font-bold text-foreground md:text-5xl"
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.6 }}
+                viewport={{ once: true }}
+              >
+                Featured Products
+              </motion.h2>
+              <motion.p 
+                className="text-base text-muted-foreground"
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.2, duration: 0.6 }}
+                viewport={{ once: true }}
+              >
                 Popular equipment ready for your next project
-              </p>
+              </motion.p>
             </div>
-            <Button variant="ghost" asChild className="hidden md:inline-flex">
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.3, duration: 0.6 }}
+              viewport={{ once: true }}
+              whileHover={{ scale: 1.05 }}
+            >
+              <Button variant="ghost" asChild className="hidden font-semibold md:inline-flex">
+                <Link to="/products">
+                  View All Products
+                  <motion.div
+                    animate={{ x: [0, 5, 0] }}
+                    transition={{ duration: 1.5, repeat: Infinity }}
+                  >
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </motion.div>
+                </Link>
+              </Button>
+            </motion.div>
+          </motion.div>
+
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {featuredProducts.map((product, index) => (
+              <motion.div
+                key={product.id}
+                initial={{ opacity: 0, y: 40, scale: 0.9 }}
+                whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ 
+                  delay: index * 0.1, 
+                  duration: 0.6,
+                  ease: "easeOut"
+                }}
+                viewport={{ once: true, margin: "-50px" }}
+              >
+                <ProductCard product={product} index={index} />
+              </motion.div>
+            ))}
+          </div>
+
+          <motion.div 
+            className="mt-10 text-center md:hidden"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            viewport={{ once: true }}
+          >
+            <Button asChild className="rounded-lg font-semibold">
               <Link to="/products">
                 View All Products
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
           </motion.div>
-
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {featuredProducts.map((product, index) => (
-              <ProductCard key={product.id} product={product} index={index} />
-            ))}
-          </div>
-
-          <div className="mt-8 text-center md:hidden">
-            <Button asChild className="rounded-xl">
-              <Link to="/products">
-                View All Products
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-          </div>
         </div>
       </section>
 
       {/* Testimonials */}
-      <section className="py-20">
+      <section className="py-24 bg-background">
         <div className="container px-4 md:px-6">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="mb-12 text-center"
+            transition={{ duration: 0.7 }}
+            viewport={{ once: true, margin: "-100px" }}
+            className="mb-16 text-center"
           >
-            <h2 className="mb-4 text-3xl font-bold md:text-4xl">What Our Customers Say</h2>
-            <p className="mx-auto max-w-2xl text-muted-foreground">
+            <motion.h2 
+              className="mb-4 text-4xl font-bold text-foreground md:text-5xl"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              viewport={{ once: true }}
+            >
+              What Our Customers Say
+            </motion.h2>
+            <motion.p 
+              className="mx-auto max-w-2xl text-base text-muted-foreground"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2, duration: 0.6 }}
+              viewport={{ once: true }}
+            >
               Join thousands of satisfied businesses who trust RentX
-            </p>
+            </motion.p>
           </motion.div>
 
           {loadingReviews ? (
             <div className="grid gap-6 md:grid-cols-3">
               {[1, 2, 3].map((i) => (
-                <Card key={i} className="h-full rounded-2xl">
-                  <CardContent className="p-6">
+                <Card key={i} className="h-full rounded-2xl border-2">
+                  <CardContent className="p-8">
                     <div className="mb-4 h-4 w-24 animate-pulse rounded bg-muted" />
                     <div className="mb-4 space-y-2">
                       <div className="h-3 w-full animate-pulse rounded bg-muted" />
@@ -319,23 +479,49 @@ export default function HomePage() {
               {topReviews.map((review, index) => (
                 <motion.div
                   key={review.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  viewport={{ once: true }}
+                  initial={{ opacity: 0, y: 40, scale: 0.9 }}
+                  whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                  transition={{ 
+                    delay: index * 0.15, 
+                    duration: 0.6,
+                    ease: "easeOut"
+                  }}
+                  viewport={{ once: true, margin: "-50px" }}
+                  whileHover={{ 
+                    y: -8,
+                    transition: { duration: 0.3 }
+                  }}
                 >
-                  <Card className="h-full rounded-2xl">
-                    <CardContent className="p-6">
-                      <div className="mb-4 flex gap-1">
+                  <Card className="group h-full rounded-2xl border-2 border-border/50 bg-card shadow-sm transition-all duration-300 hover:border-primary/20 hover:shadow-xl">
+                    <CardContent className="p-8">
+                      <motion.div 
+                        className="mb-5 flex gap-1"
+                        initial={{ opacity: 0, x: -20 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.15 + 0.3 }}
+                        viewport={{ once: true }}
+                      >
                         {Array.from({ length: review.rating }).map((_, i) => (
-                          <Star key={i} className="h-4 w-4 fill-warning text-warning" />
+                          <motion.div
+                            key={i}
+                            initial={{ scale: 0, rotate: -180 }}
+                            whileInView={{ scale: 1, rotate: 0 }}
+                            transition={{ 
+                              delay: index * 0.15 + 0.4 + i * 0.1,
+                              type: "spring",
+                              stiffness: 200
+                            }}
+                            viewport={{ once: true }}
+                          >
+                            <Star className="h-5 w-5 fill-warning text-warning" />
+                          </motion.div>
                         ))}
-                      </div>
-                      <p className="mb-4 text-muted-foreground">
+                      </motion.div>
+                      <p className="mb-6 text-sm leading-relaxed text-muted-foreground">
                         {review.comment || 'Great product and excellent service!'}
                       </p>
                       <div>
-                        <p className="font-semibold">
+                        <p className="font-bold text-foreground">
                           {review.user.firstName} {review.user.lastName}
                         </p>
                         <p className="text-sm text-muted-foreground">{review.product.category}</p>
@@ -346,45 +532,73 @@ export default function HomePage() {
               ))}
             </div>
           ) : (
-            <div className="text-center text-muted-foreground">
+            <motion.div 
+              className="text-center text-muted-foreground"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+            >
               <p>No reviews available yet. Be the first to review our products!</p>
-            </div>
+            </motion.div>
           )}
         </div>
       </section>
 
       {/* CTA */}
       {!isAuthenticated && (
-        <section className="bg-primary py-20">
+        <section className="bg-primary py-24">
           <div className="container px-4 md:px-6">
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 40 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="mx-auto max-w-3xl text-center"
+              transition={{ duration: 0.7 }}
+              viewport={{ once: true, margin: "-100px" }}
+              className="mx-auto max-w-4xl text-center"
             >
-              <h2 className="mb-4 text-3xl font-bold text-primary-foreground md:text-4xl">
+              <motion.h2 
+                className="mb-6 text-4xl font-bold text-primary-foreground md:text-5xl"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2, duration: 0.6 }}
+                viewport={{ once: true }}
+              >
                 Ready to Get Started?
-              </h2>
-              <p className="mb-8 text-lg text-primary-foreground/80">
+              </motion.h2>
+              <motion.p 
+                className="mb-10 text-base leading-relaxed text-primary-foreground/90 md:text-lg"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3, duration: 0.6 }}
+                viewport={{ once: true }}
+              >
                 Sign up today and get access to thousands of rental products with flexible pricing.
-              </p>
-              <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
-                <Button size="lg" variant="secondary" asChild className="rounded-xl px-8">
-                  <Link to="/signup">
-                    <CheckCircle className="mr-2 h-4 w-4" />
-                    Create Free Account
-                  </Link>
-                </Button>
-                <Button
-                  size="lg"
-                  variant="outline"
-                  asChild
-                  className="rounded-xl border-primary-foreground/20 bg-transparent px-8 text-primary-foreground hover:bg-primary-foreground/10"
-                >
-                  <Link to="/contact">Contact Sales</Link>
-                </Button>
-              </div>
+              </motion.p>
+              <motion.div 
+                className="flex flex-col items-center justify-center gap-4 sm:flex-row"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5, duration: 0.6 }}
+                viewport={{ once: true }}
+              >
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <Button size="lg" variant="secondary" asChild className="rounded-lg px-8 text-base font-semibold shadow-xl transition-all hover:shadow-2xl">
+                    <Link to="/signup">
+                      <CheckCircle className="mr-2 h-5 w-5" />
+                      Create Free Account
+                    </Link>
+                  </Button>
+                </motion.div>
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    asChild
+                    className="rounded-lg border-2 border-primary-foreground/20 bg-transparent px-8 text-base font-semibold text-primary-foreground transition-all hover:bg-primary-foreground/10 hover:border-primary-foreground/40"
+                  >
+                    <Link to="/contact">Contact Sales</Link>
+                  </Button>
+                </motion.div>
+              </motion.div>
             </motion.div>
           </div>
         </section>
