@@ -54,7 +54,9 @@ import {
   Loader2,
   MoreHorizontal,
   Package,
+  RotateCcw,
   Search,
+  ShoppingBag,
   Trash2,
   User,
   XCircle,
@@ -116,6 +118,9 @@ export default function VendorOrders() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [viewMode, setViewMode] = useState<"list" | "kanban">("list");
+  const [quickFilter, setQuickFilter] = useState<"none" | "pickup" | "return">(
+    "none",
+  );
   const [selectedOrder, setSelectedOrder] = useState<VendorOrder | null>(null);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -200,6 +205,32 @@ export default function VendorOrders() {
     }, 0);
   };
 
+  // Helper to check if order is ready for pickup (invoiced and paid)
+  const isReadyForPickup = (order: VendorOrder) => {
+    return order.status === "INVOICED" && order.invoice?.status === "PAID";
+  };
+
+  // Helper to check if order has approaching or passed return dates
+  const isApproachingOrPassedReturn = (order: VendorOrder) => {
+    const now = new Date();
+    const oneDayFromNow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+
+    return order.items.some((item) => {
+      const rentalEnd = new Date(item.rentalEnd);
+      // Return date is within 1 day or has already passed
+      return rentalEnd <= oneDayFromNow;
+    });
+  };
+
+  // Get counts for badges
+  const pickupReadyCount = orders.filter(isReadyForPickup).length;
+  const returnDueCount = orders.filter(
+    (order) =>
+      order.status !== "RETURNED" &&
+      order.status !== "CANCELLED" &&
+      isApproachingOrPassedReturn(order),
+  ).length;
+
   const filteredOrders = orders.filter((order) => {
     const matchesSearch =
       order.user.firstName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -209,7 +240,18 @@ export default function VendorOrders() {
     const matchesStatus =
       statusFilter === "all" || order.status === statusFilter;
 
-    return matchesSearch && matchesStatus;
+    // Apply quick filter
+    let matchesQuickFilter = true;
+    if (quickFilter === "pickup") {
+      matchesQuickFilter = isReadyForPickup(order);
+    } else if (quickFilter === "return") {
+      matchesQuickFilter =
+        order.status !== "RETURNED" &&
+        order.status !== "CANCELLED" &&
+        isApproachingOrPassedReturn(order);
+    }
+
+    return matchesSearch && matchesStatus && matchesQuickFilter;
   });
 
   return (
@@ -262,6 +304,47 @@ export default function VendorOrders() {
                 onClick={() => setViewMode("kanban")}
               >
                 <LayoutGrid className="h-4 w-4" />
+              </Button>
+            </div>
+            {/* Quick Filter Buttons */}
+            <div className="flex items-center gap-2">
+              <Button
+                variant={quickFilter === "pickup" ? "default" : "outline"}
+                size="sm"
+                className="rounded-xl gap-2"
+                onClick={() =>
+                  setQuickFilter(quickFilter === "pickup" ? "none" : "pickup")
+                }
+              >
+                <ShoppingBag className="h-4 w-4" />
+                Pickup
+                {pickupReadyCount > 0 && (
+                  <Badge
+                    variant="secondary"
+                    className="ml-1 rounded-full px-1.5 py-0.5 text-xs"
+                  >
+                    {pickupReadyCount}
+                  </Badge>
+                )}
+              </Button>
+              <Button
+                variant={quickFilter === "return" ? "default" : "outline"}
+                size="sm"
+                className="rounded-xl gap-2"
+                onClick={() =>
+                  setQuickFilter(quickFilter === "return" ? "none" : "return")
+                }
+              >
+                <RotateCcw className="h-4 w-4" />
+                Return
+                {returnDueCount > 0 && (
+                  <Badge
+                    variant="destructive"
+                    className="ml-1 rounded-full px-1.5 py-0.5 text-xs"
+                  >
+                    {returnDueCount}
+                  </Badge>
+                )}
               </Button>
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -772,9 +855,9 @@ export default function VendorOrders() {
                         <tr key={index} className="border-t">
                           <td className="px-4 py-3">
                             <div className="flex items-center gap-3">
-                              {item.product?.images?.[0] && (
+                              {item.product?.product_image_url && (
                                 <img
-                                  src={item.product.images[0]}
+                                  src={item.product.product_image_url}
                                   alt={item.product.name}
                                   className="h-10 w-10 rounded object-cover"
                                 />

@@ -7,10 +7,7 @@ import { cn } from "@/lib/utils";
 import { useCartStore } from "@/stores/cartStore";
 import { useCheckoutStore } from "@/stores/checkoutStore";
 import { motion } from "framer-motion";
-import {
-  CheckCircle,
-  CreditCard,
-} from "lucide-react";
+import { CheckCircle, CreditCard } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -31,8 +28,8 @@ export default function PaymentPage() {
 
   const loadRazorpay = () => {
     return new Promise((resolve) => {
-      const script = document.createElement('script');
-      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
       script.onload = () => {
         resolve(true);
       };
@@ -67,14 +64,15 @@ export default function PaymentPage() {
     try {
       const res = await loadRazorpay();
       if (!res) {
-        toast.error('Razorpay SDK failed to load. Are you online?');
+        toast.error("Razorpay SDK failed to load. Are you online?");
         setIsProcessing(false);
         return;
       }
 
       // 1. Create Order on Backend (Get Order ID and Key)
       const orderData = {
-        couponCode: appliedCoupon?.code
+        couponCode: appliedCoupon?.code,
+        deliveryCost: deliveryCost,
       };
 
       const data = await createRazorpayOrder(orderData);
@@ -97,7 +95,8 @@ export default function PaymentPage() {
               razorpay_payment_id: response.razorpay_payment_id,
               razorpay_signature: response.razorpay_signature,
               addressId: selectedAddress.id,
-              couponCode: appliedCoupon?.code
+              couponCode: appliedCoupon?.code,
+              deliveryCost: deliveryCost,
             };
 
             await verifyPayment(verifyData);
@@ -106,12 +105,13 @@ export default function PaymentPage() {
             clearCart();
             clearCheckout();
 
-            toast.success('Order placed successfully!');
+            toast.success("Order placed successfully!");
             navigate("/orders");
-
           } catch (error: any) {
             console.error("Verification Failed:", error);
-            toast.error("Payment verification failed. Please contact support if money was deducted.");
+            toast.error(
+              "Payment verification failed. Please contact support if money was deducted.",
+            );
             setIsProcessing(false);
           }
         },
@@ -130,18 +130,17 @@ export default function PaymentPage() {
         modal: {
           ondismiss: function () {
             setIsProcessing(false);
-          }
-        }
+          },
+        },
       };
 
       const paymentObject = new (window as any).Razorpay(options);
       paymentObject.open();
 
-      paymentObject.on('payment.failed', function (response: any) {
+      paymentObject.on("payment.failed", function (response: any) {
         toast.error(response.error.description || "Payment failed");
         setIsProcessing(false);
       });
-
     } catch (error: any) {
       console.error("[Payment] Order creation failed:", error);
       const message =
@@ -193,20 +192,17 @@ export default function PaymentPage() {
                         "relative rounded-xl border-2 transition-all",
                         selectedMethod === "razorpay" ?
                           "border-blue-600 bg-blue-50"
-                          : "border-border hover:border-gray-400",
+                        : "border-border hover:border-gray-400",
                       )}
                     >
                       <div className="flex items-center gap-4 p-4">
-                        <RadioGroupItem
-                          value="razorpay"
-                          id="razorpay"
-                        />
+                        <RadioGroupItem value="razorpay" id="razorpay" />
                         <div
                           className={cn(
                             "flex h-12 w-12 items-center justify-center rounded-xl",
                             selectedMethod === "razorpay" ?
                               "bg-blue-200 text-blue-600"
-                              : "bg-gray-100 text-gray-600",
+                            : "bg-gray-100 text-gray-600",
                           )}
                         >
                           <CreditCard className="h-6 w-6" />
@@ -215,9 +211,7 @@ export default function PaymentPage() {
                           htmlFor="razorpay"
                           className="flex-1 cursor-pointer"
                         >
-                          <div className="mb-1 font-semibold">
-                            Razorpay
-                          </div>
+                          <div className="mb-1 font-semibold">Razorpay</div>
                           <div className="text-sm text-muted-foreground">
                             Credit/Debit Card, UPI, Netbanking, Wallets
                           </div>
@@ -294,7 +288,7 @@ export default function PaymentPage() {
                         <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></span>
                         Processing...
                       </>
-                      : "Pay Now"}
+                    : "Pay Now"}
                   </Button>
                 </div>
               </div>
