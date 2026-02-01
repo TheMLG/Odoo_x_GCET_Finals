@@ -70,7 +70,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-slate-200 p-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -79,6 +79,15 @@ export default function LoginPage() {
       >
         {/* Main Card Container */}
         <div className="bg-white rounded-3xl shadow-xl p-8 md:p-10">
+          {/* Logo */}
+          <div className="flex items-center justify-center mb-4">
+            <img
+              src="/RentX.png"
+              alt="RentX Logo"
+              className="h-16 w-auto"
+            />
+          </div>
+
           {/* Header */}
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-slate-900 mb-2">

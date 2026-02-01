@@ -122,16 +122,25 @@ export default function VendorSignupPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 p-4 py-8">
+    <div className="min-h-screen flex items-center justify-center bg-slate-200 p-4 py-8">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
         className="w-full max-w-3xl"
       >
-        <div className="bg-white rounded-3xl shadow-xl p-8 md:p-12">
+        <div className="bg-white rounded-3xl shadow-xl p-6 md:p-8">
+          {/* Logo */}
+          <div className="flex items-center justify-center mb-4">
+            <img
+              src="/RentX.png"
+              alt="RentX Logo"
+              className="h-16 w-auto"
+            />
+          </div>
+
           {/* Header */}
-          <div className="text-center mb-8">
+          <div className="text-center mb-6">
             <h1 className="text-3xl font-bold text-slate-900 mb-2">
               Vendor Sign-up Page
             </h1>
@@ -141,8 +150,8 @@ export default function VendorSignupPage() {
           </div>
 
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <FormField
                   control={form.control}
                   name="firstName"
@@ -156,7 +165,7 @@ export default function VendorSignupPage() {
                           placeholder="Enter first name"
                           {...field}
                           disabled={isLoading}
-                          className="h-12 rounded-xl border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                          className="h-10 rounded-xl border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                         />
                       </FormControl>
                       <FormMessage />
@@ -199,7 +208,7 @@ export default function VendorSignupPage() {
                         placeholder="Enter company name"
                         {...field}
                         disabled={isLoading}
-                        className="h-12 rounded-xl border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                        className="h-10 rounded-xl border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                       />
                     </FormControl>
                     <FormMessage />
@@ -207,7 +216,7 @@ export default function VendorSignupPage() {
                 )}
               />
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <FormField
                   control={form.control}
                   name="productCategory"
@@ -222,7 +231,7 @@ export default function VendorSignupPage() {
                         disabled={isLoading}
                       >
                         <FormControl>
-                          <SelectTrigger className="h-12 rounded-xl border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20">
+                          <SelectTrigger className="h-10 rounded-xl border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20">
                             <SelectValue placeholder="Select category" />
                           </SelectTrigger>
                         </FormControl>
@@ -253,7 +262,7 @@ export default function VendorSignupPage() {
                           {...field}
                           disabled={isLoading}
                           maxLength={15}
-                          className="h-12 rounded-xl border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 uppercase"
+                          className="h-10 rounded-xl border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 uppercase"
                           onChange={(e) => field.onChange(e.target.value.toUpperCase())}
                         />
                       </FormControl>
@@ -277,7 +286,7 @@ export default function VendorSignupPage() {
                         placeholder="Enter your email"
                         {...field}
                         disabled={isLoading}
-                        className="h-12 rounded-xl border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                        className="h-10 rounded-xl border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                       />
                     </FormControl>
                     <FormMessage />
@@ -285,7 +294,7 @@ export default function VendorSignupPage() {
                 )}
               />
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <FormField
                   control={form.control}
                   name="password"
@@ -301,7 +310,7 @@ export default function VendorSignupPage() {
                             placeholder="Create password"
                             {...field}
                             disabled={isLoading}
-                            className="h-12 rounded-xl border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 pr-11"
+                            className="h-10 rounded-xl border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 pr-11"
                           />
                           <button
                             type="button"
@@ -336,7 +345,7 @@ export default function VendorSignupPage() {
                             placeholder="Confirm password"
                             {...field}
                             disabled={isLoading}
-                            className="h-12 rounded-xl border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 pr-11"
+                            className="h-10 rounded-xl border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 pr-11"
                           />
                           <button
                             type="button"
@@ -359,7 +368,7 @@ export default function VendorSignupPage() {
 
               <Button
                 type="submit"
-                className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl mt-6 shadow-lg shadow-blue-500/30"
+                className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl mt-4 shadow-lg shadow-blue-500/30"
                 disabled={isLoading}
               >
                 {isLoading ? (
@@ -372,7 +381,7 @@ export default function VendorSignupPage() {
                 )}
               </Button>
 
-              <div className="text-center pt-4">
+              <div className="text-center pt-3">
                 <p className="text-sm text-slate-600">
                   Already have an account?{' '}
                   <Link

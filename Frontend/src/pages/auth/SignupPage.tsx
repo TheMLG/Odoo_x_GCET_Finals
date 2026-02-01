@@ -5,13 +5,22 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 
 export default function SignupPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-slate-200 p-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="w-full max-w-4xl"
+        className="w-full max-w-6xl"
       >
+        {/* Logo */}
+        <div className="flex items-center justify-center mb-6">
+          <img
+            src="/RentX.png"
+            alt="RentX Logo"
+            className="h-20 w-auto"
+          />
+        </div>
+
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-slate-900 mb-3">
             Join RentX
