@@ -77,6 +77,8 @@ export default function UserSignupPage() {
 
       if (success) {
         toast.success('Account created successfully!');
+        // Mark that user just signed up to show welcome coupon
+        sessionStorage.setItem('justSignedUp', 'true');
         navigate('/');
       } else {
         toast.error('Failed to create account. Please try again.');

@@ -22,6 +22,10 @@ export function WelcomeCouponDialog() {
 
     const checkForWelcomeCoupon = async () => {
         try {
+            // Check if user just signed up
+            const justSignedUp = sessionStorage.getItem('justSignedUp');
+            if (!justSignedUp) return;
+
             // Check if dialog was already shown in this session
             const dialogShown = sessionStorage.getItem('welcomeCouponDialogShown');
             if (dialogShown) return;
@@ -33,6 +37,8 @@ export function WelcomeCouponDialog() {
                 setWelcomeCoupon(welcomeCoupon);
                 setIsOpen(true);
                 sessionStorage.setItem('welcomeCouponDialogShown', 'true');
+                // Clear the signup flag after showing dialog
+                sessionStorage.removeItem('justSignedUp');
             }
         } catch (error) {
             console.error('Failed to fetch welcome coupon:', error);
