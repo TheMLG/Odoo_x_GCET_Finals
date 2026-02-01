@@ -22,16 +22,9 @@ import {
 
 // Categories list
 const categories = [
-  'Photography',
-  'Videography',
-  'Lighting',
-  'Audio',
-  'Gaming',
-  'Electronics',
-  'Tools',
-  'Sports',
-  'Events',
-  'Other'
+  'electronics',
+  'cameras',
+  'Uncategorized'
 ];
 
 interface ProductFiltersProps {
