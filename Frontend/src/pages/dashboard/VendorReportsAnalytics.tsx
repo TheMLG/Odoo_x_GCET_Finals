@@ -21,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { getVendorAnalytics, VendorAnalyticsData } from "@/lib/vendorApi";
 import { motion } from "framer-motion";
 import jsPDF from "jspdf";
@@ -63,7 +63,6 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 export default function VendorReportsAnalytics() {
-  const { toast } = useToast();
   const [timeRange, setTimeRange] = useState("year");
   const [isLoading, setIsLoading] = useState(true);
   const [analyticsData, setAnalyticsData] =
@@ -79,12 +78,9 @@ export default function VendorReportsAnalytics() {
       const data = await getVendorAnalytics(timeRange);
       setAnalyticsData(data);
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description:
-          error.response?.data?.message || "Failed to fetch analytics",
-        variant: "destructive",
-      });
+      toast.error(
+        error.response?.data?.message || "Failed to fetch analytics"
+      );
     } finally {
       setIsLoading(false);
     }
@@ -200,10 +196,7 @@ export default function VendorReportsAnalytics() {
       `vendor_analytics_${timeRange}_${new Date().toISOString().split("T")[0]}.pdf`,
     );
 
-    toast({
-      title: "Success",
-      description: "Report downloaded successfully",
-    });
+    toast.success("Report downloaded successfully");
   };
 
   if (isLoading || !analyticsData) {
@@ -526,7 +519,7 @@ export default function VendorReportsAnalytics() {
                       </p>
                     </div>
                   ))
-                : <p className="text-center text-muted-foreground py-8">
+                  : <p className="text-center text-muted-foreground py-8">
                     No product data available for this time period
                   </p>
                 }

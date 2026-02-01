@@ -21,11 +21,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from "sonner";
 import api from '@/lib/api';
-import { 
-  Store, 
-  Search, 
+import {
+  Store,
+  Search,
   Mail,
   Phone,
   Package,
@@ -52,7 +52,6 @@ interface Vendor {
 }
 
 export default function ManageVendors() {
-  const { toast } = useToast();
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -69,10 +68,8 @@ export default function ManageVendors() {
       const response = await api.get('/admin/vendors');
       setVendors(response.data.data);
     } catch (error: any) {
-      toast({
-        title: 'Error',
-        description: error.response?.data?.message || 'Failed to fetch vendors',
-        variant: 'destructive',
+      toast.error('Failed to fetch vendors', {
+        description: error.response?.data?.message
       });
     } finally {
       setIsLoading(false);
@@ -287,9 +284,9 @@ export default function ManageVendors() {
                           </TableCell>
                           <TableCell className="text-right">
                             <div className="flex justify-end gap-2">
-                              <Button 
-                                variant="ghost" 
-                                size="icon" 
+                              <Button
+                                variant="ghost"
+                                size="icon"
                                 className="h-8 w-8"
                                 onClick={() => handleViewVendor(vendor)}
                               >

@@ -36,7 +36,7 @@ export interface VendorProduct {
   pricing: Array<{
     id: string;
     productId: string;
-    type: "HOUR" | "DAY" | "WEEK";
+    type: "HOUR" | "DAY" | "WEEK" | "MONTH";
     price: string;
   }>;
 }

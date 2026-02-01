@@ -5,13 +5,14 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Menu } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useUIStore } from '@/stores/uiStore';
 
 interface AdminLayoutProps {
   children: ReactNode;
 }
 
 export function AdminLayout({ children }: AdminLayoutProps) {
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const { isSidebarCollapsed } = useUIStore();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
   return (
@@ -19,10 +20,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
       <Navbar />
       <div className="flex flex-1 relative">
         {/* Desktop Sidebar */}
-        <AdminSidebar
-          isCollapsed={isSidebarCollapsed}
-          setIsCollapsed={setIsSidebarCollapsed}
-        />
+        <AdminSidebar />
 
         {/* Mobile Sidebar Trigger (Floating or in Header? Let's check Navbar opacity/z-index. Navbar is sticky top-0 z-50. 
            We might need a trigger if it's not in Navbar. The standard is usually in Navbar. 

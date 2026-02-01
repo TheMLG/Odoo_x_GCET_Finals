@@ -57,6 +57,7 @@ const productSchema = z.object({
     pricePerDay: z.coerce.number().min(1, "Daily price must be at least 1"),
     pricePerHour: z.coerce.number().optional().or(z.literal("")),
     pricePerWeek: z.coerce.number().optional().or(z.literal("")),
+    pricePerMonth: z.coerce.number().optional().or(z.literal("")),
     totalQty: z.coerce.number().min(1, "Quantity must be at least 1"),
     isPublished: z.boolean().default(false),
     image: z.any().optional(), // Modified to allow string URL for edits or FileList for new upgrades
@@ -99,6 +100,7 @@ export function ProductDialog({
             pricePerDay: 0,
             pricePerHour: "" as any,
             pricePerWeek: "" as any,
+            pricePerMonth: "" as any,
             totalQty: 1,
             isPublished: false,
         },
@@ -131,6 +133,10 @@ export function ProductDialog({
                                 parseFloat(
                                     data.pricing.find((p) => p.type === "WEEK")?.price || "0"
                                 ) || ("" as any),
+                            pricePerMonth:
+                                parseFloat(
+                                    data.pricing.find((p: any) => p.type === "MONTH")?.price || "0"
+                                ) || ("" as any),
                             totalQty: data.inventory?.totalQty || 1,
                             isPublished: data.isPublished,
                         });
@@ -154,12 +160,41 @@ export function ProductDialog({
                 pricePerDay: 0,
                 pricePerHour: "" as any,
                 pricePerWeek: "" as any,
+                pricePerMonth: "" as any,
                 totalQty: 1,
                 isPublished: false,
             });
             setImagePreview(null);
         }
     }, [open, productId, initialProduct, mode, form]);
+
+    // Auto-calculate prices based on hourly rate
+    const pricePerHourValue = form.watch("pricePerHour");
+
+    useEffect(() => {
+        if (pricePerHourValue) {
+            const hourlyRate = parseFloat(pricePerHourValue.toString());
+            if (!isNaN(hourlyRate) && hourlyRate > 0) {
+                const calculatedDaily = hourlyRate * 24;
+                const calculatedMonthly = calculatedDaily * 30;
+
+                // Only update if the field hasn't been manually edited (isDirty check)
+                // Note: dirtyFields tracks fields that have been modified by user interactions.
+                // We check if the specific field is marked as dirty.
+                const { dirtyFields } = form.formState;
+
+                if (!dirtyFields.pricePerDay) {
+                    form.setValue("pricePerDay", calculatedDaily, { shouldDirty: false }); // keep it non-dirty so it continues updating? Or mark as not dirty? Usually setValue makes it dirty unless options provided. actually setValue doesn't make it dirty by default in some versions, but we want it to NOT be considered 'manually edited' by this automation. 
+                    // However, if I set it programmatically, react-hook-form might not mark it dirty.
+                    // But if the USER edits it, it becomes dirty. So checking dirtyFields is correct.
+                }
+
+                if (!dirtyFields.pricePerMonth) {
+                    form.setValue("pricePerMonth", calculatedMonthly, { shouldDirty: false });
+                }
+            }
+        }
+    }, [pricePerHourValue, form]);
 
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -200,6 +235,8 @@ export function ProductDialog({
                 formData.append("pricePerHour", data.pricePerHour.toString());
             if (data.pricePerWeek)
                 formData.append("pricePerWeek", data.pricePerWeek.toString());
+            if (data.pricePerMonth)
+                formData.append("pricePerMonth", data.pricePerMonth.toString());
 
             // Handle image
             if (data.image && data.image.length > 0 && data.image[0] instanceof File) {
@@ -454,7 +491,7 @@ export function ProductDialog({
                                             )}
                                         />
 
-                                        <div className="grid grid-cols-2 gap-4">
+                                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                                             <FormField
                                                 control={form.control}
                                                 name="pricePerHour"
@@ -482,6 +519,27 @@ export function ProductDialog({
                                                 render={({ field }) => (
                                                     <FormItem>
                                                         <FormLabel>Price Per Week (Optional)</FormLabel>
+                                                        <FormControl>
+                                                            <Input
+                                                                type="number"
+                                                                min="0"
+                                                                placeholder="0.00"
+                                                                className="rounded-xl"
+                                                                disabled={isLoading || isView}
+                                                                {...field}
+                                                            />
+                                                        </FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+
+                                            <FormField
+                                                control={form.control}
+                                                name="pricePerMonth"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>Price Per Month (Optional)</FormLabel>
                                                         <FormControl>
                                                             <Input
                                                                 type="number"

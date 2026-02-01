@@ -29,7 +29,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from "sonner";
 import api from '@/lib/api';
 import {
   ShoppingCart,
@@ -62,7 +62,6 @@ interface Order {
 }
 
 export default function ManageOrders() {
-  const { toast } = useToast();
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -91,10 +90,8 @@ export default function ManageOrders() {
       setOrders(response.data.data.orders);
       setTotalPages(response.data.data.pagination.totalPages);
     } catch (error: any) {
-      toast({
-        title: 'Error',
-        description: error.response?.data?.message || 'Failed to fetch orders',
-        variant: 'destructive',
+      toast.error('Failed to fetch orders', {
+        description: error.response?.data?.message
       });
     } finally {
       setIsLoading(false);
@@ -126,17 +123,12 @@ export default function ManageOrders() {
         )
       );
 
-      toast({
-        title: 'Success',
-        description: 'Order status updated successfully',
-      });
+      toast.success('Order status updated successfully');
       setIsEditDialogOpen(false);
       setEditingOrder(null);
     } catch (error: any) {
-      toast({
-        title: 'Error',
-        description: error.response?.data?.message || 'Failed to update order status',
-        variant: 'destructive',
+      toast.error('Failed to update order status', {
+        description: error.response?.data?.message
       });
     }
   };

@@ -92,25 +92,25 @@ export function SidebarNav({ isCollapsed, onItemClick }: SidebarNavProps) {
   );
 }
 
-interface AdminSidebarProps {
-  isCollapsed: boolean;
-  setIsCollapsed: (value: boolean) => void;
-  className?: string;
-}
+import { useUIStore } from '@/stores/uiStore';
 
-export function AdminSidebar({ isCollapsed, setIsCollapsed, className }: AdminSidebarProps) {
+// ... (SidebarNav remains same)
+
+export function AdminSidebar({ className }: { className?: string }) {
+  const { isSidebarCollapsed, setSidebarCollapsed } = useUIStore();
+
   return (
     <aside
       className={cn(
-        'fixed left-0 top-16 z-40 h-[calc(100vh-4rem)] border-r bg-card transition-all duration-300 hidden md:block',
-        isCollapsed ? 'w-16' : 'w-64',
+        'fixed left-0 top-16 z-40 h-[calc(100vh-4rem)] bg-card transition-all duration-300 hidden md:block rounded-tr-3xl rounded-br-3xl shadow-2xl',
+        isSidebarCollapsed ? 'w-16' : 'w-64',
         className
       )}
     >
       <div className="flex h-full flex-col">
         {/* Header */}
         <div className="flex items-center justify-between border-b p-4">
-          {!isCollapsed && (
+          {!isSidebarCollapsed && (
             <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
               Main Menu
             </h2>
@@ -118,10 +118,10 @@ export function AdminSidebar({ isCollapsed, setIsCollapsed, className }: AdminSi
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => setIsCollapsed(!isCollapsed)}
+            onClick={() => setSidebarCollapsed(!isSidebarCollapsed)}
             className="ml-auto h-8 w-8"
           >
-            {isCollapsed ? (
+            {isSidebarCollapsed ? (
               <ChevronRight className="h-4 w-4" />
             ) : (
               <ChevronLeft className="h-4 w-4" />
@@ -130,32 +130,17 @@ export function AdminSidebar({ isCollapsed, setIsCollapsed, className }: AdminSi
         </div>
 
         {/* Navigation */}
-        <SidebarNav isCollapsed={isCollapsed} />
+        <SidebarNav isCollapsed={isSidebarCollapsed} />
 
         {/* Footer Info */}
         <div className="border-t p-4 mt-auto">
-          {!isCollapsed ?
+          {!isSidebarCollapsed ?
             <div className="space-y-4">
-              <div className="rounded-lg bg-muted/50 p-3">
-                <div className="flex items-center gap-2 text-xs">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary">
-                    <Users className="h-4 w-4 text-primary-foreground" />
-                  </div>
-                  <div>
-                    <p className="font-medium">Admin Panel</p>
-                    <p className="text-muted-foreground">Full System Access</p>
-                  </div>
-                </div>
-              </div>
               <Button
                 variant="outline"
                 className="w-full justify-start gap-2 text-red-500 hover:text-red-600 hover:bg-red-50"
                 onClick={() => {
-                  // Add logout logic here, referencing auth store if needed or just use Link/href if handled globally
-                  // For now, assuming direct call or navigation. 
-                  // Ideally imports useAuthStore.
-                  // But wait, I need to import useAuthStore first.
-                  window.location.href = '/login'; // Fallback or proper logout
+                  window.location.href = '/login';
                 }}
               >
                 <LogOut className="h-4 w-4" />

@@ -39,13 +39,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from "sonner";
 import api from '@/lib/api';
-import { 
-  Users, 
-  Search, 
-  UserPlus, 
-  Edit, 
+import {
+  Users,
+  Search,
+  UserPlus,
+  Edit,
   Trash2,
   Mail,
   Calendar,
@@ -71,7 +71,6 @@ interface User {
 }
 
 export default function ManageUsers() {
-  const { toast } = useToast();
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -105,10 +104,8 @@ export default function ManageUsers() {
       setUsers(response.data.data.users);
       setTotalPages(response.data.data.pagination.totalPages);
     } catch (error: any) {
-      toast({
-        title: 'Error',
-        description: error.response?.data?.message || 'Failed to fetch users',
-        variant: 'destructive',
+      toast.error('Failed to fetch users', {
+        description: error.response?.data?.message
       });
     } finally {
       setIsLoading(false);
@@ -120,16 +117,12 @@ export default function ManageUsers() {
 
     try {
       await api.delete(`/admin/users/${userId}`);
-      toast({
-        title: 'Success',
-        description: 'User deleted successfully',
-      });
+      await api.delete(`/admin/users/${userId}`);
+      toast.success('User deleted successfully');
       fetchUsers();
     } catch (error: any) {
-      toast({
-        title: 'Error',
-        description: error.response?.data?.message || 'Failed to delete user',
-        variant: 'destructive',
+      toast.error('Failed to delete user', {
+        description: error.response?.data?.message
       });
     }
   };
@@ -145,21 +138,16 @@ export default function ManageUsers() {
     setIsDeleting(true);
     try {
       await api.delete(`/admin/users/${deletingUser.id}`);
-      
+
       // Update local state instead of refetching
       setUsers(prevUsers => prevUsers.filter(u => u.id !== deletingUser.id));
-      
-      toast({
-        title: 'Success',
-        description: 'User deleted successfully',
-      });
+
+      toast.success('User deleted successfully');
       setIsDeleteDialogOpen(false);
       setDeletingUser(null);
     } catch (error: any) {
-      toast({
-        title: 'Error',
-        description: error.response?.data?.message || 'Failed to delete user',
-        variant: 'destructive',
+      toast.error('Failed to delete user', {
+        description: error.response?.data?.message
       });
     } finally {
       setIsDeleting(false);
@@ -181,27 +169,22 @@ export default function ManageUsers() {
 
     try {
       await api.put(`/admin/users/${editingUser.id}`, editForm);
-      
+
       // Update local state instead of refetching
-      setUsers(prevUsers => 
-        prevUsers.map(u => 
-          u.id === editingUser.id 
-            ? { ...u, ...editForm } 
+      setUsers(prevUsers =>
+        prevUsers.map(u =>
+          u.id === editingUser.id
+            ? { ...u, ...editForm }
             : u
         )
       );
-      
-      toast({
-        title: 'Success',
-        description: 'User updated successfully',
-      });
+
+      toast.success('User updated successfully');
       setIsEditDialogOpen(false);
       setEditingUser(null);
     } catch (error: any) {
-      toast({
-        title: 'Error',
-        description: error.response?.data?.message || 'Failed to update user',
-        variant: 'destructive',
+      toast.error('Failed to update user', {
+        description: error.response?.data?.message
       });
     }
   };
@@ -346,17 +329,17 @@ export default function ManageUsers() {
                           </TableCell>
                           <TableCell className="text-right">
                             <div className="flex justify-end gap-2">
-                              <Button 
-                                variant="ghost" 
-                                size="icon" 
+                              <Button
+                                variant="ghost"
+                                size="icon"
                                 className="h-8 w-8"
                                 onClick={() => handleEditUser(user)}
                               >
                                 <Edit className="h-4 w-4" />
                               </Button>
-                              <Button 
-                                variant="ghost" 
-                                size="icon" 
+                              <Button
+                                variant="ghost"
+                                size="icon"
                                 className="h-8 w-8 text-destructive"
                                 onClick={() => openDeleteDialog(user)}
                               >

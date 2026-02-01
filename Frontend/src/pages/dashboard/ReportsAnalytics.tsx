@@ -49,7 +49,7 @@ import {
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import api from '@/lib/api';
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#6b7280'];
@@ -70,7 +70,6 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 export default function ReportsAnalytics() {
-  const { toast } = useToast();
   const [timeRange, setTimeRange] = useState('year');
   const [isLoading, setIsLoading] = useState(true);
   const [analyticsData, setAnalyticsData] = useState<any>(null);
@@ -87,11 +86,7 @@ export default function ReportsAnalytics() {
       });
       setAnalyticsData(response.data.data);
     } catch (error: any) {
-      toast({
-        title: 'Error',
-        description: error.response?.data?.message || 'Failed to fetch analytics',
-        variant: 'destructive',
-      });
+      toast.error(error.response?.data?.message || 'Failed to fetch analytics');
     } finally {
       setIsLoading(false);
     }
@@ -227,10 +222,7 @@ export default function ReportsAnalytics() {
     // Save PDF
     doc.save(`rentx_analytics_${timeRange}_${new Date().toISOString().split('T')[0]}.pdf`);
 
-    toast({
-      title: 'Success',
-      description: 'Report downloaded successfully',
-    });
+    toast.success('Report downloaded successfully');
   };
 
   if (isLoading || !analyticsData) {

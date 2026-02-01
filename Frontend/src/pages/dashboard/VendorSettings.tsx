@@ -10,7 +10,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import api from "@/lib/api";
 import {
   changeVendorPassword,
@@ -34,7 +34,6 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 export default function VendorSettings() {
-  const { toast } = useToast();
   const { user, setUser } = useAuthStore();
 
   // User info form state
@@ -91,18 +90,11 @@ export default function VendorSettings() {
       // Update auth store
       setUser(updatedUser);
 
-      toast({
-        title: "Success",
-        description: "Personal information updated successfully",
-      });
+      toast.success("Personal information updated successfully");
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description:
-          error.response?.data?.message ||
-          "Failed to update personal information",
-        variant: "destructive",
-      });
+      toast.error(
+        error.response?.data?.message || "Failed to update personal information"
+      );
     } finally {
       setIsUserLoading(false);
     }
@@ -120,18 +112,11 @@ export default function VendorSettings() {
       const userResponse = await api.get("/auth/current-user");
       setUser(userResponse.data.data);
 
-      toast({
-        title: "Success",
-        description: "Business information updated successfully",
-      });
+      toast.success("Business information updated successfully");
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description:
-          error.response?.data?.message ||
-          "Failed to update business information",
-        variant: "destructive",
-      });
+      toast.error(
+        error.response?.data?.message || "Failed to update business information"
+      );
     } finally {
       setIsVendorLoading(false);
     }
@@ -143,20 +128,12 @@ export default function VendorSettings() {
 
     // Validation
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      toast({
-        title: "Error",
-        description: "New passwords do not match",
-        variant: "destructive",
-      });
+      toast.error("New passwords do not match");
       return;
     }
 
     if (passwordForm.newPassword.length < 6) {
-      toast({
-        title: "Error",
-        description: "Password must be at least 6 characters long",
-        variant: "destructive",
-      });
+      toast.error("Password must be at least 6 characters long");
       return;
     }
 
@@ -168,10 +145,7 @@ export default function VendorSettings() {
         newPassword: passwordForm.newPassword,
       });
 
-      toast({
-        title: "Success",
-        description: "Password changed successfully",
-      });
+      toast.success("Password changed successfully");
 
       // Reset form
       setPasswordForm({
@@ -180,12 +154,7 @@ export default function VendorSettings() {
         confirmPassword: "",
       });
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description:
-          error.response?.data?.message || "Failed to change password",
-        variant: "destructive",
-      });
+      toast.error(error.response?.data?.message || "Failed to change password");
     } finally {
       setIsPasswordLoading(false);
     }
@@ -200,12 +169,7 @@ export default function VendorSettings() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
-          <Button variant="ghost" asChild className="mb-4">
-            <Link to="/vendor/dashboard">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Dashboard
-            </Link>
-          </Button>
+
           <div className="flex items-center gap-3 mb-2">
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
               <Building2 className="h-6 w-6 text-primary" />
@@ -219,14 +183,14 @@ export default function VendorSettings() {
           </div>
         </motion.div>
 
-        <div className="space-y-6">
+        <div className="grid gap-6 lg:grid-cols-2">
           {/* Personal Information */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
           >
-            <Card className="rounded-2xl">
+            <Card className="rounded-2xl h-full flex flex-col">
               <CardHeader>
                 <div className="flex items-center gap-2">
                   <User className="h-5 w-5 text-primary" />
@@ -291,7 +255,7 @@ export default function VendorSettings() {
                   >
                     {isUserLoading ?
                       "Saving..."
-                    : <>
+                      : <>
                         <Save className="mr-2 h-4 w-4" />
                         Save Changes
                       </>
@@ -302,7 +266,7 @@ export default function VendorSettings() {
             </Card>
           </motion.div>
 
-          <Separator />
+
 
           {/* Business Information */}
           <motion.div
@@ -310,7 +274,7 @@ export default function VendorSettings() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
           >
-            <Card className="rounded-2xl">
+            <Card className="rounded-2xl h-full flex flex-col">
               <CardHeader>
                 <div className="flex items-center gap-2">
                   <Building2 className="h-5 w-5 text-primary" />
@@ -384,7 +348,7 @@ export default function VendorSettings() {
                   >
                     {isVendorLoading ?
                       "Saving..."
-                    : <>
+                      : <>
                         <Save className="mr-2 h-4 w-4" />
                         Save Changes
                       </>
@@ -395,13 +359,14 @@ export default function VendorSettings() {
             </Card>
           </motion.div>
 
-          <Separator />
+
 
           {/* Change Password */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
+            className="lg:col-span-2"
           >
             <Card className="rounded-2xl">
               <CardHeader>
@@ -435,49 +400,51 @@ export default function VendorSettings() {
                       />
                     </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="newPassword">New Password</Label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="newPassword"
-                        type="password"
-                        placeholder="Enter new password"
-                        value={passwordForm.newPassword}
-                        onChange={(e) =>
-                          setPasswordForm({
-                            ...passwordForm,
-                            newPassword: e.target.value,
-                          })
-                        }
-                        required
-                        className="pl-10 rounded-xl"
-                      />
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="newPassword">New Password</Label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="newPassword"
+                          type="password"
+                          placeholder="Enter new password"
+                          value={passwordForm.newPassword}
+                          onChange={(e) =>
+                            setPasswordForm({
+                              ...passwordForm,
+                              newPassword: e.target.value,
+                            })
+                          }
+                          required
+                          className="pl-10 rounded-xl"
+                        />
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Min. 6 characters
+                      </p>
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      Password must be at least 6 characters long
-                    </p>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="confirmPassword">
-                      Confirm New Password
-                    </Label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="confirmPassword"
-                        type="password"
-                        placeholder="Confirm new password"
-                        value={passwordForm.confirmPassword}
-                        onChange={(e) =>
-                          setPasswordForm({
-                            ...passwordForm,
-                            confirmPassword: e.target.value,
-                          })
-                        }
-                        required
-                        className="pl-10 rounded-xl"
-                      />
+                    <div className="space-y-2">
+                      <Label htmlFor="confirmPassword">
+                        Confirm New Password
+                      </Label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="confirmPassword"
+                          type="password"
+                          placeholder="Confirm new password"
+                          value={passwordForm.confirmPassword}
+                          onChange={(e) =>
+                            setPasswordForm({
+                              ...passwordForm,
+                              confirmPassword: e.target.value,
+                            })
+                          }
+                          required
+                          className="pl-10 rounded-xl"
+                        />
+                      </div>
                     </div>
                   </div>
                   <Button
@@ -487,7 +454,7 @@ export default function VendorSettings() {
                   >
                     {isPasswordLoading ?
                       "Changing Password..."
-                    : <>
+                      : <>
                         <Lock className="mr-2 h-4 w-4" />
                         Change Password
                       </>

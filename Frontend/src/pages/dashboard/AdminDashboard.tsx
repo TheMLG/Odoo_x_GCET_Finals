@@ -7,7 +7,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import api from "@/lib/api";
 import { motion } from "framer-motion";
 import {
@@ -64,7 +64,6 @@ interface DashboardStats {
 }
 
 export default function AdminDashboard() {
-  const { toast } = useToast();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -78,12 +77,9 @@ export default function AdminDashboard() {
       const response = await api.get("/admin/stats");
       setStats(response.data.data);
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description:
-          error.response?.data?.message || "Failed to fetch dashboard stats",
-        variant: "destructive",
-      });
+      toast.error(
+        error.response?.data?.message || "Failed to fetch dashboard stats"
+      );
     } finally {
       setIsLoading(false);
     }
@@ -218,6 +214,60 @@ export default function AdminDashboard() {
           ))}
         </div>
 
+        {/* Quick Actions */}
+        <div className="mb-8">
+          <h2 className="mb-4 text-lg font-semibold">Quick Actions</h2>
+          <div className="flex flex-wrap gap-3">
+            <Button
+              asChild
+              className="h-auto rounded-full bg-blue-100 px-6 py-2 text-blue-700 hover:bg-blue-200 hover:text-blue-800 border-0 shadow-none"
+            >
+              <Link to="/admin/users" className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/50">
+                  <Users className="h-4 w-4" />
+                </div>
+                <span>Manage Users</span>
+              </Link>
+            </Button>
+
+            <Button
+              asChild
+              className="h-auto rounded-full bg-purple-100 px-6 py-2 text-purple-700 hover:bg-purple-200 hover:text-purple-800 border-0 shadow-none"
+            >
+              <Link to="/admin/products" className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/50">
+                  <Package className="h-4 w-4" />
+                </div>
+                <span>All Products</span>
+              </Link>
+            </Button>
+
+            <Button
+              asChild
+              className="h-auto rounded-full bg-emerald-100 px-6 py-2 text-emerald-700 hover:bg-emerald-200 hover:text-emerald-800 border-0 shadow-none"
+            >
+              <Link to="/admin/orders" className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/50">
+                  <ShoppingCart className="h-4 w-4" />
+                </div>
+                <span>All Orders</span>
+              </Link>
+            </Button>
+
+            <Button
+              asChild
+              className="h-auto rounded-full bg-orange-100 px-6 py-2 text-orange-700 hover:bg-orange-200 hover:text-orange-800 border-0 shadow-none"
+            >
+              <Link to="/admin/reports" className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/50">
+                  <BarChart3 className="h-4 w-4" />
+                </div>
+                <span>Reports</span>
+              </Link>
+            </Button>
+          </div>
+        </div>
+
         {/* Charts */}
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Orders Chart */}
@@ -339,67 +389,7 @@ export default function AdminDashboard() {
           </motion.div>
         </div>
 
-        {/* Quick Actions */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-          className="mt-6"
-        >
-          <Card className="rounded-2xl">
-            <CardHeader>
-              <CardTitle className="text-lg">Quick Actions</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                <Button
-                  asChild
-                  variant="outline"
-                  className="justify-start rounded-xl"
-                >
-                  <Link to="/admin/users">
-                    <Users className="mr-2 h-4 w-4" />
-                    Manage Users
-                    <ArrowUpRight className="ml-auto h-4 w-4" />
-                  </Link>
-                </Button>
-                <Button
-                  asChild
-                  variant="outline"
-                  className="justify-start rounded-xl"
-                >
-                  <Link to="/admin/products">
-                    <Package className="mr-2 h-4 w-4" />
-                    All Products
-                    <ArrowUpRight className="ml-auto h-4 w-4" />
-                  </Link>
-                </Button>
-                <Button
-                  asChild
-                  variant="outline"
-                  className="justify-start rounded-xl"
-                >
-                  <Link to="/admin/orders">
-                    <ShoppingCart className="mr-2 h-4 w-4" />
-                    All Orders
-                    <ArrowUpRight className="ml-auto h-4 w-4" />
-                  </Link>
-                </Button>
-                <Button
-                  asChild
-                  variant="outline"
-                  className="justify-start rounded-xl"
-                >
-                  <Link to="/admin/reports">
-                    <BarChart3 className="mr-2 h-4 w-4" />
-                    Reports
-                    <ArrowUpRight className="ml-auto h-4 w-4" />
-                  </Link>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
+
       </div>
     </AdminLayout>
   );

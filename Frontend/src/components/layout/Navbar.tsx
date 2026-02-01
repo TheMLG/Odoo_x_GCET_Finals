@@ -80,9 +80,7 @@ export function Navbar() {
     !isAuthenticated || (userRole !== "ADMIN" && userRole !== "VENDOR");
 
   return (
-    <motion.header
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
+    <header
       className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
     >
       <div className="container flex h-14 sm:h-16 items-center justify-between px-3 sm:px-4 md:px-6">
@@ -157,7 +155,7 @@ export function Navbar() {
           {isAuthenticated ?
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-1.5 sm:gap-2 rounded-full bg-gray-900 p-1.5 sm:p-2 pr-2 sm:pr-4 text-white hover:bg-gray-800">
+                <button className="flex items-center gap-1.5 sm:gap-2 rounded-full bg-indigo-100 p-1.5 sm:p-2 pr-2 sm:pr-4 text-indigo-900 hover:bg-indigo-200 transition-colors">
                   <User className="h-4 w-4 sm:h-5 sm:w-5" />
                   <span className="hidden sm:inline text-sm font-medium">
                     Hi, {user?.firstName || "User"}
@@ -271,6 +269,6 @@ export function Navbar() {
 
       {/* Cart Sheet */}
       <CartSheet open={isCartOpen} onClose={() => setIsCartOpen(false)} />
-    </motion.header>
+    </header>
   );
 }

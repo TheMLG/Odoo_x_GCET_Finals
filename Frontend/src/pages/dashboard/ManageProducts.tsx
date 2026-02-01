@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { AdminLayout } from '@/components/layout/AdminLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -39,7 +39,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from "sonner";
 import api from '@/lib/api';
 import {
   Package,
@@ -52,6 +52,7 @@ import {
   Trash2,
   IndianRupee
 } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 interface Product {
   id: string;
@@ -79,86 +80,91 @@ interface Product {
 }
 
 export default function ManageProducts() {
-  const { toast } = useToast();
-  const [products, setProducts] = useState<Product[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [viewingProduct, setViewingProduct] = useState<Product | null>(null);
+
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [deletingProduct, setDeletingProduct] = useState<Product | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
+
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [isUpdating, setIsUpdating] = useState(false);
 
-  // ... (fetchProducts)
-
-  const handleUpdateProduct = async () => {
-    if (!editingProduct) return;
-
-    setIsUpdating(true);
-    try {
-      const response = await api.put(`/admin/products/${editingProduct.id}`, {
-        name: editingProduct.name,
-        description: editingProduct.description,
-        isPublished: editingProduct.isPublished,
-        inventory: {
-          quantityOnHand: editingProduct.inventory?.quantityOnHand
-        },
-        pricing: {
-          pricePerDay: editingProduct.pricing?.pricePerDay,
-          pricePerWeek: editingProduct.pricing?.pricePerWeek,
-          pricePerMonth: editingProduct.pricing?.pricePerMonth
-        }
-      });
-
-      setProducts(prevProducts => prevProducts.map(p =>
-        p.id === editingProduct.id ? response.data.data : p
-      ));
-
-      toast({
-        title: 'Success',
-        description: 'Product updated successfully',
-      });
-      setEditingProduct(null);
-    } catch (error: any) {
-      toast({
-        title: 'Error',
-        description: error.response?.data?.message || 'Failed to update product',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsUpdating(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchProducts();
-  }, [currentPage, statusFilter]);
-
-  const fetchProducts = async () => {
-    setIsLoading(true);
-    try {
+  // Fetch Products Query
+  const { data, isLoading } = useQuery({
+    queryKey: ['admin-products', currentPage, statusFilter],
+    queryFn: async () => {
       const params: any = { page: currentPage, limit: 10 };
       if (statusFilter !== 'all') {
         params.isPublished = statusFilter === 'published' ? 'true' : 'false';
       }
-
       const response = await api.get('/admin/products', { params });
-      setProducts(response.data.data.products);
-      setTotalPages(response.data.data.pagination.totalPages);
-    } catch (error: any) {
-      toast({
-        title: 'Error',
-        description: error.response?.data?.message || 'Failed to fetch products',
-        variant: 'destructive',
+      return response.data.data;
+    },
+  });
+
+  const products: Product[] = data?.products || [];
+  const totalPages = data?.pagination?.totalPages || 1;
+
+  // Update Product Mutation
+  const updateMutation = useMutation({
+    mutationFn: async (updatedProduct: Product) => {
+      const response = await api.put(`/admin/products/${updatedProduct.id}`, {
+        name: updatedProduct.name,
+        description: updatedProduct.description,
+        isPublished: updatedProduct.isPublished,
+        inventory: {
+          quantityOnHand: updatedProduct.inventory?.quantityOnHand
+        },
+        pricing: {
+          pricePerDay: updatedProduct.pricing?.pricePerDay,
+          pricePerWeek: updatedProduct.pricing?.pricePerWeek,
+          pricePerMonth: updatedProduct.pricing?.pricePerMonth
+        }
       });
-    } finally {
-      setIsLoading(false);
-    }
+      return response.data.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-products'] });
+      toast.success('Product updated successfully');
+      setEditingProduct(null);
+    },
+    onError: (error: any) => {
+      toast.error('Failed to update product', {
+        description: error.response?.data?.message
+      });
+    },
+  });
+
+  // Delete Product Mutation
+  const deleteMutation = useMutation({
+    mutationFn: async (productId: string) => {
+      await api.delete(`/admin/products/${productId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-products'] });
+      toast.success('Product deleted successfully');
+      setIsDeleteDialogOpen(false);
+      setDeletingProduct(null);
+    },
+    onError: (error: any) => {
+      toast.error('Failed to delete product', {
+        description: error.response?.data?.message
+      });
+    },
+  });
+
+  const handleUpdateProduct = () => {
+    if (!editingProduct) return;
+    updateMutation.mutate(editingProduct);
+  };
+
+  const confirmDeleteProduct = () => {
+    if (!deletingProduct) return;
+    deleteMutation.mutate(deletingProduct.id);
   };
 
   const handleViewProduct = (product: Product) => {
@@ -171,32 +177,6 @@ export default function ManageProducts() {
     setIsDeleteDialogOpen(true);
   };
 
-  const confirmDeleteProduct = async () => {
-    if (!deletingProduct) return;
-
-    setIsDeleting(true);
-    try {
-      await api.delete(`/admin/products/${deletingProduct.id}`);
-
-      setProducts(prevProducts => prevProducts.filter(p => p.id !== deletingProduct.id));
-
-      toast({
-        title: 'Success',
-        description: 'Product deleted successfully',
-      });
-      setIsDeleteDialogOpen(false);
-      setDeletingProduct(null);
-    } catch (error: any) {
-      toast({
-        title: 'Error',
-        description: error.response?.data?.message || 'Failed to delete product',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsDeleting(false);
-    }
-  };
-
   const filteredProducts = products.filter(product => {
     const searchLower = searchQuery.toLowerCase();
     return (
@@ -206,7 +186,10 @@ export default function ManageProducts() {
   });
 
   const stats = {
-    total: products.length,
+    total: products.length, // Note: This only counts current page products if not paginated correctly from backend, 
+    // but usually admin dashboards show total counts from a separate stats endpoint or the meta data.
+    // For now, keying off the loaded list is how the previous code worked, though imperfect for pagination.
+    // Ideally, we fetch stats separately. But sticking to refactor scope.
     published: products.filter(p => p.isPublished).length,
     unpublished: products.filter(p => !p.isPublished).length,
     totalInventory: products.reduce((sum, p) => sum + (p.inventory?.quantityOnHand || 0), 0),
@@ -694,8 +677,8 @@ export default function ManageProducts() {
             <Button variant="outline" onClick={() => setEditingProduct(null)}>
               Cancel
             </Button>
-            <Button onClick={handleUpdateProduct} disabled={isUpdating}>
-              {isUpdating ? 'Saving...' : 'Save Changes'}
+            <Button onClick={handleUpdateProduct} disabled={updateMutation.isPending}>
+              {updateMutation.isPending ? 'Saving...' : 'Save Changes'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -712,13 +695,13 @@ export default function ManageProducts() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={deleteMutation.isPending}>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmDeleteProduct}
-              disabled={isDeleting}
+              disabled={deleteMutation.isPending}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {isDeleting ? 'Deleting...' : 'Delete Product'}
+              {deleteMutation.isPending ? 'Deleting...' : 'Delete Product'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

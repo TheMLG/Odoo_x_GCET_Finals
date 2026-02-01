@@ -10,7 +10,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import api from "@/lib/api";
 import { useAuthStore } from "@/stores/authStore";
 import { motion } from "framer-motion";
@@ -27,7 +27,6 @@ import {
 import { useEffect, useState } from "react";
 
 export default function AdminSettings() {
-  const { toast } = useToast();
   const { user, setUser } = useAuthStore();
 
   // Profile form state
@@ -72,17 +71,11 @@ export default function AdminSettings() {
       // Update auth store
       setUser(updatedUser);
 
-      toast({
-        title: "Success",
-        description: "Profile updated successfully",
-      });
+      toast.success("Profile updated successfully");
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description:
-          error.response?.data?.message || "Failed to update profile",
-        variant: "destructive",
-      });
+      toast.error(
+        error.response?.data?.message || "Failed to update profile"
+      );
     } finally {
       setIsProfileLoading(false);
     }
@@ -94,20 +87,12 @@ export default function AdminSettings() {
 
     // Validation
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      toast({
-        title: "Error",
-        description: "New passwords do not match",
-        variant: "destructive",
-      });
+      toast.error("New passwords do not match");
       return;
     }
 
     if (passwordForm.newPassword.length < 6) {
-      toast({
-        title: "Error",
-        description: "Password must be at least 6 characters long",
-        variant: "destructive",
-      });
+      toast.error("Password must be at least 6 characters long");
       return;
     }
 
@@ -119,10 +104,7 @@ export default function AdminSettings() {
         newPassword: passwordForm.newPassword,
       });
 
-      toast({
-        title: "Success",
-        description: "Password changed successfully",
-      });
+      toast.success("Password changed successfully");
 
       // Reset form
       setPasswordForm({
@@ -131,12 +113,9 @@ export default function AdminSettings() {
         confirmPassword: "",
       });
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description:
-          error.response?.data?.message || "Failed to change password",
-        variant: "destructive",
-      });
+      toast.error(
+        error.response?.data?.message || "Failed to change password"
+      );
     } finally {
       setIsPasswordLoading(false);
     }
@@ -149,17 +128,11 @@ export default function AdminSettings() {
     try {
       await api.post("/admin/trigger-rental-reminders");
 
-      toast({
-        title: "Success",
-        description: "Rental reminder emails have been sent successfully",
-      });
+      toast.success("Rental reminder emails have been sent successfully");
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description:
-          error.response?.data?.message || "Failed to send rental reminders",
-        variant: "destructive",
-      });
+      toast.error(
+        error.response?.data?.message || "Failed to send rental reminders"
+      );
     } finally {
       setIsReminderLoading(false);
     }
@@ -280,7 +253,7 @@ export default function AdminSettings() {
                       >
                         {isProfileLoading ?
                           "Saving..."
-                        : <>
+                          : <>
                             <Save className="mr-2 h-4 w-4" />
                             Save Changes
                           </>
@@ -381,7 +354,7 @@ export default function AdminSettings() {
                       >
                         {isPasswordLoading ?
                           "Changing Password..."
-                        : <>
+                          : <>
                             <Lock className="mr-2 h-4 w-4" />
                             Change Password
                           </>
@@ -429,7 +402,7 @@ export default function AdminSettings() {
                     >
                       {isReminderLoading ?
                         "Sending..."
-                      : <>
+                        : <>
                           <Send className="mr-2 h-4 w-4" />
                           Send Reminders
                         </>
