@@ -50,8 +50,17 @@ import {
   Store,
   Edit,
   Trash2,
-  IndianRupee
+  IndianRupee,
+  LayoutGrid,
+  List,
+  MoreHorizontal
 } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 interface Product {
   id: string;
@@ -93,6 +102,7 @@ export default function ManageProducts() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
 
   // ... (fetchProducts)
 
@@ -347,6 +357,24 @@ export default function ManageProducts() {
                     className="pl-10 rounded-xl"
                   />
                 </div>
+                <div className="flex items-center rounded-xl border bg-background p-1">
+                  <Button
+                    variant={viewMode === 'list' ? 'default' : 'ghost'}
+                    size="sm"
+                    className="rounded-lg px-3"
+                    onClick={() => setViewMode('list')}
+                  >
+                    <List className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant={viewMode === 'grid' ? 'default' : 'ghost'}
+                    size="sm"
+                    className="rounded-lg px-3"
+                    onClick={() => setViewMode('grid')}
+                  >
+                    <LayoutGrid className="h-4 w-4" />
+                  </Button>
+                </div>
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
                   <SelectTrigger className="w-full sm:w-[180px] rounded-xl">
                     <SelectValue placeholder="Filter by status" />
@@ -362,27 +390,28 @@ export default function ManageProducts() {
           </Card>
         </motion.div>
 
-        {/* Products Table */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.35 }}
-        >
-          <Card className="rounded-2xl">
-            <CardHeader>
-              <CardTitle>All Products ({filteredProducts.length})</CardTitle>
-              <CardDescription>
-                Complete catalog of products
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {isLoading ? (
-                <div className="text-center py-8">Loading products...</div>
-              ) : filteredProducts.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  No products found
-                </div>
-              ) : (
+        {/* Products View - List or Grid */}
+        {isLoading ? (
+          <div className="text-center py-8">Loading products...</div>
+        ) : filteredProducts.length === 0 ? (
+          <div className="text-center py-8 text-muted-foreground">
+            No products found
+          </div>
+        ) : viewMode === 'list' ? (
+          /* List View */
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.35 }}
+          >
+            <Card className="rounded-2xl">
+              <CardHeader>
+                <CardTitle>All Products ({filteredProducts.length})</CardTitle>
+                <CardDescription>
+                  Complete catalog of products
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
                 <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
@@ -471,37 +500,115 @@ export default function ManageProducts() {
                     </TableBody>
                   </Table>
                 </div>
-              )}
 
-              {/* Pagination */}
-              {totalPages > 1 && (
-                <div className="mt-4 flex items-center justify-between">
-                  <p className="text-sm text-muted-foreground">
-                    Page {currentPage} of {totalPages}
-                  </p>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                      disabled={currentPage === 1}
-                    >
-                      Previous
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                      disabled={currentPage === totalPages}
-                    >
-                      Next
-                    </Button>
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <div className="mt-4 flex items-center justify-between">
+                    <p className="text-sm text-muted-foreground">
+                      Page {currentPage} of {totalPages}
+                    </p>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                        disabled={currentPage === 1}
+                      >
+                        Previous
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                        disabled={currentPage === totalPages}
+                      >
+                        Next
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </motion.div>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
+        ) : (
+          /* Grid View */
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {filteredProducts.map((product) => (
+              <motion.div
+                key={product.id}
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                whileHover={{ scale: 1.02 }}
+                className="cursor-pointer"
+              >
+                <Card className="p-4 hover:shadow-md transition-shadow border-border/50 h-full">
+                  <div className="flex items-start justify-between mb-3">
+                    <span className="font-medium">{product.name}</span>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 -mr-1 -mt-1"
+                        >
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => handleViewProduct(product)}>
+                          <Eye className="mr-2 h-4 w-4" />
+                          View Details
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setEditingProduct(product)}>
+                          <Edit className="mr-2 h-4 w-4" />
+                          Edit Product
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => openDeleteDialog(product)}
+                          className="text-red-600 focus:text-red-600"
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Delete Product
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Store className="h-4 w-4" />
+                      <span className="truncate">{product.vendor.companyName}</span>
+                    </div>
+                    <div>
+                      {product.isPublished ? (
+                        <Badge className="bg-green-100 text-green-700">
+                          <CheckCircle className="mr-1 h-3 w-3" />
+                          Published
+                        </Badge>
+                      ) : (
+                        <Badge className="bg-red-100 text-red-700">
+                          <XCircle className="mr-1 h-3 w-3" />
+                          Unpublished
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="secondary">
+                        {product.inventory?.quantityOnHand || 0} units
+                      </Badge>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm">
+                      <span className="text-muted-foreground">Price/Day:</span>
+                      <span className="flex items-center gap-0.5 font-medium">
+                        <IndianRupee className="h-3.5 w-3.5" />
+                        {product.pricing?.pricePerDay || 0}
+                      </span>
+                    </div>
+                  </div>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* View Product Dialog */}

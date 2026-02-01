@@ -49,8 +49,17 @@ import {
   Trash2,
   Mail,
   Calendar,
-  Shield
+  Shield,
+  LayoutGrid,
+  List,
+  MoreHorizontal
 } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 interface User {
   id: string;
@@ -88,6 +97,7 @@ export default function ManageUsers() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [deletingUser, setDeletingUser] = useState<User | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [viewMode, setViewMode] = useState<'list' | 'kanban'>('list');
 
   useEffect(() => {
     fetchUsers();
@@ -268,6 +278,24 @@ export default function ManageUsers() {
                     className="pl-10 rounded-xl"
                   />
                 </div>
+                <div className="flex items-center rounded-xl border bg-background p-1">
+                  <Button
+                    variant={viewMode === 'list' ? 'default' : 'ghost'}
+                    size="sm"
+                    className="rounded-lg px-3"
+                    onClick={() => setViewMode('list')}
+                  >
+                    <List className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant={viewMode === 'kanban' ? 'default' : 'ghost'}
+                    size="sm"
+                    className="rounded-lg px-3"
+                    onClick={() => setViewMode('kanban')}
+                  >
+                    <LayoutGrid className="h-4 w-4" />
+                  </Button>
+                </div>
                 <Select value={roleFilter} onValueChange={setRoleFilter}>
                   <SelectTrigger className="w-full sm:w-[180px] rounded-xl">
                     <SelectValue placeholder="Filter by role" />
@@ -284,27 +312,28 @@ export default function ManageUsers() {
           </Card>
         </motion.div>
 
-        {/* Users Table */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-        >
-          <Card className="rounded-2xl">
-            <CardHeader>
-              <CardTitle>All Users ({filteredUsers.length})</CardTitle>
-              <CardDescription>
-                Complete list of registered users
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {isLoading ? (
-                <div className="text-center py-8">Loading users...</div>
-              ) : filteredUsers.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  No users found
-                </div>
-              ) : (
+        {/* Users View - List or Kanban */}
+        {isLoading ? (
+          <div className="text-center py-8">Loading users...</div>
+        ) : filteredUsers.length === 0 ? (
+          <div className="text-center py-8 text-muted-foreground">
+            No users found
+          </div>
+        ) : viewMode === 'list' ? (
+          /* List View */
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <Card className="rounded-2xl">
+              <CardHeader>
+                <CardTitle>All Users ({filteredUsers.length})</CardTitle>
+                <CardDescription>
+                  Complete list of registered users
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
                 <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
@@ -369,37 +398,103 @@ export default function ManageUsers() {
                     </TableBody>
                   </Table>
                 </div>
-              )}
 
-              {/* Pagination */}
-              {totalPages > 1 && (
-                <div className="mt-4 flex items-center justify-between">
-                  <p className="text-sm text-muted-foreground">
-                    Page {currentPage} of {totalPages}
-                  </p>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                      disabled={currentPage === 1}
-                    >
-                      Previous
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                      disabled={currentPage === totalPages}
-                    >
-                      Next
-                    </Button>
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <div className="mt-4 flex items-center justify-between">
+                    <p className="text-sm text-muted-foreground">
+                      Page {currentPage} of {totalPages}
+                    </p>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                        disabled={currentPage === 1}
+                      >
+                        Previous
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                        disabled={currentPage === totalPages}
+                      >
+                        Next
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </motion.div>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
+        ) : (
+          /* Grid View */
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {filteredUsers.map((user) => (
+              <motion.div
+                key={user.id}
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                whileHover={{ scale: 1.02 }}
+                className="cursor-pointer"
+              >
+                <Card className="p-4 hover:shadow-md transition-shadow border-border/50 h-full">
+                  <div className="flex items-start justify-between mb-3">
+                    <span className="font-medium">
+                      {user.firstName} {user.lastName}
+                    </span>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 -mr-1 -mt-1"
+                        >
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => handleEditUser(user)}>
+                          <Edit className="mr-2 h-4 w-4" />
+                          Edit User
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => openDeleteDialog(user)}
+                          className="text-red-600 focus:text-red-600"
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Delete User
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Mail className="h-4 w-4" />
+                      <span className="truncate">{user.email}</span>
+                    </div>
+                    <div>
+                      <Badge className={getRoleBadgeColor(user.roles[0]?.role.name)}>
+                        <Shield className="mr-1 h-3 w-3" />
+                        {user.roles[0]?.role.name}
+                      </Badge>
+                    </div>
+                    {user.vendor?.companyName && (
+                      <div className="text-sm text-muted-foreground">
+                        🏢 {user.vendor.companyName}
+                      </div>
+                    )}
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Calendar className="h-4 w-4" />
+                      Joined {new Date(user.createdAt).toLocaleDateString()}
+                    </div>
+                  </div>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Edit User Dialog */}
