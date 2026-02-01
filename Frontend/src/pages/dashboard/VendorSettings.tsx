@@ -9,8 +9,6 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
-import { toast } from "sonner";
 import api from "@/lib/api";
 import {
   changeVendorPassword,
@@ -20,18 +18,18 @@ import {
 import { useAuthStore } from "@/stores/authStore";
 import { motion } from "framer-motion";
 import {
-  ArrowLeft,
   Building2,
   FileText,
   KeyRound,
   Lock,
   Mail,
+  Phone,
   Save,
   Tag,
   User,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { toast } from "sonner";
 
 export default function VendorSettings() {
   const { user, setUser } = useAuthStore();
@@ -41,6 +39,7 @@ export default function VendorSettings() {
     firstName: "",
     lastName: "",
     email: "",
+    phone: "",
   });
   const [isUserLoading, setIsUserLoading] = useState(false);
 
@@ -67,6 +66,7 @@ export default function VendorSettings() {
         firstName: user.firstName || "",
         lastName: user.lastName || "",
         email: user.email || "",
+        phone: (user as any).phone || "",
       });
 
       if (user.vendor) {
@@ -93,7 +93,8 @@ export default function VendorSettings() {
       toast.success("Personal information updated successfully");
     } catch (error: any) {
       toast.error(
-        error.response?.data?.message || "Failed to update personal information"
+        error.response?.data?.message ||
+          "Failed to update personal information",
       );
     } finally {
       setIsUserLoading(false);
@@ -115,7 +116,8 @@ export default function VendorSettings() {
       toast.success("Business information updated successfully");
     } catch (error: any) {
       toast.error(
-        error.response?.data?.message || "Failed to update business information"
+        error.response?.data?.message ||
+          "Failed to update business information",
       );
     } finally {
       setIsVendorLoading(false);
@@ -169,7 +171,6 @@ export default function VendorSettings() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
-
           <div className="flex items-center gap-3 mb-2">
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
               <Building2 className="h-6 w-6 text-primary" />
@@ -248,6 +249,22 @@ export default function VendorSettings() {
                       />
                     </div>
                   </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">Phone Number (Optional)</Label>
+                    <div className="relative">
+                      <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="phone"
+                        type="tel"
+                        placeholder="+1 (555) 000-0000"
+                        value={userForm.phone}
+                        onChange={(e) =>
+                          setUserForm({ ...userForm, phone: e.target.value })
+                        }
+                        className="pl-10 rounded-xl"
+                      />
+                    </div>
+                  </div>
                   <Button
                     type="submit"
                     disabled={isUserLoading}
@@ -255,7 +272,7 @@ export default function VendorSettings() {
                   >
                     {isUserLoading ?
                       "Saving..."
-                      : <>
+                    : <>
                         <Save className="mr-2 h-4 w-4" />
                         Save Changes
                       </>
@@ -265,8 +282,6 @@ export default function VendorSettings() {
               </CardContent>
             </Card>
           </motion.div>
-
-
 
           {/* Business Information */}
           <motion.div
@@ -348,7 +363,7 @@ export default function VendorSettings() {
                   >
                     {isVendorLoading ?
                       "Saving..."
-                      : <>
+                    : <>
                         <Save className="mr-2 h-4 w-4" />
                         Save Changes
                       </>
@@ -358,8 +373,6 @@ export default function VendorSettings() {
               </CardContent>
             </Card>
           </motion.div>
-
-
 
           {/* Change Password */}
           <motion.div
@@ -454,7 +467,7 @@ export default function VendorSettings() {
                   >
                     {isPasswordLoading ?
                       "Changing Password..."
-                      : <>
+                    : <>
                         <Lock className="mr-2 h-4 w-4" />
                         Change Password
                       </>

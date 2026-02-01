@@ -1,9 +1,9 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import prisma from "../config/prisma.js";
-import asyncHandler from "../utils/asyncHandler.js";
 import ApiError from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
+import asyncHandler from "../utils/asyncHandler.js";
 
 // Generate access and refresh tokens
 const generateAccessAndRefreshTokens = async (userId) => {
@@ -26,13 +26,13 @@ const generateAccessAndRefreshTokens = async (userId) => {
         email: user.email,
       },
       process.env.ACCESS_TOKEN_SECRET,
-      { expiresIn: process.env.ACCESS_TOKEN_EXPIRY }
+      { expiresIn: process.env.ACCESS_TOKEN_EXPIRY },
     );
 
     const refreshToken = jwt.sign(
       { _id: user.id },
       process.env.REFRESH_TOKEN_SECRET,
-      { expiresIn: process.env.REFRESH_TOKEN_EXPIRY }
+      { expiresIn: process.env.REFRESH_TOKEN_EXPIRY },
     );
 
     return { accessToken, refreshToken };
@@ -123,7 +123,7 @@ export const registerUser = asyncHandler(async (req, res) => {
 
   // Generate tokens
   const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(
-    user.id
+    user.id,
   );
 
   // Remove password from response
@@ -151,14 +151,22 @@ export const registerUser = asyncHandler(async (req, res) => {
           accessToken,
           refreshToken,
         },
-        "User registered successfully"
-      )
+        "User registered successfully",
+      ),
     );
 });
 
 // Register Vendor
 export const registerVendor = asyncHandler(async (req, res) => {
-  const { email, password, firstName, lastName, companyName, gstNo, product_category } = req.body;
+  const {
+    email,
+    password,
+    firstName,
+    lastName,
+    companyName,
+    gstNo,
+    product_category,
+  } = req.body;
 
   // Validation
   if (
@@ -228,7 +236,7 @@ export const registerVendor = asyncHandler(async (req, res) => {
 
   // Generate tokens
   const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(
-    user.id
+    user.id,
   );
 
   // Remove password from response
@@ -256,8 +264,8 @@ export const registerVendor = asyncHandler(async (req, res) => {
           accessToken,
           refreshToken,
         },
-        "Vendor registered successfully"
-      )
+        "Vendor registered successfully",
+      ),
     );
 });
 
@@ -296,7 +304,7 @@ export const login = asyncHandler(async (req, res) => {
 
   // Generate tokens
   const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(
-    user.id
+    user.id,
   );
 
   // Remove password from response
@@ -324,8 +332,8 @@ export const login = asyncHandler(async (req, res) => {
           accessToken,
           refreshToken,
         },
-        "Login successful"
-      )
+        "Login successful",
+      ),
     );
 });
 
@@ -368,9 +376,7 @@ export const getCurrentUser = asyncHandler(async (req, res) => {
     throw new ApiError(404, "User not found");
   }
 
-  res
-    .status(200)
-    .json(new ApiResponse(200, user, "User fetched successfully"));
+  res.status(200).json(new ApiResponse(200, user, "User fetched successfully"));
 });
 
 // Refresh access token
@@ -385,7 +391,7 @@ export const refreshAccessToken = asyncHandler(async (req, res) => {
   try {
     const decodedToken = jwt.verify(
       incomingRefreshToken,
-      process.env.REFRESH_TOKEN_SECRET
+      process.env.REFRESH_TOKEN_SECRET,
     );
 
     const user = await prisma.user.findUnique({
@@ -417,8 +423,8 @@ export const refreshAccessToken = asyncHandler(async (req, res) => {
         new ApiResponse(
           200,
           { accessToken, refreshToken: newRefreshToken },
-          "Access token refreshed"
-        )
+          "Access token refreshed",
+        ),
       );
   } catch (error) {
     throw new ApiError(401, error?.message || "Invalid refresh token");
@@ -461,7 +467,7 @@ export const forgotPassword = asyncHandler(async (req, res) => {
       email,
       "Password Reset OTP",
       `Your OTP for password reset is: ${otp}. It is valid for 10 minutes.`,
-      `<h1>Password Reset OTP</h1><p>Your OTP for password reset is: <strong>${otp}</strong></p><p>It is valid for 10 minutes.</p>`
+      `<h1>Password Reset OTP</h1><p>Your OTP for password reset is: <strong>${otp}</strong></p><p>It is valid for 10 minutes.</p>`,
     );
   } catch (error) {
     console.error("Email send failed:", error);
@@ -535,9 +541,7 @@ export const resetPassword = asyncHandler(async (req, res) => {
     },
   });
 
-  res
-    .status(200)
-    .json(new ApiResponse(200, {}, "Password reset successfully"));
+  res.status(200).json(new ApiResponse(200, {}, "Password reset successfully"));
 });
 
 // Change Password (for authenticated users)
@@ -591,7 +595,7 @@ export const changePassword = asyncHandler(async (req, res) => {
 
 // Update User Profile (for authenticated users)
 export const updateUserProfile = asyncHandler(async (req, res) => {
-  const { firstName, lastName, email } = req.body;
+  const { firstName, lastName, email, phone } = req.body;
 
   // Check if email already exists for a different user
   if (email) {
@@ -610,6 +614,7 @@ export const updateUserProfile = asyncHandler(async (req, res) => {
       ...(firstName && { firstName }),
       ...(lastName && { lastName }),
       ...(email && { email }),
+      ...(phone !== undefined && { phone: phone || null }),
     },
     include: {
       roles: {
@@ -627,10 +632,6 @@ export const updateUserProfile = asyncHandler(async (req, res) => {
   res
     .status(200)
     .json(
-      new ApiResponse(
-        200,
-        userWithoutPassword,
-        "Profile updated successfully",
-      ),
+      new ApiResponse(200, userWithoutPassword, "Profile updated successfully"),
     );
 });

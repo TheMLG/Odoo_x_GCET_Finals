@@ -10,7 +10,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { toast } from "sonner";
 import api from "@/lib/api";
 import { useAuthStore } from "@/stores/authStore";
 import { motion } from "framer-motion";
@@ -19,17 +18,14 @@ import {
   KeyRound,
   Lock,
   Mail,
+  Phone,
   Save,
   Settings,
   User,
-  Phone,
-  MapPin,
-  Bell,
-  Shield,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Switch } from "@/components/ui/switch";
+import { toast } from "sonner";
 
 export default function UserSettingsPage() {
   const { user, setUser } = useAuthStore();
@@ -66,7 +62,7 @@ export default function UserSettingsPage() {
         firstName: user.firstName || "",
         lastName: user.lastName || "",
         email: user.email || "",
-        phone: "",
+        phone: (user as any).phone || "",
       });
     }
   }, [user]);
@@ -89,11 +85,13 @@ export default function UserSettingsPage() {
     } catch (error: any) {
       // If endpoint doesn't exist, show a friendly message
       if (error.response?.status === 404) {
-        toast.info("Note: Profile update endpoint is not yet implemented on the server");
+        toast.info(
+          "Note: Profile update endpoint is not yet implemented on the server",
+        );
       } else {
         toast.error(
           error.response?.data?.message ||
-          "Failed to update personal information"
+            "Failed to update personal information",
         );
       }
     } finally {
@@ -135,10 +133,12 @@ export default function UserSettingsPage() {
     } catch (error: any) {
       // If endpoint doesn't exist, show a friendly message
       if (error.response?.status === 404) {
-        toast.info("Note: Password change endpoint is not yet implemented on the server");
+        toast.info(
+          "Note: Password change endpoint is not yet implemented on the server",
+        );
       } else {
         toast.error(
-          error.response?.data?.message || "Failed to change password"
+          error.response?.data?.message || "Failed to change password",
         );
       }
     } finally {
@@ -153,7 +153,9 @@ export default function UserSettingsPage() {
       toast.success("Notification preferences updated");
     } catch (error: any) {
       if (error.response?.status === 404) {
-        toast.info("Note: Saved locally - Server endpoint will be implemented soon");
+        toast.info(
+          "Note: Saved locally - Server endpoint will be implemented soon",
+        );
       }
     }
   };
@@ -272,14 +274,13 @@ export default function UserSettingsPage() {
                     disabled={isUserLoading}
                     className="rounded-xl"
                   >
-                    {isUserLoading ? (
+                    {isUserLoading ?
                       "Saving..."
-                    ) : (
-                      <>
+                    : <>
                         <Save className="mr-2 h-4 w-4" />
                         Save Changes
                       </>
-                    )}
+                    }
                   </Button>
                 </form>
               </CardContent>
@@ -376,14 +377,13 @@ export default function UserSettingsPage() {
                     disabled={isPasswordLoading}
                     className="rounded-xl"
                   >
-                    {isPasswordLoading ? (
+                    {isPasswordLoading ?
                       "Changing Password..."
-                    ) : (
-                      <>
+                    : <>
                         <Lock className="mr-2 h-4 w-4" />
                         Change Password
                       </>
-                    )}
+                    }
                   </Button>
                 </form>
               </CardContent>

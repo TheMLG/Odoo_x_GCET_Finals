@@ -157,7 +157,7 @@ export const createUser = asyncHandler(async (req, res) => {
 // Update user
 export const updateUser = asyncHandler(async (req, res) => {
   const { userId } = req.params;
-  const { email, firstName, lastName } = req.body;
+  const { email, firstName, lastName, phone } = req.body;
 
   const user = await prisma.user.update({
     where: { id: userId },
@@ -165,12 +165,14 @@ export const updateUser = asyncHandler(async (req, res) => {
       ...(email && { email }),
       ...(firstName && { firstName }),
       ...(lastName && { lastName }),
+      ...(phone !== undefined && { phone: phone || null }),
     },
     select: {
       id: true,
       email: true,
       firstName: true,
       lastName: true,
+      phone: true,
       createdAt: true,
       roles: {
         include: {
