@@ -101,7 +101,7 @@ export default function ManageProducts() {
   const [deletingProduct, setDeletingProduct] = useState<Product | null>(null);
 
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [isUpdating, setIsUpdating] = useState(false);
+
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
 
   // Fetch Products Query
