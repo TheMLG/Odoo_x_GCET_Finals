@@ -1,6 +1,7 @@
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { VENDOR_NAV_ITEMS } from '@/lib/constants';
+import { useAuthStore } from '@/stores/authStore';
 import {
   ChevronLeft,
   ChevronRight,
@@ -18,6 +19,13 @@ interface VendorSidebarProps {
 // Extracted Nav Component
 export function VendorSidebarNav({ onItemClick, isCollapsed }: { onItemClick?: () => void, isCollapsed?: boolean }) {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { logout } = useAuthStore();
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login');
+  };
 
   return (
     <div className="flex h-full flex-col">
@@ -57,9 +65,7 @@ export function VendorSidebarNav({ onItemClick, isCollapsed }: { onItemClick?: (
             <Button
               variant="outline"
               className="w-full justify-start gap-2 text-red-500 hover:text-red-600 hover:bg-red-50"
-              onClick={() => {
-                window.location.href = '/login';
-              }}
+              onClick={handleLogout}
             >
               <LogOut className="h-4 w-4" />
               Logout
@@ -70,6 +76,7 @@ export function VendorSidebarNav({ onItemClick, isCollapsed }: { onItemClick?: (
             size="icon"
             className="w-full text-red-500 hover:text-red-600 hover:bg-red-50"
             title="Logout"
+            onClick={handleLogout}
           >
             <LogOut className="h-4 w-4" />
           </Button>

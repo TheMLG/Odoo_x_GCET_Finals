@@ -258,7 +258,7 @@ export default function ManageUsers() {
                     placeholder="Search users by name or email..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 rounded-xl"
+                    className="pl-10 rounded-xl bg-white dark:bg-gray-950"
                   />
                 </div>
                 <div className="flex items-center rounded-xl border bg-background p-1">

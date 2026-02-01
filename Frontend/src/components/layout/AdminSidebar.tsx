@@ -1,4 +1,4 @@
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import {
   LayoutDashboard,
@@ -98,6 +98,13 @@ import { useUIStore } from '@/stores/uiStore';
 
 export function AdminSidebar({ className }: { className?: string }) {
   const { isSidebarCollapsed, setSidebarCollapsed } = useUIStore();
+  const { logout } = useAuthStore();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login');
+  };
 
   return (
     <aside
@@ -139,9 +146,7 @@ export function AdminSidebar({ className }: { className?: string }) {
               <Button
                 variant="outline"
                 className="w-full justify-start gap-2 text-red-500 hover:text-red-600 hover:bg-red-50"
-                onClick={() => {
-                  window.location.href = '/login';
-                }}
+                onClick={handleLogout}
               >
                 <LogOut className="h-4 w-4" />
                 Logout
@@ -152,6 +157,7 @@ export function AdminSidebar({ className }: { className?: string }) {
               size="icon"
               className="w-full text-red-500 hover:text-red-600 hover:bg-red-50"
               title="Logout"
+              onClick={handleLogout}
             >
               <LogOut className="h-4 w-4" />
             </Button>

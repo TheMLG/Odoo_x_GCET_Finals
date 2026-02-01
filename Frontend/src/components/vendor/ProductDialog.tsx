@@ -400,7 +400,7 @@ export function ProductDialog({
                                                     <FormControl>
                                                         <Input
                                                             placeholder="e.g. Canon EOS R5"
-                                                            className="rounded-xl"
+                                                            className="w-full rounded-xl"
                                                             disabled={isLoading || isView}
                                                             {...field}
                                                         />

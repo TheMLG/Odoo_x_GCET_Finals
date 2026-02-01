@@ -292,7 +292,7 @@ export default function VendorInvoices() {
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder="Search by customer or invoice ID..."
-              className="pl-10 rounded-xl"
+              className="pl-10 rounded-xl bg-white dark:bg-gray-950"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -733,8 +733,8 @@ export default function VendorInvoices() {
                           <div className="flex items-center gap-3">
                             <div
                               className={`h-8 w-8 rounded-full flex items-center justify-center ${payment.status === "SUCCESS" ?
-                                  "bg-green-100 dark:bg-green-900"
-                                  : "bg-orange-100 dark:bg-orange-900"
+                                "bg-green-100 dark:bg-green-900"
+                                : "bg-orange-100 dark:bg-orange-900"
                                 }`}
                             >
                               {payment.status === "SUCCESS" ?

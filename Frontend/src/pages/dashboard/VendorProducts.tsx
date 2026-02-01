@@ -135,7 +135,7 @@ export default function VendorProducts() {
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder="Search products..."
-              className="pl-10 rounded-xl"
+              className="pl-10 rounded-xl bg-white dark:bg-gray-950"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
