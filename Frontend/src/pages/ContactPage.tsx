@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Mail, Phone, MapPin, Clock, MessageSquare, Send } from "lucide-react";
 import { useState } from "react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 const fadeIn = {
   initial: { opacity: 0, y: 20 },
@@ -70,14 +70,6 @@ const faqs = [
 ];
 
 const ContactPage = () => {
-  const { toast } = useToast();
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    subject: "",
-    message: "",
-  });
 
   return (
     <MainLayout>

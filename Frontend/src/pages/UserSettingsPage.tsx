@@ -10,7 +10,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import api from "@/lib/api";
 import { useAuthStore } from "@/stores/authStore";
 import { motion } from "framer-motion";
@@ -32,7 +32,6 @@ import { Link } from "react-router-dom";
 import { Switch } from "@/components/ui/switch";
 
 export default function UserSettingsPage() {
-  const { toast } = useToast();
   const { user, setUser } = useAuthStore();
 
   // User info form state
@@ -86,27 +85,16 @@ export default function UserSettingsPage() {
       // Update auth store
       setUser(updatedUser);
 
-      toast({
-        title: "Success",
-        description: "Personal information updated successfully",
-      });
+      toast.success("Personal information updated successfully");
     } catch (error: any) {
       // If endpoint doesn't exist, show a friendly message
       if (error.response?.status === 404) {
-        toast({
-          title: "Note",
-          description:
-            "Profile update endpoint is not yet implemented on the server",
-          variant: "default",
-        });
+        toast.info("Note: Profile update endpoint is not yet implemented on the server");
       } else {
-        toast({
-          title: "Error",
-          description:
-            error.response?.data?.message ||
-            "Failed to update personal information",
-          variant: "destructive",
-        });
+        toast.error(
+          error.response?.data?.message ||
+          "Failed to update personal information"
+        );
       }
     } finally {
       setIsUserLoading(false);
@@ -119,20 +107,12 @@ export default function UserSettingsPage() {
 
     // Validation
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      toast({
-        title: "Error",
-        description: "New passwords do not match",
-        variant: "destructive",
-      });
+      toast.error("New passwords do not match");
       return;
     }
 
     if (passwordForm.newPassword.length < 6) {
-      toast({
-        title: "Error",
-        description: "Password must be at least 6 characters long",
-        variant: "destructive",
-      });
+      toast.error("Password must be at least 6 characters long");
       return;
     }
 
@@ -144,10 +124,7 @@ export default function UserSettingsPage() {
         newPassword: passwordForm.newPassword,
       });
 
-      toast({
-        title: "Success",
-        description: "Password changed successfully",
-      });
+      toast.success("Password changed successfully");
 
       // Reset form
       setPasswordForm({
@@ -158,19 +135,11 @@ export default function UserSettingsPage() {
     } catch (error: any) {
       // If endpoint doesn't exist, show a friendly message
       if (error.response?.status === 404) {
-        toast({
-          title: "Note",
-          description:
-            "Password change endpoint is not yet implemented on the server",
-          variant: "default",
-        });
+        toast.info("Note: Password change endpoint is not yet implemented on the server");
       } else {
-        toast({
-          title: "Error",
-          description:
-            error.response?.data?.message || "Failed to change password",
-          variant: "destructive",
-        });
+        toast.error(
+          error.response?.data?.message || "Failed to change password"
+        );
       }
     } finally {
       setIsPasswordLoading(false);
@@ -181,18 +150,10 @@ export default function UserSettingsPage() {
   const handleNotificationUpdate = async () => {
     try {
       await api.put("/auth/notifications", notifications);
-      toast({
-        title: "Success",
-        description: "Notification preferences updated",
-      });
+      toast.success("Notification preferences updated");
     } catch (error: any) {
       if (error.response?.status === 404) {
-        toast({
-          title: "Note",
-          description:
-            "Saved locally - Server endpoint will be implemented soon",
-          variant: "default",
-        });
+        toast.info("Note: Saved locally - Server endpoint will be implemented soon");
       }
     }
   };
@@ -427,7 +388,7 @@ export default function UserSettingsPage() {
                 </form>
               </CardContent>
             </Card>
-          </motion.div> 
+          </motion.div>
         </div>
       </div>
     </MainLayout>
