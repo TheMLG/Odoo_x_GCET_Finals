@@ -199,7 +199,7 @@ export default function VendorOrders() {
       const days = Math.ceil(
         (new Date(item.rentalEnd).getTime() -
           new Date(item.rentalStart).getTime()) /
-          (1000 * 60 * 60 * 24),
+        (1000 * 60 * 60 * 24),
       );
       return total + Number(item.unitPrice) * item.quantity * Math.max(days, 1);
     }, 0);
@@ -282,7 +282,7 @@ export default function VendorOrders() {
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder="Search by customer or order ID..."
-              className="pl-10 rounded-xl"
+              className="pl-10 rounded-xl bg-white dark:bg-gray-950"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -367,320 +367,319 @@ export default function VendorOrders() {
           <div className="flex justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
           </div>
-        : viewMode === "list" ?
-          /* Orders Table (List View) */
-          <Card className="rounded-2xl border border-border/50 overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm text-left">
-                <thead className="bg-muted/50 text-muted-foreground font-medium">
-                  <tr>
-                    <th className="px-4 py-3">Order ID</th>
-                    <th className="px-4 py-3">Customer</th>
-                    <th className="px-4 py-3">Items</th>
-                    <th className="px-4 py-3">Duration</th>
-                    <th className="px-4 py-3">Total</th>
-                    <th className="px-4 py-3">Status</th>
-                    <th className="px-4 py-3 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border/50">
-                  {filteredOrders.map((order, index) => {
-                    const statusConfig = getStatusConfig(order.status);
-                    const StatusIcon = statusConfig.icon;
-                    const itemsSummary = order.items
-                      .map((i) => `${i.product.name} (x${i.quantity})`)
-                      .join(", ");
-                    const rentalDuration =
-                      order.items.length > 0 ?
-                        `${format(new Date(order.items[0].rentalStart), "MMM d")} - ${format(new Date(order.items[0].rentalEnd), "MMM d")}`
-                      : "N/A";
+          : viewMode === "list" ?
+            /* Orders Table (List View) */
+            <Card className="rounded-2xl border border-border/50 overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm text-left">
+                  <thead className="bg-muted/50 text-muted-foreground font-medium">
+                    <tr>
+                      <th className="px-4 py-3">Order ID</th>
+                      <th className="px-4 py-3">Customer</th>
+                      <th className="px-4 py-3">Items</th>
+                      <th className="px-4 py-3">Duration</th>
+                      <th className="px-4 py-3">Total</th>
+                      <th className="px-4 py-3">Status</th>
+                      <th className="px-4 py-3 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border/50">
+                    {filteredOrders.map((order, index) => {
+                      const statusConfig = getStatusConfig(order.status);
+                      const StatusIcon = statusConfig.icon;
+                      const itemsSummary = order.items
+                        .map((i) => `${i.product.name} (x${i.quantity})`)
+                        .join(", ");
+                      const rentalDuration =
+                        order.items.length > 0 ?
+                          `${format(new Date(order.items[0].rentalStart), "MMM d")} - ${format(new Date(order.items[0].rentalEnd), "MMM d")}`
+                          : "N/A";
 
-                    return (
-                      <motion.tr
-                        key={order.id}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.05 * index }}
-                        className="hover:bg-muted/30 transition-colors"
-                      >
-                        <td className="px-4 py-3 font-medium">
-                          #{order.id.slice(0, 8)}
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-2">
-                            <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
-                              {order.user.firstName[0]}
+                      return (
+                        <motion.tr
+                          key={order.id}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.05 * index }}
+                          className="hover:bg-muted/30 transition-colors"
+                        >
+                          <td className="px-4 py-3 font-medium">
+                            #{order.id.slice(0, 8)}
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-2">
+                              <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
+                                {order.user.firstName[0]}
+                              </div>
+                              <span className="truncate max-w-[120px]">
+                                {order.user.firstName} {order.user.lastName}
+                              </span>
                             </div>
-                            <span className="truncate max-w-[120px]">
-                              {order.user.firstName} {order.user.lastName}
+                          </td>
+                          <td className="px-4 py-3">
+                            <span
+                              className="truncate block max-w-[200px]"
+                              title={itemsSummary}
+                            >
+                              {itemsSummary}
                             </span>
+                          </td>
+                          <td className="px-4 py-3 text-muted-foreground">
+                            {rentalDuration}
+                          </td>
+                          <td className="px-4 py-3 font-medium">
+                            ₹
+                            {order.invoice ?
+                              Number(order.invoice.totalAmount).toLocaleString()
+                              : "0"}
+                          </td>
+                          <td className="px-4 py-3">
+                            <Badge
+                              variant={statusConfig.variant}
+                              className="rounded-md px-1.5 py-0.5 text-xs font-medium gap-1"
+                            >
+                              <StatusIcon className="h-3 w-3" />
+                              {statusConfig.label}
+                            </Badge>
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 rounded-lg"
+                                >
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem
+                                  onClick={() => handleViewOrder(order)}
+                                >
+                                  <Eye className="mr-2 h-4 w-4" />
+                                  View Details
+                                </DropdownMenuItem>
+                                {order.status === "CONFIRMED" && (
+                                  <DropdownMenuItem
+                                    onClick={() =>
+                                      handleStatusUpdate(order.id, "INVOICED")
+                                    }
+                                  >
+                                    <FileText className="mr-2 h-4 w-4" />
+                                    Mark as Invoiced
+                                  </DropdownMenuItem>
+                                )}
+                                {order.status === "INVOICED" && (
+                                  <DropdownMenuItem
+                                    onClick={() =>
+                                      handleStatusUpdate(order.id, "RETURNED")
+                                    }
+                                  >
+                                    <Package className="mr-2 h-4 w-4" />
+                                    Mark as Returned
+                                  </DropdownMenuItem>
+                                )}
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                  onClick={() => handleDeleteClick(order)}
+                                  className="text-red-600 focus:text-red-600"
+                                >
+                                  <Trash2 className="mr-2 h-4 w-4" />
+                                  Delete Order
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </td>
+                        </motion.tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+            : /* Kanban View */
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {["CONFIRMED", "INVOICED", "RETURNED", "CANCELLED"].map(
+                (status) => {
+                  const statusConfig = getStatusConfig(status);
+                  const StatusIcon = statusConfig.icon;
+                  const statusOrders = filteredOrders.filter(
+                    (order) => order.status === status,
+                  );
+
+                  return (
+                    <motion.div
+                      key={status}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="flex flex-col"
+                    >
+                      {/* Column Header */}
+                      <div className="flex items-center gap-2 mb-3 px-1">
+                        <div
+                          className={`flex h-8 w-8 items-center justify-center rounded-lg ${status === "CONFIRMED" ?
+                              "bg-green-100 dark:bg-green-900"
+                              : status === "INVOICED" ?
+                                "bg-blue-100 dark:bg-blue-900"
+                                : status === "RETURNED" ?
+                                  "bg-purple-100 dark:bg-purple-900"
+                                  : "bg-red-100 dark:bg-red-900"
+                            }`}
+                        >
+                          <StatusIcon
+                            className={`h-4 w-4 ${statusConfig.color}`}
+                          />
+                        </div>
+                        <span className="font-semibold">
+                          {statusConfig.label}
+                        </span>
+                        <Badge
+                          variant="secondary"
+                          className="ml-auto rounded-full"
+                        >
+                          {statusOrders.length}
+                        </Badge>
+                      </div>
+
+                      {/* Column Cards */}
+                      <div className="flex-1 space-y-3 min-h-[200px] p-2 bg-muted/30 rounded-xl">
+                        {statusOrders.length === 0 ?
+                          <div className="flex flex-col items-center justify-center h-32 text-muted-foreground text-sm">
+                            <Package className="h-6 w-6 mb-2 opacity-50" />
+                            No orders
                           </div>
-                        </td>
-                        <td className="px-4 py-3">
-                          <span
-                            className="truncate block max-w-[200px]"
-                            title={itemsSummary}
-                          >
-                            {itemsSummary}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-muted-foreground">
-                          {rentalDuration}
-                        </td>
-                        <td className="px-4 py-3 font-medium">
-                          ₹
-                          {order.invoice ?
-                            Number(order.invoice.totalAmount).toLocaleString()
-                          : "0"}
-                        </td>
-                        <td className="px-4 py-3">
-                          <Badge
-                            variant={statusConfig.variant}
-                            className="rounded-md px-1.5 py-0.5 text-xs font-medium gap-1"
-                          >
-                            <StatusIcon className="h-3 w-3" />
-                            {statusConfig.label}
-                          </Badge>
-                        </td>
-                        <td className="px-4 py-3 text-right">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 rounded-lg"
-                              >
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem
+                          : statusOrders.map((order) => {
+                            const itemsSummary = order.items
+                              .map((i) => i.product.name)
+                              .join(", ");
+
+                            return (
+                              <motion.div
+                                key={order.id}
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                whileHover={{ scale: 1.02 }}
+                                className="cursor-pointer"
                                 onClick={() => handleViewOrder(order)}
                               >
-                                <Eye className="mr-2 h-4 w-4" />
-                                View Details
-                              </DropdownMenuItem>
-                              {order.status === "CONFIRMED" && (
-                                <DropdownMenuItem
-                                  onClick={() =>
-                                    handleStatusUpdate(order.id, "INVOICED")
-                                  }
-                                >
-                                  <FileText className="mr-2 h-4 w-4" />
-                                  Mark as Invoiced
-                                </DropdownMenuItem>
-                              )}
-                              {order.status === "INVOICED" && (
-                                <DropdownMenuItem
-                                  onClick={() =>
-                                    handleStatusUpdate(order.id, "RETURNED")
-                                  }
-                                >
-                                  <Package className="mr-2 h-4 w-4" />
-                                  Mark as Returned
-                                </DropdownMenuItem>
-                              )}
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem
-                                onClick={() => handleDeleteClick(order)}
-                                className="text-red-600 focus:text-red-600"
-                              >
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Delete Order
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </td>
-                      </motion.tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </Card>
-        : /* Kanban View */
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {["CONFIRMED", "INVOICED", "RETURNED", "CANCELLED"].map(
-              (status) => {
-                const statusConfig = getStatusConfig(status);
-                const StatusIcon = statusConfig.icon;
-                const statusOrders = filteredOrders.filter(
-                  (order) => order.status === status,
-                );
-
-                return (
-                  <motion.div
-                    key={status}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="flex flex-col"
-                  >
-                    {/* Column Header */}
-                    <div className="flex items-center gap-2 mb-3 px-1">
-                      <div
-                        className={`flex h-8 w-8 items-center justify-center rounded-lg ${
-                          status === "CONFIRMED" ?
-                            "bg-green-100 dark:bg-green-900"
-                          : status === "INVOICED" ?
-                            "bg-blue-100 dark:bg-blue-900"
-                          : status === "RETURNED" ?
-                            "bg-purple-100 dark:bg-purple-900"
-                          : "bg-red-100 dark:bg-red-900"
-                        }`}
-                      >
-                        <StatusIcon
-                          className={`h-4 w-4 ${statusConfig.color}`}
-                        />
-                      </div>
-                      <span className="font-semibold">
-                        {statusConfig.label}
-                      </span>
-                      <Badge
-                        variant="secondary"
-                        className="ml-auto rounded-full"
-                      >
-                        {statusOrders.length}
-                      </Badge>
-                    </div>
-
-                    {/* Column Cards */}
-                    <div className="flex-1 space-y-3 min-h-[200px] p-2 bg-muted/30 rounded-xl">
-                      {statusOrders.length === 0 ?
-                        <div className="flex flex-col items-center justify-center h-32 text-muted-foreground text-sm">
-                          <Package className="h-6 w-6 mb-2 opacity-50" />
-                          No orders
-                        </div>
-                      : statusOrders.map((order) => {
-                          const itemsSummary = order.items
-                            .map((i) => i.product.name)
-                            .join(", ");
-
-                          return (
-                            <motion.div
-                              key={order.id}
-                              initial={{ opacity: 0, scale: 0.95 }}
-                              animate={{ opacity: 1, scale: 1 }}
-                              whileHover={{ scale: 1.02 }}
-                              className="cursor-pointer"
-                              onClick={() => handleViewOrder(order)}
-                            >
-                              <Card className="p-3 hover:shadow-md transition-shadow border-border/50">
-                                <div className="flex items-start justify-between mb-2">
-                                  <span className="text-xs font-medium text-muted-foreground">
-                                    #{order.id.slice(0, 8)}
-                                  </span>
-                                  <DropdownMenu>
-                                    <DropdownMenuTrigger
-                                      asChild
-                                      onClick={(e) => e.stopPropagation()}
-                                    >
-                                      <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="h-6 w-6 -mr-1 -mt-1"
+                                <Card className="p-3 hover:shadow-md transition-shadow border-border/50">
+                                  <div className="flex items-start justify-between mb-2">
+                                    <span className="text-xs font-medium text-muted-foreground">
+                                      #{order.id.slice(0, 8)}
+                                    </span>
+                                    <DropdownMenu>
+                                      <DropdownMenuTrigger
+                                        asChild
+                                        onClick={(e) => e.stopPropagation()}
                                       >
-                                        <MoreHorizontal className="h-3 w-3" />
-                                      </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end">
-                                      <DropdownMenuItem
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          handleViewOrder(order);
-                                        }}
-                                      >
-                                        <Eye className="mr-2 h-4 w-4" />
-                                        View Details
-                                      </DropdownMenuItem>
-                                      {order.status === "CONFIRMED" && (
+                                        <Button
+                                          variant="ghost"
+                                          size="icon"
+                                          className="h-6 w-6 -mr-1 -mt-1"
+                                        >
+                                          <MoreHorizontal className="h-3 w-3" />
+                                        </Button>
+                                      </DropdownMenuTrigger>
+                                      <DropdownMenuContent align="end">
                                         <DropdownMenuItem
                                           onClick={(e) => {
                                             e.stopPropagation();
-                                            handleStatusUpdate(
-                                              order.id,
-                                              "INVOICED",
-                                            );
+                                            handleViewOrder(order);
                                           }}
                                         >
-                                          <FileText className="mr-2 h-4 w-4" />
-                                          Mark as Invoiced
+                                          <Eye className="mr-2 h-4 w-4" />
+                                          View Details
                                         </DropdownMenuItem>
-                                      )}
-                                      {order.status === "INVOICED" && (
+                                        {order.status === "CONFIRMED" && (
+                                          <DropdownMenuItem
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              handleStatusUpdate(
+                                                order.id,
+                                                "INVOICED",
+                                              );
+                                            }}
+                                          >
+                                            <FileText className="mr-2 h-4 w-4" />
+                                            Mark as Invoiced
+                                          </DropdownMenuItem>
+                                        )}
+                                        {order.status === "INVOICED" && (
+                                          <DropdownMenuItem
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              handleStatusUpdate(
+                                                order.id,
+                                                "RETURNED",
+                                              );
+                                            }}
+                                          >
+                                            <Package className="mr-2 h-4 w-4" />
+                                            Mark as Returned
+                                          </DropdownMenuItem>
+                                        )}
+                                        <DropdownMenuSeparator />
                                         <DropdownMenuItem
                                           onClick={(e) => {
                                             e.stopPropagation();
-                                            handleStatusUpdate(
-                                              order.id,
-                                              "RETURNED",
-                                            );
+                                            handleDeleteClick(order);
                                           }}
+                                          className="text-red-600 focus:text-red-600"
                                         >
-                                          <Package className="mr-2 h-4 w-4" />
-                                          Mark as Returned
+                                          <Trash2 className="mr-2 h-4 w-4" />
+                                          Delete Order
                                         </DropdownMenuItem>
-                                      )}
-                                      <DropdownMenuSeparator />
-                                      <DropdownMenuItem
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          handleDeleteClick(order);
-                                        }}
-                                        className="text-red-600 focus:text-red-600"
-                                      >
-                                        <Trash2 className="mr-2 h-4 w-4" />
-                                        Delete Order
-                                      </DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                  </DropdownMenu>
-                                </div>
-
-                                <div className="flex items-center gap-2 mb-2">
-                                  <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
-                                    {order.user.firstName[0]}
+                                      </DropdownMenuContent>
+                                    </DropdownMenu>
                                   </div>
-                                  <span className="text-sm font-medium truncate">
-                                    {order.user.firstName} {order.user.lastName}
-                                  </span>
-                                </div>
 
-                                <p
-                                  className="text-xs text-muted-foreground truncate mb-2"
-                                  title={itemsSummary}
-                                >
-                                  {itemsSummary}
-                                </p>
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
+                                      {order.user.firstName[0]}
+                                    </div>
+                                    <span className="text-sm font-medium truncate">
+                                      {order.user.firstName} {order.user.lastName}
+                                    </span>
+                                  </div>
 
-                                <div className="flex items-center justify-between">
-                                  <span className="text-xs text-muted-foreground flex items-center gap-1">
-                                    <Calendar className="h-3 w-3" />
-                                    {order.items.length > 0 ?
-                                      format(
-                                        new Date(order.items[0].rentalEnd),
-                                        "MMM d",
-                                      )
-                                    : "N/A"}
-                                  </span>
-                                  <span className="text-sm font-semibold">
-                                    ₹
-                                    {order.invoice ?
-                                      Number(
-                                        order.invoice.totalAmount,
-                                      ).toLocaleString()
-                                    : "0"}
-                                  </span>
-                                </div>
-                              </Card>
-                            </motion.div>
-                          );
-                        })
-                      }
-                    </div>
-                  </motion.div>
-                );
-              },
-            )}
-          </div>
+                                  <p
+                                    className="text-xs text-muted-foreground truncate mb-2"
+                                    title={itemsSummary}
+                                  >
+                                    {itemsSummary}
+                                  </p>
+
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-xs text-muted-foreground flex items-center gap-1">
+                                      <Calendar className="h-3 w-3" />
+                                      {order.items.length > 0 ?
+                                        format(
+                                          new Date(order.items[0].rentalEnd),
+                                          "MMM d",
+                                        )
+                                        : "N/A"}
+                                    </span>
+                                    <span className="text-sm font-semibold">
+                                      ₹
+                                      {order.invoice ?
+                                        Number(
+                                          order.invoice.totalAmount,
+                                        ).toLocaleString()
+                                        : "0"}
+                                    </span>
+                                  </div>
+                                </Card>
+                              </motion.div>
+                            );
+                          })
+                        }
+                      </div>
+                    </motion.div>
+                  );
+                },
+              )}
+            </div>
         }
 
         {/* Empty State */}
@@ -697,7 +696,7 @@ export default function VendorOrders() {
             <p className="text-muted-foreground">
               {orders.length === 0 ?
                 "You haven't received any orders yet"
-              : "No orders match your search or filter"}
+                : "No orders match your search or filter"}
             </p>
           </motion.div>
         )}
@@ -749,7 +748,7 @@ export default function VendorOrders() {
                     variant={
                       selectedOrder.invoice?.status === "PAID" ?
                         "default"
-                      : "secondary"
+                        : "secondary"
                     }
                   >
                     {selectedOrder.invoice?.status || "No Invoice"}
@@ -771,7 +770,7 @@ export default function VendorOrders() {
                     <p className="font-medium">
                       {selectedOrder.user ?
                         `${selectedOrder.user.firstName} ${selectedOrder.user.lastName}`
-                      : "N/A"}
+                        : "N/A"}
                     </p>
                   </div>
                   <div>
@@ -803,7 +802,7 @@ export default function VendorOrders() {
                               new Date(selectedOrder.items[0].rentalStart),
                               "PPP",
                             )
-                          : "N/A"}
+                            : "N/A"}
                         </p>
                       </div>
                       <div>
@@ -816,7 +815,7 @@ export default function VendorOrders() {
                               new Date(selectedOrder.items[0].rentalEnd),
                               "PPP",
                             )
-                          : "N/A"}
+                            : "N/A"}
                         </p>
                       </div>
                     </div>
@@ -908,7 +907,7 @@ export default function VendorOrders() {
                   <span>
                     {formatPrice(
                       selectedOrder.invoice?.totalAmount ||
-                        calculateOrderTotal(selectedOrder),
+                      calculateOrderTotal(selectedOrder),
                     )}
                   </span>
                 </div>

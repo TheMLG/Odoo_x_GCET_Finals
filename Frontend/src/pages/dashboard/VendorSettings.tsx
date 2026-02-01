@@ -162,7 +162,7 @@ export default function VendorSettings() {
 
   return (
     <VendorLayout>
-      <div className="container px-4 py-8 md:px-6 md:py-12 max-w-4xl mx-auto">
+      <div className="container px-4 py-8 md:px-6 md:py-12 mx-auto">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}

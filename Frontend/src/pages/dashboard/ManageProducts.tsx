@@ -338,7 +338,7 @@ export default function ManageProducts() {
                     placeholder="Search products by name or vendor..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 rounded-xl"
+                    className="pl-10 rounded-xl bg-white dark:bg-gray-950"
                   />
                 </div>
                 <div className="flex items-center rounded-xl border bg-background p-1">
@@ -527,7 +527,9 @@ export default function ManageProducts() {
               >
                 <Card className="p-4 hover:shadow-md transition-shadow border-border/50 h-full">
                   <div className="flex items-start justify-between mb-3">
-                    <span className="font-medium">{product.name}</span>
+                    <span className="font-medium truncate pr-2" title={product.name}>
+                      {product.name}
+                    </span>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button
@@ -664,6 +666,7 @@ export default function ManageProducts() {
                   id="name"
                   value={editingProduct.name}
                   onChange={(e) => setEditingProduct({ ...editingProduct, name: e.target.value })}
+                  className="w-full"
                 />
               </div>
 

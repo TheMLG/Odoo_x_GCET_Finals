@@ -127,7 +127,7 @@ export default function ManageVendors() {
                   placeholder="Search vendors by company name, email, GST, or category..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 rounded-xl"
+                  className="pl-10 rounded-xl bg-white dark:bg-gray-950"
                 />
               </div>
             </CardContent>

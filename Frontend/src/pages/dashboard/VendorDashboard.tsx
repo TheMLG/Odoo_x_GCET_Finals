@@ -274,8 +274,7 @@ export default function VendorDashboard() {
               <CardContent className="grid gap-3">
                 <Button
                   asChild
-                  variant="outline"
-                  className="justify-start rounded-xl"
+                  className="justify-start rounded-xl bg-purple-100 text-purple-700 hover:bg-purple-200 hover:text-purple-800 border-0"
                 >
                   <Link to="/vendor/products">
                     <Package className="mr-2 h-4 w-4" />
@@ -284,8 +283,7 @@ export default function VendorDashboard() {
                 </Button>
                 <Button
                   asChild
-                  variant="outline"
-                  className="justify-start rounded-xl"
+                  className="justify-start rounded-xl bg-blue-100 text-blue-700 hover:bg-blue-200 hover:text-blue-800 border-0"
                 >
                   <Link to="/vendor/orders">
                     <ShoppingCartIcon className="mr-2 h-4 w-4" />
@@ -294,8 +292,7 @@ export default function VendorDashboard() {
                 </Button>
                 <Button
                   asChild
-                  variant="outline"
-                  className="justify-start rounded-xl"
+                  className="justify-start rounded-xl bg-orange-100 text-orange-700 hover:bg-orange-200 hover:text-orange-800 border-0"
                 >
                   <Link to="/vendor/invoices">
                     <FileText className="mr-2 h-4 w-4" />

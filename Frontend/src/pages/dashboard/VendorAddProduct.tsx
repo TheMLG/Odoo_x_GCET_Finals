@@ -194,7 +194,7 @@ export default function VendorAddProduct() {
                               <X className="h-4 w-4" />
                             </Button>
                           </div>
-                        : <label
+                          : <label
                             htmlFor="image-upload"
                             className="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed rounded-xl cursor-pointer bg-muted/50 hover:bg-muted/70 transition-colors border-muted-foreground/25"
                           >
@@ -243,7 +243,7 @@ export default function VendorAddProduct() {
                         <FormControl>
                           <Input
                             placeholder="e.g. Canon EOS R5"
-                            className="rounded-xl"
+                            className="w-full rounded-xl"
                             disabled={isLoading}
                             {...field}
                           />
@@ -442,7 +442,7 @@ export default function VendorAddProduct() {
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Creating...
                     </>
-                  : "Create Product"}
+                    : "Create Product"}
                 </Button>
               </div>
             </form>

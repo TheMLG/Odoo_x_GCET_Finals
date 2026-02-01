@@ -187,106 +187,81 @@ export default function ManageOrders() {
           </div>
         </motion.div>
 
-        {/* Stats Cards */}
-        <div className="grid gap-4 sm:grid-cols-5 mb-6">
+        {/* Stats Pills */}
+        <div className="flex items-center gap-4 overflow-x-auto pb-4 no-scrollbar mb-6">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.1 }}
+            className="flex min-w-[220px] items-center justify-between rounded-full bg-blue-50 px-5 py-3 border border-blue-100 shadow-sm transition-all hover:shadow-md dark:bg-blue-950/20 dark:border-blue-900/30"
           >
-            <Card className="rounded-3xl border-0 shadow-sm bg-blue-100">
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between mb-3">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-blue-700">
-                    Total Orders
-                  </p>
-                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white shadow-sm">
-                    <ShoppingCart className="h-4 w-4 text-blue-600" />
-                  </div>
-                </div>
-                <p className="text-3xl font-bold text-blue-700">{stats.total}</p>
-              </CardContent>
-            </Card>
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-400">
+                <ShoppingCart className="h-5 w-5" />
+              </div>
+              <span className="font-semibold text-blue-900 dark:text-blue-100">Total</span>
+            </div>
+            <span className="text-xl font-bold text-blue-700 dark:text-blue-300">{stats.total}</span>
           </motion.div>
 
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.15 }}
+            className="flex min-w-[220px] items-center justify-between rounded-full bg-yellow-50 px-5 py-3 border border-yellow-100 shadow-sm transition-all hover:shadow-md dark:bg-yellow-950/20 dark:border-yellow-900/30"
           >
-            <Card className="rounded-3xl border-0 shadow-sm bg-yellow-100">
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between mb-3">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-yellow-700">
-                    Pending
-                  </p>
-                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white shadow-sm">
-                    <Calendar className="h-4 w-4 text-yellow-600" />
-                  </div>
-                </div>
-                <p className="text-3xl font-bold text-yellow-700">{stats.pending}</p>
-              </CardContent>
-            </Card>
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-yellow-100 text-yellow-600 dark:bg-yellow-900/40 dark:text-yellow-400">
+                <Calendar className="h-5 w-5" />
+              </div>
+              <span className="font-semibold text-yellow-900 dark:text-yellow-100">Pending</span>
+            </div>
+            <span className="text-xl font-bold text-yellow-700 dark:text-yellow-300">{stats.pending}</span>
           </motion.div>
 
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.2 }}
+            className="flex min-w-[220px] items-center justify-between rounded-full bg-sky-50 px-5 py-3 border border-sky-100 shadow-sm transition-all hover:shadow-md dark:bg-sky-950/20 dark:border-sky-900/30"
           >
-            <Card className="rounded-3xl border-0 shadow-sm bg-blue-100">
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between mb-3">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-blue-700">
-                    Confirmed
-                  </p>
-                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white shadow-sm">
-                    <ShoppingCart className="h-4 w-4 text-blue-600" />
-                  </div>
-                </div>
-                <p className="text-3xl font-bold text-blue-700">{stats.confirmed}</p>
-              </CardContent>
-            </Card>
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-sky-100 text-sky-600 dark:bg-sky-900/40 dark:text-sky-400">
+                <Eye className="h-5 w-5" />
+              </div>
+              <span className="font-semibold text-sky-900 dark:text-sky-100">Confirmed</span>
+            </div>
+            <span className="text-xl font-bold text-sky-700 dark:text-sky-300">{stats.confirmed}</span>
           </motion.div>
 
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.25 }}
+            className="flex min-w-[220px] items-center justify-between rounded-full bg-purple-50 px-5 py-3 border border-purple-100 shadow-sm transition-all hover:shadow-md dark:bg-purple-950/20 dark:border-purple-900/30"
           >
-            <Card className="rounded-3xl border-0 shadow-sm bg-purple-100">
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between mb-3">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-purple-700">
-                    Active
-                  </p>
-                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white shadow-sm">
-                    <Package className="h-4 w-4 text-purple-600" />
-                  </div>
-                </div>
-                <p className="text-3xl font-bold text-purple-700">{stats.active}</p>
-              </CardContent>
-            </Card>
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-purple-100 text-purple-600 dark:bg-purple-900/40 dark:text-purple-400">
+                <Package className="h-5 w-5" />
+              </div>
+              <span className="font-semibold text-purple-900 dark:text-purple-100">Active</span>
+            </div>
+            <span className="text-xl font-bold text-purple-700 dark:text-purple-300">{stats.active}</span>
           </motion.div>
 
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.3 }}
+            className="flex min-w-[240px] items-center justify-between rounded-full bg-teal-50 px-5 py-3 border border-teal-100 shadow-sm transition-all hover:shadow-md dark:bg-teal-950/20 dark:border-teal-900/30"
           >
-            <Card className="rounded-3xl border-0 shadow-sm bg-green-100">
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between mb-3">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-green-700">
-                    Revenue
-                  </p>
-                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white shadow-sm">
-                    <IndianRupee className="h-4 w-4 text-green-600" />
-                  </div>
-                </div>
-                <p className="text-3xl font-bold text-green-700">{'\u20B9'}{stats.totalRevenue.toLocaleString()}</p>
-              </CardContent>
-            </Card>
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-teal-100 text-teal-600 dark:bg-teal-900/40 dark:text-teal-400">
+                <IndianRupee className="h-5 w-5" />
+              </div>
+              <span className="font-semibold text-teal-900 dark:text-teal-100">Revenue</span>
+            </div>
+            <span className="text-xl font-bold text-teal-700 dark:text-teal-300">{'\u20B9'}{stats.totalRevenue.toLocaleString()}</span>
           </motion.div>
         </div>
 
@@ -305,7 +280,7 @@ export default function ManageOrders() {
                     placeholder="Search orders by ID, customer, or vendor..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 rounded-xl"
+                    className="pl-10 rounded-xl bg-white dark:bg-gray-950"
                   />
                 </div>
                 <Select value={statusFilter} onValueChange={setStatusFilter}>

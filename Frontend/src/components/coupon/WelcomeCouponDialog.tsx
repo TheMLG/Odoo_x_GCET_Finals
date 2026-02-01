@@ -60,13 +60,7 @@ export function WelcomeCouponDialog() {
 
                 <div className="relative p-8">
                     {/* Close button */}
-                    <button
-                        onClick={() => setIsOpen(false)}
-                        className="absolute right-4 top-4 rounded-full p-1.5 hover:bg-gray-200 transition-colors z-10"
-                        aria-label="Close"
-                    >
-                        <X className="h-5 w-5 text-gray-600 hover:text-gray-900" />
-                    </button>
+
 
                     {/* Animated gift icon */}
                     <motion.div
