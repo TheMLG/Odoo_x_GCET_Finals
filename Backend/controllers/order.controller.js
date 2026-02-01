@@ -114,6 +114,21 @@ const processOrderCreation = async (
         },
       });
 
+      // Decrease inventory quantity for each ordered item
+      for (const item of items) {
+        await tx.productInventory.update({
+          where: { productId: item.productId },
+          data: {
+            totalQty: {
+              decrement: item.quantity,
+            },
+          },
+        });
+        console.log(
+          `Decreased inventory for product ${item.productId} by ${item.quantity}`,
+        );
+      }
+
       // Create Invoice
       await tx.invoice.create({
         data: {
