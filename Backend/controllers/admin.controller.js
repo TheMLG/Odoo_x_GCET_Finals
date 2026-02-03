@@ -5,6 +5,98 @@ import ApiError from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
 import asyncHandler from "../utils/asyncHandler.js";
 
+const parseJsonField = (value, fallback = null) => {
+  if (value === undefined || value === null || value === "") return fallback;
+  if (typeof value === "object") return value;
+  try {
+    return JSON.parse(value);
+  } catch (err) {
+    return fallback;
+  }
+};
+
+const normalizeAttributeSchema = (schema) => {
+  if (!Array.isArray(schema)) return [];
+  return schema
+    .map((item) => ({
+      name: typeof item?.name === "string" ? item.name.trim() : "",
+      options:
+        Array.isArray(item?.options) ?
+          item.options.map((o) => String(o).trim()).filter(Boolean)
+        : [],
+    }))
+    .filter((item) => item.name.length > 0 && item.options.length > 0);
+};
+
+const validateAttributeSchema = (schema) => {
+  const names = schema.map((s) => s.name);
+  const nameSet = new Set(names);
+  if (nameSet.size !== names.length) {
+    return "Attribute names must be unique";
+  }
+  return null;
+};
+
+const validateVariants = (variants, attributeSchema) => {
+  if (!Array.isArray(variants) || variants.length === 0) return null;
+
+  const schemaMap = new Map(
+    attributeSchema.map((s) => [s.name, new Set(s.options)]),
+  );
+
+  const seenCombos = new Set();
+  for (const v of variants) {
+    if (!v || typeof v !== "object") {
+      return "Invalid variant data";
+    }
+
+    const attrs = v.attributes || {};
+    const attrKeys = Object.keys(attrs);
+    if (attributeSchema.length > 0 && attrKeys.length === 0) {
+      return "Variant attributes are required";
+    }
+
+    for (const key of attrKeys) {
+      if (!schemaMap.has(key)) {
+        return `Variant attribute "${key}" is not in attribute schema`;
+      }
+      const value = String(attrs[key]);
+      const allowed = schemaMap.get(key);
+      if (!allowed.has(value)) {
+        return `Variant attribute "${key}" has invalid value "${value}"`;
+      }
+    }
+
+    for (const schemaAttr of attributeSchema) {
+      if (schemaAttr.name && !(schemaAttr.name in attrs)) {
+        return `Variant missing attribute "${schemaAttr.name}"`;
+      }
+    }
+
+    const comboKey = JSON.stringify(
+      Object.keys(attrs)
+        .sort()
+        .reduce((acc, k) => {
+          acc[k] = String(attrs[k]);
+          return acc;
+        }, {}),
+    );
+    if (seenCombos.has(comboKey)) {
+      return "Duplicate variant attribute combinations are not allowed";
+    }
+    seenCombos.add(comboKey);
+
+    if (!v.pricePerDay || Number(v.pricePerDay) <= 0) {
+      return "Variant pricePerDay must be greater than 0";
+    }
+    if (v.totalQty === undefined || Number(v.totalQty) < 0) {
+      return "Variant totalQty must be 0 or greater";
+    }
+  }
+
+  return null;
+};
+
 // Get all users
 export const getAllUsers = asyncHandler(async (req, res) => {
   const { role, page = 1, limit = 10 } = req.query;
@@ -246,6 +338,9 @@ export const deleteUser = asyncHandler(async (req, res) => {
         await tx.productAttribute.deleteMany({
           where: { productId: { in: productIds } },
         });
+        await tx.productVariant.deleteMany({
+          where: { productId: { in: productIds } },
+        });
         await tx.rentalPricing.deleteMany({
           where: { productId: { in: productIds } },
         });
@@ -386,6 +481,7 @@ export const getAllProducts = asyncHandler(async (req, res) => {
         },
         inventory: true,
         pricing: true,
+        variants: true,
       },
       skip,
       take: parseInt(limit),
@@ -409,6 +505,24 @@ export const getAllProducts = asyncHandler(async (req, res) => {
         if (p.type === "WEEK") pricingObj.pricePerWeek = Number(p.price);
         if (p.type === "MONTH") pricingObj.pricePerMonth = Number(p.price);
       });
+    }
+
+    if (
+      product.variants &&
+      product.variants.length > 0 &&
+      pricingObj.pricePerDay === 0 &&
+      pricingObj.pricePerWeek === 0 &&
+      pricingObj.pricePerMonth === 0
+    ) {
+      const minPrice = (key) => {
+        const values = product.variants
+          .map((v) => (v[key] !== null ? Number(v[key]) : 0))
+          .filter((v) => v > 0);
+        return values.length > 0 ? Math.min(...values) : 0;
+      };
+      pricingObj.pricePerDay = minPrice("pricePerDay");
+      pricingObj.pricePerWeek = minPrice("pricePerWeek");
+      pricingObj.pricePerMonth = minPrice("pricePerMonth");
     }
 
     // Transform inventory
@@ -897,7 +1011,7 @@ export const changeAdminPassword = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, {}, "Password changed successfully"));
 });
 
-// Update Product
+  // Update Product
 // Update Product
 export const updateProduct = asyncHandler(async (req, res) => {
   const { productId } = req.params;
@@ -907,7 +1021,29 @@ export const updateProduct = asyncHandler(async (req, res) => {
     isPublished,
     inventory, // { quantityOnHand: number }
     pricing, // { pricePerDay: number, pricePerWeek: number, pricePerMonth: number }
+    attributeSchema: attributeSchemaRaw,
+    variants: variantsRaw,
+    deletedVariantIds: deletedVariantIdsRaw,
   } = req.body;
+
+  const hasAttributeSchemaPayload = attributeSchemaRaw !== undefined;
+  const attributeSchema = normalizeAttributeSchema(
+    parseJsonField(attributeSchemaRaw, []),
+  );
+  const variants = parseJsonField(variantsRaw, []);
+  const deletedVariantIds = parseJsonField(deletedVariantIdsRaw, []);
+  const hasVariants = Array.isArray(variants) && variants.length > 0;
+
+  if (hasVariants) {
+    const schemaError = validateAttributeSchema(attributeSchema);
+    if (schemaError) {
+      throw new ApiError(400, schemaError);
+    }
+    const variantError = validateVariants(variants, attributeSchema);
+    if (variantError) {
+      throw new ApiError(400, variantError);
+    }
+  }
 
   // Use transaction to ensure all updates succeed or fail together
   const updatedProduct = await prisma.$transaction(async (tx) => {
@@ -918,78 +1054,168 @@ export const updateProduct = asyncHandler(async (req, res) => {
         name,
         description,
         isPublished,
+        ...(hasAttributeSchemaPayload ?
+          {
+            attributeSchema:
+              attributeSchema.length > 0 ? attributeSchema : null,
+          }
+        : {}),
       },
     });
 
-    // 2. Update Inventory if provided
-    if (inventory) {
-      // Check if inventory record exists
-      const existingInventory = await tx.productInventory.findUnique({
-        where: { productId },
+    if (Array.isArray(deletedVariantIds) && deletedVariantIds.length > 0) {
+      await tx.productVariant.updateMany({
+        where: { id: { in: deletedVariantIds }, productId },
+        data: { isActive: false },
       });
+    }
 
-      if (existingInventory) {
-        await tx.productInventory.update({
-          where: { productId },
-          data: {
-            totalQty: Number(inventory.quantityOnHand || 0),
-          },
-        });
-      } else {
-        await tx.productInventory.create({
-          data: {
-            productId,
-            totalQty: Number(inventory.quantityOnHand || 0),
-          },
-        });
+    if (hasVariants) {
+      for (const v of variants) {
+        if (v.id) {
+          await tx.productVariant.update({
+            where: { id: v.id },
+            data: {
+              name: v.name || null,
+              attributes: v.attributes || {},
+              pricePerHour:
+                v.pricePerHour !== undefined && v.pricePerHour !== "" ?
+                  Number(v.pricePerHour)
+                : null,
+              pricePerDay: Number(v.pricePerDay),
+              pricePerWeek:
+                v.pricePerWeek !== undefined && v.pricePerWeek !== "" ?
+                  Number(v.pricePerWeek)
+                : null,
+              pricePerMonth:
+                v.pricePerMonth !== undefined && v.pricePerMonth !== "" ?
+                  Number(v.pricePerMonth)
+                : null,
+              totalQty: Number(v.totalQty),
+              isActive: v.isActive !== false,
+            },
+          });
+        } else {
+          await tx.productVariant.create({
+            data: {
+              productId,
+              name: v.name || null,
+              attributes: v.attributes || {},
+              pricePerHour:
+                v.pricePerHour !== undefined && v.pricePerHour !== "" ?
+                  Number(v.pricePerHour)
+                : null,
+              pricePerDay: Number(v.pricePerDay),
+              pricePerWeek:
+                v.pricePerWeek !== undefined && v.pricePerWeek !== "" ?
+                  Number(v.pricePerWeek)
+                : null,
+              pricePerMonth:
+                v.pricePerMonth !== undefined && v.pricePerMonth !== "" ?
+                  Number(v.pricePerMonth)
+                : null,
+              totalQty: Number(v.totalQty),
+              isActive: v.isActive !== false,
+            },
+          });
+        }
       }
     }
 
-    // 3. Update Pricing if provided
-    if (pricing) {
-      // Auto-calculate prices if missing
-      let pricePerDay = Number(pricing.pricePerDay || 0);
-      let pricePerWeek = Number(pricing.pricePerWeek || 0);
-      let pricePerMonth = Number(pricing.pricePerMonth || 0);
-
-      if (pricePerDay > 0) {
-        if (pricePerWeek === 0) pricePerWeek = pricePerDay * 7;
-        if (pricePerMonth === 0) pricePerMonth = pricePerDay * 30;
-      }
-
-      // Delete existing pricing
-      await tx.rentalPricing.deleteMany({
-        where: { productId },
+    if (
+      hasVariants ||
+      (Array.isArray(deletedVariantIds) && deletedVariantIds.length > 0)
+    ) {
+      const activeVariants = await tx.productVariant.findMany({
+        where: { productId, isActive: true },
+        select: { totalQty: true },
       });
+      const totalVariantQty = activeVariants.reduce(
+        (sum, v) => sum + (v.totalQty || 0),
+        0,
+      );
 
-      // Create new pricing records
-      const pricingData = [];
-      if (pricePerDay > 0) {
-        pricingData.push({
+      await tx.productInventory.upsert({
+        where: { productId },
+        create: {
           productId,
-          type: "DAY",
-          price: pricePerDay,
+          totalQty: totalVariantQty,
+        },
+        update: {
+          totalQty: totalVariantQty,
+        },
+      });
+    } else {
+      // 2. Update Inventory if provided
+      if (inventory) {
+        // Check if inventory record exists
+        const existingInventory = await tx.productInventory.findUnique({
+          where: { productId },
         });
-      }
-      if (pricePerWeek > 0) {
-        pricingData.push({
-          productId,
-          type: "WEEK",
-          price: pricePerWeek,
-        });
-      }
-      if (pricePerMonth > 0) {
-        pricingData.push({
-          productId,
-          type: "MONTH",
-          price: pricePerMonth,
-        });
+
+        if (existingInventory) {
+          await tx.productInventory.update({
+            where: { productId },
+            data: {
+              totalQty: Number(inventory.quantityOnHand || 0),
+            },
+          });
+        } else {
+          await tx.productInventory.create({
+            data: {
+              productId,
+              totalQty: Number(inventory.quantityOnHand || 0),
+            },
+          });
+        }
       }
 
-      if (pricingData.length > 0) {
-        await tx.rentalPricing.createMany({
-          data: pricingData,
+      // 3. Update Pricing if provided
+      if (pricing) {
+        // Auto-calculate prices if missing
+        let pricePerDay = Number(pricing.pricePerDay || 0);
+        let pricePerWeek = Number(pricing.pricePerWeek || 0);
+        let pricePerMonth = Number(pricing.pricePerMonth || 0);
+
+        if (pricePerDay > 0) {
+          if (pricePerWeek === 0) pricePerWeek = pricePerDay * 7;
+          if (pricePerMonth === 0) pricePerMonth = pricePerDay * 30;
+        }
+
+        // Delete existing pricing
+        await tx.rentalPricing.deleteMany({
+          where: { productId },
         });
+
+        // Create new pricing records
+        const pricingData = [];
+        if (pricePerDay > 0) {
+          pricingData.push({
+            productId,
+            type: "DAY",
+            price: pricePerDay,
+          });
+        }
+        if (pricePerWeek > 0) {
+          pricingData.push({
+            productId,
+            type: "WEEK",
+            price: pricePerWeek,
+          });
+        }
+        if (pricePerMonth > 0) {
+          pricingData.push({
+            productId,
+            type: "MONTH",
+            price: pricePerMonth,
+          });
+        }
+
+        if (pricingData.length > 0) {
+          await tx.rentalPricing.createMany({
+            data: pricingData,
+          });
+        }
       }
     }
 
@@ -999,6 +1225,7 @@ export const updateProduct = asyncHandler(async (req, res) => {
       include: {
         inventory: true,
         pricing: true,
+        variants: true,
         vendor: {
           include: {
             user: {
@@ -1055,6 +1282,7 @@ export const deleteProduct = asyncHandler(async (req, res) => {
     await tx.orderItem.deleteMany({ where: { productId } });
     await tx.cartItem.deleteMany({ where: { productId } });
     await tx.productAttribute.deleteMany({ where: { productId } });
+    await tx.productVariant.deleteMany({ where: { productId } });
     await tx.rentalPricing.deleteMany({ where: { productId } });
 
     // 2. Delete inventory (one-to-one)

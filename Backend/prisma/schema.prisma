@@ -62,16 +62,36 @@ model Product {
   category          String             @default("Uncategorized")
   product_image_url String             @default("https://static.vecteezy.com/system/resources/thumbnails/051/739/975/small_2x/cosmetic-products-mock-up-photo.jpg")
   isPublished       Boolean            @default(false)
+  attributeSchema   Json?
   createdAt         DateTime           @default(now())
   cartItems         CartItem[]
   orderItems        OrderItem[]
   vendor            Vendor             @relation(fields: [vendorId], references: [id])
   attributes        ProductAttribute[]
+  variants          ProductVariant[]
   inventory         ProductInventory?
   pricing           RentalPricing[]
   reservations      Reservation[]
   wishlistItems     WishlistItem[]
   reviews      Review[]
+}
+
+model ProductVariant {
+  id            String   @id @default(uuid())
+  productId     String
+  name          String?
+  attributes    Json
+  pricePerHour  Decimal?
+  pricePerDay   Decimal
+  pricePerWeek  Decimal?
+  pricePerMonth Decimal?
+  totalQty      Int
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  product       Product  @relation(fields: [productId], references: [id])
+  cartItems     CartItem[]
+  orderItems    OrderItem[]
+  reservations  Reservation[]
 }
 
 model ProductInventory {
@@ -130,12 +150,15 @@ model CartItem {
   id          String   @id @default(uuid())
   cartId      String
   productId   String
+  variantId   String?
   quantity    Int
   rentalStart DateTime
   rentalEnd   DateTime
   unitPrice   Decimal
+  selectedAttributes Json?
   cart        Cart     @relation(fields: [cartId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   product     Product  @relation(fields: [productId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  variant     ProductVariant? @relation(fields: [variantId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model Order {
@@ -160,12 +183,15 @@ model OrderItem {
   id           String        @id @default(uuid())
   orderId      String
   productId    String
+  variantId    String?
   quantity     Int
   rentalStart  DateTime
   rentalEnd    DateTime
   unitPrice    Decimal
+  selectedAttributes Json?
   order        Order         @relation(fields: [orderId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   product      Product       @relation(fields: [productId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  variant      ProductVariant? @relation(fields: [variantId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   reservations Reservation[]
 }
 
@@ -173,11 +199,13 @@ model Reservation {
   id           String    @id @default(uuid())
   orderItemId  String
   productId    String
+  variantId    String?
   reservedFrom DateTime
   reservedTo   DateTime
   quantity     Int
   orderItem    OrderItem @relation(fields: [orderItemId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   product      Product   @relation(fields: [productId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  variant      ProductVariant? @relation(fields: [variantId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model Invoice {

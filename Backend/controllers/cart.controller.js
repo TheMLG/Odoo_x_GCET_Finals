@@ -17,6 +17,7 @@ export const getCart = asyncHandler(async (req, res) => {
         include: {
             items: {
                 include: {
+                    variant: true,
                     product: {
                         include: {
                             pricing: true,
@@ -44,6 +45,7 @@ export const getCart = asyncHandler(async (req, res) => {
             include: {
                 items: {
                     include: {
+                        variant: true,
                         product: {
                             include: {
                                 pricing: true,
@@ -67,7 +69,7 @@ export const getCart = asyncHandler(async (req, res) => {
  * @access Private
  */
 export const addToCart = asyncHandler(async (req, res) => {
-    const { productId, quantity, rentalStart, rentalEnd, unitPrice } = req.body;
+    const { productId, variantId, quantity, rentalStart, rentalEnd, unitPrice, selectedAttributes } = req.body;
 
     // Validate required fields
     if (!productId || !quantity || !rentalStart || !rentalEnd || !unitPrice) {
@@ -90,9 +92,37 @@ export const addToCart = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Product is not available for rent");
     }
 
-    // Check inventory availability
-    if (product.inventory.totalQty < quantity) {
-        throw new ApiError(400, `Only ${product.inventory.totalQty} units available`);
+    let variant = null;
+    if (!variantId) {
+        const variantCount = await prisma.productVariant.count({
+            where: { productId: productId, isActive: true }
+        });
+        if (variantCount > 0) {
+            throw new ApiError(400, "Please select a variant for this product");
+        }
+    }
+
+    if (variantId) {
+        variant = await prisma.productVariant.findFirst({
+            where: {
+                id: variantId,
+                productId: productId,
+                isActive: true
+            }
+        });
+
+        if (!variant) {
+            throw new ApiError(400, "Selected variant is not available");
+        }
+
+        if (variant.totalQty < quantity) {
+            throw new ApiError(400, `Only ${variant.totalQty} units available for this variant`);
+        }
+    } else {
+        // Check inventory availability
+        if (product.inventory.totalQty < quantity) {
+            throw new ApiError(400, `Only ${product.inventory.totalQty} units available`);
+        }
     }
 
     // Get or create active cart
@@ -116,7 +146,8 @@ export const addToCart = asyncHandler(async (req, res) => {
     const existingItem = await prisma.cartItem.findFirst({
         where: {
             cartId: cart.id,
-            productId: productId
+            productId: productId,
+            variantId: variantId || null
         }
     });
 
@@ -129,9 +160,11 @@ export const addToCart = asyncHandler(async (req, res) => {
                 quantity: existingItem.quantity + quantity,
                 rentalStart: new Date(rentalStart),
                 rentalEnd: new Date(rentalEnd),
-                unitPrice: parseFloat(unitPrice)
+                unitPrice: parseFloat(unitPrice),
+                selectedAttributes: selectedAttributes || (variant ? variant.attributes : null)
             },
             include: {
+                variant: true,
                 product: {
                     include: {
                         pricing: true,
@@ -146,12 +179,15 @@ export const addToCart = asyncHandler(async (req, res) => {
             data: {
                 cartId: cart.id,
                 productId,
+                variantId: variantId || null,
                 quantity,
                 rentalStart: new Date(rentalStart),
                 rentalEnd: new Date(rentalEnd),
-                unitPrice: parseFloat(unitPrice)
+                unitPrice: parseFloat(unitPrice),
+                selectedAttributes: selectedAttributes || (variant ? variant.attributes : null)
             },
             include: {
+                variant: true,
                 product: {
                     include: {
                         pricing: true,
@@ -181,6 +217,7 @@ export const updateCartItem = asyncHandler(async (req, res) => {
         where: { id: itemId },
         include: {
             cart: true,
+            variant: true,
             product: {
                 include: {
                     inventory: true
@@ -198,8 +235,14 @@ export const updateCartItem = asyncHandler(async (req, res) => {
     }
 
     // Check inventory if quantity is being updated
-    if (quantity && quantity > cartItem.product.inventory.totalQty) {
-        throw new ApiError(400, `Only ${cartItem.product.inventory.totalQty} units available`);
+    if (quantity) {
+        if (cartItem.variant) {
+            if (quantity > cartItem.variant.totalQty) {
+                throw new ApiError(400, `Only ${cartItem.variant.totalQty} units available for this variant`);
+            }
+        } else if (quantity > cartItem.product.inventory.totalQty) {
+            throw new ApiError(400, `Only ${cartItem.product.inventory.totalQty} units available`);
+        }
     }
 
     const updatedItem = await prisma.cartItem.update({
@@ -210,6 +253,7 @@ export const updateCartItem = asyncHandler(async (req, res) => {
             ...(rentalEnd && { rentalEnd: new Date(rentalEnd) })
         },
         include: {
+            variant: true,
             product: {
                 include: {
                     pricing: true,

@@ -45,6 +45,29 @@ const vendorCompanyNames = [
   "Shree Ganesh Rentals",
 ];
 
+const attributeSchemasByCategory = {
+  Electronics: [
+    { name: "Color", options: ["Black", "Silver", "Blue", "Red"] },
+    { name: "Power", options: ["100W", "200W", "500W"] },
+  ],
+  Construction: [
+    { name: "Voltage", options: ["110V", "220V"] },
+    { name: "Condition", options: ["Excellent", "Good", "Fair"] },
+  ],
+  Photography: [
+    { name: "Mount", options: ["EF", "E", "RF"] },
+    { name: "Color", options: ["Black", "Silver"] },
+  ],
+  "Event Equipment": [
+    { name: "Size", options: ["Small", "Medium", "Large"] },
+    { name: "Color", options: ["Black", "White"] },
+  ],
+  "Home Appliances": [
+    { name: "Capacity", options: ["1.5T", "2T", "3T"] },
+    { name: "Energy Rating", options: ["3 Star", "4 Star", "5 Star"] },
+  ],
+};
+
 // Generate valid Indian GST Number
 const generateGSTNumber = (stateCode, index) => {
   const pan = `AABCP${index}234${String.fromCharCode(65 + index)}`;
@@ -271,6 +294,42 @@ async function main() {
       
       const dayPrice = Math.floor(Math.random() * 3000) + 500; // ₹500 - ₹3500 per day
       const weekPrice = dayPrice * 5; // ~30% discount for weekly
+
+      const schema =
+        attributeSchemasByCategory[vendor.product_category] || [
+          { name: "Color", options: ["Black", "White"] },
+        ];
+      const useVariants = Math.random() > 0.4; // ~60% products with variants
+
+      let variants = [];
+      if (useVariants) {
+        const optionA = schema[0]?.options || ["Standard"];
+        const optionB = schema[1]?.options || ["Standard"];
+
+        const combos = [];
+        for (const a of optionA) {
+          for (const b of optionB) {
+            combos.push({ [schema[0].name]: a, [schema[1].name]: b });
+          }
+        }
+
+        const selectedCombos = combos.sort(() => 0.5 - Math.random()).slice(0, 3);
+        variants = selectedCombos.map((attrs, index) => {
+          const variantDay = dayPrice + index * 150;
+          const variantWeek = variantDay * 5;
+          const variantMonth = variantDay * 18;
+          return {
+            name: `${name} Variant ${index + 1}`,
+            attributes: attrs,
+            pricePerHour: Math.max(100, Math.round(variantDay / 6)),
+            pricePerDay: variantDay,
+            pricePerWeek: variantWeek,
+            pricePerMonth: variantMonth,
+            totalQty: Math.floor(Math.random() * 8) + 2,
+            isActive: true,
+          };
+        });
+      }
       
       const product = await prisma.product.create({
         data: {
@@ -278,19 +337,41 @@ async function main() {
           name,
           description: productDescriptions[name] || `${name} available for rent - well maintained and ready for use`,
           isPublished: true,
+          attributeSchema: useVariants ? schema : null,
           inventory: {
             create: {
-              totalQty: Math.floor(Math.random() * 15) + 3,
+              totalQty:
+                useVariants ?
+                  variants.reduce((sum, v) => sum + v.totalQty, 0)
+                : Math.floor(Math.random() * 15) + 3,
             },
           },
-          pricing: {
-            createMany: {
-              data: [
-                { type: "DAY", price: dayPrice },
-                { type: "WEEK", price: weekPrice },
-              ],
+          pricing: useVariants ?
+            undefined
+          : {
+              createMany: {
+                data: [
+                  { type: "DAY", price: dayPrice },
+                  { type: "WEEK", price: weekPrice },
+                ],
+              },
             },
-          },
+          variants: useVariants ?
+            {
+              createMany: {
+                data: variants.map((v) => ({
+                  name: v.name,
+                  attributes: v.attributes,
+                  pricePerHour: v.pricePerHour,
+                  pricePerDay: v.pricePerDay,
+                  pricePerWeek: v.pricePerWeek,
+                  pricePerMonth: v.pricePerMonth,
+                  totalQty: v.totalQty,
+                  isActive: true,
+                })),
+              },
+            }
+          : undefined,
           attributes: {
             createMany: {
               data: [
@@ -320,13 +401,26 @@ async function main() {
 
   /* ───────────────────────── CARTS + ORDERS ───────────────────────── */
 
-  const orderStatuses = ["PENDING", "CONFIRMED", "ACTIVE", "COMPLETED"];
+  const orderStatuses = ["CONFIRMED", "INVOICED", "RETURNED", "CANCELLED"];
 
   for (const customer of customers) {
     const product = products[Math.floor(Math.random() * products.length)];
+    const fullProduct = await prisma.product.findUnique({
+      where: { id: product.id },
+      include: { variants: true },
+    });
+    const activeVariants =
+      fullProduct?.variants?.filter((v) => v.isActive) || [];
+    const chosenVariant =
+      activeVariants.length > 0 ?
+        activeVariants[Math.floor(Math.random() * activeVariants.length)]
+      : null;
     const start = new Date();
     const end = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000); // 3 days rental
-    const unitPrice = Math.floor(Math.random() * 2000) + 800; // ₹800 - ₹2800
+    const unitPrice =
+      chosenVariant ?
+        Number(chosenVariant.pricePerDay || 0)
+      : Math.floor(Math.random() * 2000) + 800; // ₹800 - ₹2800
 
     const cart = await prisma.cart.create({
       data: {
@@ -334,10 +428,12 @@ async function main() {
         items: {
           create: {
             productId: product.id,
+            variantId: chosenVariant?.id || null,
             quantity: Math.floor(Math.random() * 2) + 1,
             rentalStart: start,
             rentalEnd: end,
             unitPrice: unitPrice,
+            selectedAttributes: chosenVariant?.attributes || null,
           },
         },
       },
@@ -357,13 +453,16 @@ async function main() {
         items: {
           create: cart.items.map((item) => ({
             productId: item.productId,
+            variantId: item.variantId || null,
             quantity: item.quantity,
             rentalStart: item.rentalStart,
             rentalEnd: item.rentalEnd,
             unitPrice: item.unitPrice,
+            selectedAttributes: item.selectedAttributes || null,
             reservations: {
               create: {
                 productId: item.productId,
+                variantId: item.variantId || null,
                 reservedFrom: item.rentalStart,
                 reservedTo: item.rentalEnd,
                 quantity: item.quantity,

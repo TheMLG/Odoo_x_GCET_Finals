@@ -15,6 +15,13 @@ interface CartState {
     duration: RentalDuration,
     startDate: Date,
     endDate?: Date,
+    variantId?: string | null,
+    selectedAttributes?: Record<string, string>,
+    pricingOverride?: {
+      pricePerHour?: number;
+      pricePerDay?: number;
+      pricePerWeek?: number;
+    },
   ) => Promise<void>;
   removeItem: (itemId: string) => Promise<void>;
   updateItem: (itemId: string, updates: Partial<CartItem>) => void;
@@ -98,6 +105,7 @@ export const useCartStore = create<CartState>()((set, get) => ({
         return {
           id: item.id,
           productId: item.productId,
+          variantId: item.variantId || null,
           product: {
             id: item.product.id,
             name: item.product.name,
@@ -122,6 +130,13 @@ export const useCartStore = create<CartState>()((set, get) => ({
               ) ?
                 item.product.attributes
               : {},
+            attributeSchema: Array.isArray(item.product.attributeSchema) ?
+              item.product.attributeSchema
+            : [],
+            variants:
+              Array.isArray(item.product.variants) ?
+                item.product.variants
+              : [],
             createdAt: item.product.createdAt,
           },
           quantity: item.quantity,
@@ -129,6 +144,11 @@ export const useCartStore = create<CartState>()((set, get) => ({
           startDate: item.rentalStart,
           endDate: item.rentalEnd,
           totalPrice: parseFloat(item.unitPrice) * item.quantity, // unitPrice * quantity for line item total
+          selectedAttributes:
+            item.selectedAttributes ||
+            item.variant?.attributes ||
+            item.product?.selectedAttributes ||
+            undefined,
         };
       });
 
@@ -139,7 +159,16 @@ export const useCartStore = create<CartState>()((set, get) => ({
     }
   },
 
-  addItem: async (product, quantity, duration, startDate, endDateOverride) => {
+  addItem: async (
+    product,
+    quantity,
+    duration,
+    startDate,
+    endDateOverride,
+    variantId,
+    selectedAttributes,
+    pricingOverride,
+  ) => {
     try {
       set({ isLoading: true });
 
@@ -153,8 +182,17 @@ export const useCartStore = create<CartState>()((set, get) => ({
           : new Date(endDateOverride)
         : calculateEndDate(deliveryDate, duration);
 
+      const effectiveProduct = pricingOverride ?
+        {
+          ...product,
+          pricePerHour: pricingOverride.pricePerHour ?? product.pricePerHour,
+          pricePerDay: pricingOverride.pricePerDay ?? product.pricePerDay,
+          pricePerWeek: pricingOverride.pricePerWeek ?? product.pricePerWeek,
+        }
+      : product;
+
       const { totalAmount } = calculateRentalCost(
-        product,
+        effectiveProduct,
         deliveryDate,
         endDate,
         1,
@@ -162,10 +200,12 @@ export const useCartStore = create<CartState>()((set, get) => ({
 
       const payload = {
         productId: product.id,
+        variantId: variantId || undefined,
         quantity,
         rentalStart: deliveryDate.toISOString(),
         rentalEnd: endDate.toISOString(),
         unitPrice: totalAmount, // This is price per unit (1 item) for the full duration incl tax
+        selectedAttributes: selectedAttributes || undefined,
       };
 
       console.log("Adding to cart with payload:", payload);

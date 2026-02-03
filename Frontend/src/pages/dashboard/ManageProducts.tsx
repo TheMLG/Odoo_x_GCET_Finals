@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { AdminLayout } from '@/components/layout/AdminLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Table,
   TableBody,
@@ -69,6 +70,18 @@ interface Product {
   description: string;
   isPublished: boolean;
   createdAt: string;
+  attributeSchema?: { name: string; options: string[] }[];
+  variants?: Array<{
+    id?: string;
+    name?: string;
+    attributes: Record<string, string>;
+    pricePerHour?: number | null;
+    pricePerDay: number;
+    pricePerWeek?: number | null;
+    pricePerMonth?: number | null;
+    totalQty: number;
+    isActive: boolean;
+  }>;
   vendor: {
     id: string;
     companyName: string;
@@ -93,6 +106,7 @@ export default function ManageProducts() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
+  const [deletedVariantIds, setDeletedVariantIds] = useState<string[]>([]);
 
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [viewingProduct, setViewingProduct] = useState<Product | null>(null);
@@ -103,6 +117,12 @@ export default function ManageProducts() {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
+
+  useEffect(() => {
+    if (editingProduct) {
+      setDeletedVariantIds([]);
+    }
+  }, [editingProduct?.id]);
 
   // Fetch Products Query
   const { data, isLoading } = useQuery({
@@ -134,7 +154,10 @@ export default function ManageProducts() {
           pricePerDay: updatedProduct.pricing?.pricePerDay,
           pricePerWeek: updatedProduct.pricing?.pricePerWeek,
           pricePerMonth: updatedProduct.pricing?.pricePerMonth
-        }
+        },
+        attributeSchema: updatedProduct.attributeSchema || [],
+        variants: updatedProduct.variants || [],
+        deletedVariantIds: deletedVariantIds
       });
       return response.data.data;
     },
@@ -142,6 +165,7 @@ export default function ManageProducts() {
       queryClient.invalidateQueries({ queryKey: ['admin-products'] });
       toast.success('Product updated successfully');
       setEditingProduct(null);
+      setDeletedVariantIds([]);
     },
     onError: (error: any) => {
       toast.error('Failed to update product', {
@@ -779,6 +803,291 @@ export default function ManageProducts() {
                       />
                     </div>
                   </div>
+                </div>
+              </div>
+
+              <div className="grid gap-2">
+                <Label>Attributes</Label>
+                <div className="space-y-3">
+                  {(editingProduct.attributeSchema || []).map((attr, index) => (
+                    <div key={`attr-${index}`} className="grid gap-2 md:grid-cols-5">
+                      <Input
+                        value={attr.name}
+                        onChange={(e) =>
+                          setEditingProduct({
+                            ...editingProduct,
+                            attributeSchema: (editingProduct.attributeSchema || []).map((a, i) =>
+                              i === index ? { ...a, name: e.target.value } : a
+                            ),
+                          })
+                        }
+                        className="md:col-span-2"
+                        placeholder="Attribute name"
+                      />
+                      <Input
+                        value={(attr.options || []).join(", ")}
+                        onChange={(e) =>
+                          setEditingProduct({
+                            ...editingProduct,
+                            attributeSchema: (editingProduct.attributeSchema || []).map((a, i) =>
+                              i === index ?
+                                {
+                                  ...a,
+                                  options: e.target.value
+                                    .split(",")
+                                    .map((opt) => opt.trim())
+                                    .filter(Boolean),
+                                }
+                              : a
+                            ),
+                          })
+                        }
+                        className="md:col-span-2"
+                        placeholder="Options (comma-separated)"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        onClick={() =>
+                          setEditingProduct({
+                            ...editingProduct,
+                            attributeSchema: (editingProduct.attributeSchema || []).filter(
+                              (_, i) => i !== index,
+                            ),
+                          })
+                        }
+                      >
+                        Remove
+                      </Button>
+                    </div>
+                  ))}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() =>
+                      setEditingProduct({
+                        ...editingProduct,
+                        attributeSchema: [
+                          ...(editingProduct.attributeSchema || []),
+                          { name: "", options: [] },
+                        ],
+                      })
+                    }
+                  >
+                    Add Attribute
+                  </Button>
+                </div>
+              </div>
+
+              <div className="grid gap-2">
+                <Label>Variants</Label>
+                <div className="space-y-4">
+                  {(editingProduct.variants || []).map((variant, vIndex) => (
+                    <div key={`variant-${vIndex}`} className="rounded-xl border p-4 space-y-3">
+                      <div className="grid gap-3 md:grid-cols-2">
+                        <Input
+                          value={variant.name || ""}
+                          onChange={(e) =>
+                            setEditingProduct({
+                              ...editingProduct,
+                              variants: (editingProduct.variants || []).map((v, i) =>
+                                i === vIndex ? { ...v, name: e.target.value } : v
+                              ),
+                            })
+                          }
+                          placeholder="Variant name"
+                        />
+                        <Input
+                          type="number"
+                          min="0"
+                          value={variant.totalQty}
+                          onChange={(e) =>
+                            setEditingProduct({
+                              ...editingProduct,
+                              variants: (editingProduct.variants || []).map((v, i) =>
+                                i === vIndex ?
+                                  { ...v, totalQty: parseInt(e.target.value) || 0 }
+                                : v
+                              ),
+                            })
+                          }
+                          placeholder="Quantity"
+                        />
+                      </div>
+
+                      {(editingProduct.attributeSchema || []).length > 0 && (
+                        <div className="grid gap-3 md:grid-cols-2">
+                          {(editingProduct.attributeSchema || []).map((attr) => (
+                            <div key={`${vIndex}-${attr.name}`} className="space-y-2">
+                              <Label className="text-xs">{attr.name}</Label>
+                              <Select
+                                value={variant.attributes?.[attr.name] || ""}
+                                onValueChange={(value) =>
+                                  setEditingProduct({
+                                    ...editingProduct,
+                                    variants: (editingProduct.variants || []).map((v, i) =>
+                                      i === vIndex ?
+                                        {
+                                          ...v,
+                                          attributes: {
+                                            ...v.attributes,
+                                            [attr.name]: value,
+                                          },
+                                        }
+                                      : v
+                                    ),
+                                  })
+                                }
+                              >
+                                <SelectTrigger>
+                                  <SelectValue placeholder={`Select ${attr.name}`} />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {(attr.options || []).map((opt) => (
+                                    <SelectItem key={opt} value={opt}>
+                                      {opt}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      <div className="grid gap-3 md:grid-cols-4">
+                        <Input
+                          type="number"
+                          min="0"
+                          value={variant.pricePerDay}
+                          onChange={(e) =>
+                            setEditingProduct({
+                              ...editingProduct,
+                              variants: (editingProduct.variants || []).map((v, i) =>
+                                i === vIndex ?
+                                  { ...v, pricePerDay: parseInt(e.target.value) || 0 }
+                                : v
+                              ),
+                            })
+                          }
+                          placeholder="Price/Day"
+                        />
+                        <Input
+                          type="number"
+                          min="0"
+                          value={variant.pricePerHour ?? ""}
+                          onChange={(e) =>
+                            setEditingProduct({
+                              ...editingProduct,
+                              variants: (editingProduct.variants || []).map((v, i) =>
+                                i === vIndex ?
+                                  {
+                                    ...v,
+                                    pricePerHour: parseInt(e.target.value) || 0,
+                                  }
+                                : v
+                              ),
+                            })
+                          }
+                          placeholder="Price/Hour"
+                        />
+                        <Input
+                          type="number"
+                          min="0"
+                          value={variant.pricePerWeek ?? ""}
+                          onChange={(e) =>
+                            setEditingProduct({
+                              ...editingProduct,
+                              variants: (editingProduct.variants || []).map((v, i) =>
+                                i === vIndex ?
+                                  {
+                                    ...v,
+                                    pricePerWeek: parseInt(e.target.value) || 0,
+                                  }
+                                : v
+                              ),
+                            })
+                          }
+                          placeholder="Price/Week"
+                        />
+                        <Input
+                          type="number"
+                          min="0"
+                          value={variant.pricePerMonth ?? ""}
+                          onChange={(e) =>
+                            setEditingProduct({
+                              ...editingProduct,
+                              variants: (editingProduct.variants || []).map((v, i) =>
+                                i === vIndex ?
+                                  {
+                                    ...v,
+                                    pricePerMonth: parseInt(e.target.value) || 0,
+                                  }
+                                : v
+                              ),
+                            })
+                          }
+                          placeholder="Price/Month"
+                        />
+                      </div>
+
+                      <div className="flex items-center gap-3">
+                        <Checkbox
+                          checked={variant.isActive}
+                          onCheckedChange={(value) =>
+                            setEditingProduct({
+                              ...editingProduct,
+                              variants: (editingProduct.variants || []).map((v, i) =>
+                                i === vIndex ? { ...v, isActive: !!value } : v
+                              ),
+                            })
+                          }
+                        />
+                        <Label>Active</Label>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          className="ml-auto"
+                          onClick={() => {
+                            if (variant.id) {
+                              setDeletedVariantIds((prev) => [...prev, variant.id as string]);
+                            }
+                            setEditingProduct({
+                              ...editingProduct,
+                              variants: (editingProduct.variants || []).filter((_, i) => i !== vIndex),
+                            });
+                          }}
+                        >
+                          Remove Variant
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() =>
+                      setEditingProduct({
+                        ...editingProduct,
+                        variants: [
+                          ...(editingProduct.variants || []),
+                          {
+                            name: "",
+                            attributes: {},
+                            pricePerHour: 0,
+                            pricePerDay: 0,
+                            pricePerWeek: 0,
+                            pricePerMonth: 0,
+                            totalQty: 0,
+                            isActive: true,
+                          },
+                        ],
+                      })
+                    }
+                  >
+                    Add Variant
+                  </Button>
                 </div>
               </div>
             </div>

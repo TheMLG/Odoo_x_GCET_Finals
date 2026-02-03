@@ -31,6 +31,7 @@ const processOrderCreation = async (
     include: {
       items: {
         include: {
+          variant: true,
           product: true,
         },
       },
@@ -97,13 +98,16 @@ const processOrderCreation = async (
           items: {
             create: items.map((item) => ({
               productId: item.productId,
+              variantId: item.variantId || null,
               quantity: item.quantity,
               rentalStart: item.rentalStart,
               rentalEnd: item.rentalEnd,
               unitPrice: item.unitPrice,
+              selectedAttributes: item.selectedAttributes || null,
               reservations: {
                 create: {
                   productId: item.productId,
+                  variantId: item.variantId || null,
                   reservedFrom: item.rentalStart,
                   reservedTo: item.rentalEnd,
                   quantity: item.quantity,
@@ -116,6 +120,17 @@ const processOrderCreation = async (
 
       // Decrease inventory quantity for each ordered item
       for (const item of items) {
+        if (item.variantId) {
+          await tx.productVariant.update({
+            where: { id: item.variantId },
+            data: {
+              totalQty: {
+                decrement: item.quantity,
+              },
+            },
+          });
+        }
+
         await tx.productInventory.update({
           where: { productId: item.productId },
           data: {
@@ -375,6 +390,7 @@ export const getUserOrders = asyncHandler(async (req, res) => {
       },
       items: {
         include: {
+          variant: true,
           product: {
             include: {
               pricing: true,
@@ -420,6 +436,7 @@ export const getOrderDetails = asyncHandler(async (req, res) => {
       },
       items: {
         include: {
+          variant: true,
           product: {
             include: {
               pricing: true,
@@ -477,6 +494,7 @@ export const generateInvoicePDF = asyncHandler(async (req, res) => {
         },
         items: {
           include: {
+            variant: true,
             product: true,
           },
         },
@@ -803,6 +821,7 @@ export const generateCombinedInvoicePDF = asyncHandler(async (req, res) => {
         },
         items: {
           include: {
+            variant: true,
             product: true,
           },
         },
@@ -924,10 +943,13 @@ export const generateCombinedInvoicePDF = asyncHandler(async (req, res) => {
 
     for (const order of orders) {
       for (const item of order.items) {
-        const startDate = new Date(item.rentalStart).toLocaleDateString("en-IN", {
-          day: "2-digit",
-          month: "short",
-        });
+        const startDate = new Date(item.rentalStart).toLocaleDateString(
+          "en-IN",
+          {
+            day: "2-digit",
+            month: "short",
+          },
+        );
         const endDate = new Date(item.rentalEnd).toLocaleDateString("en-IN", {
           day: "2-digit",
           month: "short",
@@ -939,8 +961,11 @@ export const generateCombinedInvoicePDF = asyncHandler(async (req, res) => {
         }
 
         // Get vendor name
-        const vendorName = order.vendor?.companyName || 
-          (order.vendor?.user ? `${order.vendor.user.firstName} ${order.vendor.user.lastName}` : "N/A");
+        const vendorName =
+          order.vendor?.companyName ||
+          (order.vendor?.user ?
+            `${order.vendor.user.firstName} ${order.vendor.user.lastName}`
+          : "N/A");
 
         doc
           .fillColor("#1e293b")
@@ -951,14 +976,21 @@ export const generateCombinedInvoicePDF = asyncHandler(async (req, res) => {
         doc
           .fillColor("#64748b")
           .text(`${startDate}-${endDate}`, 285, yPosition, { width: 70 });
-        doc.fillColor("#1e293b").text(item.quantity.toString(), 360, yPosition, {
-          width: 30,
-          align: "center",
-        });
-        doc.text(`Rs. ${parseFloat(item.unitPrice).toFixed(2)}`, 400, yPosition, {
-          width: 60,
-          align: "right",
-        });
+        doc
+          .fillColor("#1e293b")
+          .text(item.quantity.toString(), 360, yPosition, {
+            width: 30,
+            align: "center",
+          });
+        doc.text(
+          `Rs. ${parseFloat(item.unitPrice).toFixed(2)}`,
+          400,
+          yPosition,
+          {
+            width: 60,
+            align: "right",
+          },
+        );
 
         const lineTotal = item.quantity * parseFloat(item.unitPrice);
         grandSubtotal += lineTotal;
@@ -1038,8 +1070,8 @@ export const generateCombinedInvoicePDF = asyncHandler(async (req, res) => {
     yPosition += 120;
 
     // Check all orders for payment status
-    const allPaid = orders.every(order => 
-      order.invoice?.payments?.some(p => p.status === "SUCCESS")
+    const allPaid = orders.every((order) =>
+      order.invoice?.payments?.some((p) => p.status === "SUCCESS"),
     );
 
     const badgeColor = allPaid ? "#dcfce7" : "#fef3c7";
@@ -1060,29 +1092,35 @@ export const generateCombinedInvoicePDF = asyncHandler(async (req, res) => {
       yPosition = 50;
     }
 
-    doc.fontSize(10).fillColor("#1e40af").text("Order Breakdown:", 40, yPosition);
+    doc
+      .fontSize(10)
+      .fillColor("#1e40af")
+      .text("Order Breakdown:", 40, yPosition);
     yPosition += 18;
 
     doc.fontSize(8).fillColor("#64748b");
     for (const order of orders) {
       const orderTotal = order.items.reduce(
         (sum, item) => sum + item.quantity * parseFloat(item.unitPrice),
-        0
+        0,
       );
-      const vendorName = order.vendor?.companyName || 
-        (order.vendor?.user ? `${order.vendor.user.firstName} ${order.vendor.user.lastName}` : "N/A");
-      
+      const vendorName =
+        order.vendor?.companyName ||
+        (order.vendor?.user ?
+          `${order.vendor.user.firstName} ${order.vendor.user.lastName}`
+        : "N/A");
+
       doc.text(
         `Order #${order.orderNumber} (${vendorName}): Rs. ${orderTotal.toFixed(2)}`,
         55,
-        yPosition
+        yPosition,
       );
       yPosition += 14;
     }
 
     // ========== FOOTER ==========
     const footerY = Math.max(yPosition + 30, 730);
-    
+
     doc
       .fontSize(9)
       .fillColor("#64748b")
@@ -1102,12 +1140,19 @@ export const generateCombinedInvoicePDF = asyncHandler(async (req, res) => {
       );
 
     // Footer line
-    doc.moveTo(40, footerY - 10).lineTo(555, footerY - 10).strokeColor("#e2e8f0").stroke();
+    doc
+      .moveTo(40, footerY - 10)
+      .lineTo(555, footerY - 10)
+      .strokeColor("#e2e8f0")
+      .stroke();
 
     // Finalize PDF
     doc.end();
   } catch (error) {
     console.error("Combined PDF Generation Error:", error);
-    throw new ApiError(500, `Failed to generate combined PDF: ${error.message}`);
+    throw new ApiError(
+      500,
+      `Failed to generate combined PDF: ${error.message}`,
+    );
   }
 });

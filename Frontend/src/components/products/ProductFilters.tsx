@@ -39,6 +39,9 @@ interface ProductFiltersProps {
   onSearchChange: (query: string) => void;
   selectedCategories: string[];
   onCategoryChange: (categories: string[]) => void;
+  attributeFilters: Array<{ name: string; options: string[] }>;
+  selectedAttributes: Record<string, string[]>;
+  onAttributeChange: (name: string, values: string[]) => void;
   sortBy: string;
   onSortChange: (sort: string) => void;
 }
@@ -48,6 +51,9 @@ export function ProductFilters({
   onSearchChange,
   selectedCategories,
   onCategoryChange,
+  attributeFilters,
+  selectedAttributes,
+  onAttributeChange,
   sortBy,
   onSortChange,
 }: ProductFiltersProps) {
@@ -61,13 +67,29 @@ export function ProductFilters({
     }
   };
 
+  const toggleAttribute = (name: string, option: string) => {
+    const current = selectedAttributes[name] || [];
+    if (current.includes(option)) {
+      onAttributeChange(
+        name,
+        current.filter((v) => v !== option),
+      );
+    } else {
+      onAttributeChange(name, [...current, option]);
+    }
+  };
+
   const clearFilters = () => {
     onSearchChange("");
     onCategoryChange([]);
+    attributeFilters.forEach((attr) => onAttributeChange(attr.name, []));
     onSortChange("featured");
   };
 
-  const hasActiveFilters = searchQuery || selectedCategories.length > 0;
+  const hasActiveFilters =
+    searchQuery ||
+    selectedCategories.length > 0 ||
+    Object.values(selectedAttributes).some((vals) => vals.length > 0);
 
   return (
     <div className="space-y-6">
@@ -145,6 +167,43 @@ export function ProductFilters({
                   ))}
                 </div>
               </div>
+              {attributeFilters.length > 0 && (
+                <div className="space-y-3">
+                  <Label className="text-sm font-medium">Attributes</Label>
+                  <div className="space-y-4">
+                    {attributeFilters.map((attr) => (
+                      <div key={attr.name} className="space-y-2">
+                        <Label className="text-xs uppercase tracking-wide text-muted-foreground">
+                          {attr.name}
+                        </Label>
+                        <div className="space-y-2">
+                          {attr.options.map((option) => (
+                            <div key={option} className="flex items-center gap-2">
+                              <Checkbox
+                                id={`mobile-${attr.name}-${option}`}
+                                checked={
+                                  (selectedAttributes[attr.name] || []).includes(
+                                    option,
+                                  )
+                                }
+                                onCheckedChange={() =>
+                                  toggleAttribute(attr.name, option)
+                                }
+                              />
+                              <Label
+                                htmlFor={`mobile-${attr.name}-${option}`}
+                                className="text-sm"
+                              >
+                                {option}
+                              </Label>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </SheetContent>
         </Sheet>
@@ -168,6 +227,32 @@ export function ProductFilters({
           </Badge>
         ))}
       </div>
+
+      {attributeFilters.length > 0 && (
+        <div className="hidden flex-col gap-4 sm:flex">
+          {attributeFilters.map((attr) => (
+            <div key={attr.name} className="flex flex-wrap items-center gap-3">
+              <span className="text-sm font-semibold text-foreground">
+                {attr.name}:
+              </span>
+              {attr.options.map((option) => (
+                <Badge
+                  key={option}
+                  variant={
+                    (selectedAttributes[attr.name] || []).includes(option) ?
+                      "default"
+                    : "outline"
+                  }
+                  className="cursor-pointer rounded-lg transition-colors"
+                  onClick={() => toggleAttribute(attr.name, option)}
+                >
+                  {option}
+                </Badge>
+              ))}
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Active Filters */}
       {hasActiveFilters && (
@@ -200,6 +285,26 @@ export function ProductFilters({
               />
             </Badge>
           ))}
+          {Object.entries(selectedAttributes).map(([attrName, values]) =>
+            values.map((value) => (
+              <Badge
+                key={`${attrName}-${value}`}
+                variant="secondary"
+                className="gap-1 rounded-lg"
+              >
+                {attrName}: {value}
+                <X
+                  className="h-4 w-4 cursor-pointer transition-transform hover:scale-125"
+                  onClick={() =>
+                    onAttributeChange(
+                      attrName,
+                      values.filter((v) => v !== value),
+                    )
+                  }
+                />
+              </Badge>
+            )),
+          )}
           <Button
             variant="ghost"
             size="sm"

@@ -12,6 +12,9 @@ export default function ProductsPage() {
   const { products, isLoadingProducts, productsError, fetchProducts } = useRentalStore();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedAttributes, setSelectedAttributes] = useState<
+    Record<string, string[]>
+  >({});
   const [sortBy, setSortBy] = useState("featured");
 
   // Fetch products on mount
@@ -27,6 +30,45 @@ export default function ProductsPage() {
       });
     }
   }, [productsError]);
+
+  const attributeFilters = useMemo(() => {
+    const map = new Map<string, Set<string>>();
+
+    products.forEach((product) => {
+      const activeVariants = (product.variants || []).filter(
+        (v) => v.isActive !== false,
+      );
+
+      const schema =
+        product.attributeSchema && product.attributeSchema.length > 0 ?
+          product.attributeSchema
+        : activeVariants.length > 0 ?
+          Object.keys(activeVariants[0].attributes || {}).map((name) => ({
+            name,
+            options: Array.from(
+              new Set(
+                activeVariants
+                  .map((v) => v.attributes?.[name])
+                  .filter(Boolean),
+              ),
+            ),
+          }))
+        : [];
+
+      schema.forEach((attr) => {
+        if (!map.has(attr.name)) {
+          map.set(attr.name, new Set());
+        }
+        const set = map.get(attr.name)!;
+        attr.options.forEach((opt) => set.add(opt));
+      });
+    });
+
+    return Array.from(map.entries()).map(([name, options]) => ({
+      name,
+      options: Array.from(options),
+    }));
+  }, [products]);
 
   const filteredProducts = useMemo(() => {
     let result = products.filter((p) => p.isPublished);
@@ -45,6 +87,25 @@ export default function ProductsPage() {
     // Category filter
     if (selectedCategories.length > 0) {
       result = result.filter((p) => selectedCategories.includes(p.category));
+    }
+
+    const activeAttributeFilters = Object.entries(selectedAttributes).filter(
+      ([, values]) => values.length > 0,
+    );
+
+    if (activeAttributeFilters.length > 0) {
+      result = result.filter((product) => {
+        const activeVariants = (product.variants || []).filter(
+          (v) => v.isActive !== false,
+        );
+        if (activeVariants.length === 0) return false;
+
+        return activeVariants.some((variant) =>
+          activeAttributeFilters.every(([attrName, values]) =>
+            values.includes(variant.attributes?.[attrName]),
+          ),
+        );
+      });
     }
 
     // Sort
@@ -70,7 +131,7 @@ export default function ProductsPage() {
     }
 
     return result;
-  }, [products, searchQuery, selectedCategories, sortBy]);
+  }, [products, searchQuery, selectedCategories, selectedAttributes, sortBy]);
 
   return (
     <MainLayout>
@@ -113,6 +174,14 @@ export default function ProductsPage() {
             onSearchChange={setSearchQuery}
             selectedCategories={selectedCategories}
             onCategoryChange={setSelectedCategories}
+            attributeFilters={attributeFilters}
+            selectedAttributes={selectedAttributes}
+            onAttributeChange={(name, values) =>
+              setSelectedAttributes((prev) => ({
+                ...prev,
+                [name]: values,
+              }))
+            }
             sortBy={sortBy}
             onSortChange={setSortBy}
           />

@@ -34,6 +34,7 @@ export function RentalConfigurator({ product }: RentalConfiguratorProps) {
   const [duration, setDuration] = useState<RentalDuration>('daily');
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
+  const [selectedAttributes, setSelectedAttributes] = useState<Record<string, string>>({});
   const { addItem } = useCartStore();
   const { deliveryDate, pickupDate } = useRentalStore();
   const { isAuthenticated } = useAuthStore();
@@ -51,7 +52,53 @@ export function RentalConfigurator({ product }: RentalConfiguratorProps) {
     }).format(price);
   };
 
+  const activeVariants =
+    product.variants ? product.variants.filter((v) => v.isActive !== false) : [];
+
+  const attributeSchema =
+    product.attributeSchema && product.attributeSchema.length > 0 ?
+      product.attributeSchema
+    : activeVariants.length > 0 ?
+      Object.keys(activeVariants[0].attributes || {}).map((name) => ({
+        name,
+        options: Array.from(
+          new Set(
+            activeVariants
+              .map((v) => v.attributes?.[name])
+              .filter(Boolean),
+          ),
+        ),
+      }))
+    : [];
+
+  const isAttributeSelectionComplete =
+    attributeSchema.length === 0 ?
+      true
+    : attributeSchema.every((attr) => selectedAttributes[attr.name]);
+
+  const matchingVariant =
+    activeVariants.length > 0 && isAttributeSelectionComplete ?
+      activeVariants.find((variant) =>
+        attributeSchema.every(
+          (attr) =>
+            variant.attributes?.[attr.name] === selectedAttributes[attr.name],
+        ),
+      ) || null
+    : null;
+
   const getPriceForDuration = () => {
+    if (matchingVariant) {
+      switch (duration) {
+        case 'hourly':
+          return matchingVariant.pricePerHour || 0;
+        case 'daily':
+          return matchingVariant.pricePerDay || 0;
+        case 'weekly':
+          return matchingVariant.pricePerWeek || 0;
+        default:
+          return matchingVariant.pricePerDay || 0;
+      }
+    }
     switch (duration) {
       case 'hourly':
         return product.pricePerHour;
@@ -65,6 +112,11 @@ export function RentalConfigurator({ product }: RentalConfiguratorProps) {
   };
 
   const totalPrice = getPriceForDuration() * quantity;
+  const availableQty = matchingVariant ? matchingVariant.totalQty : product.quantityOnHand;
+  const isVariantSelectionInvalid =
+    activeVariants.length > 0 ?
+      !isAttributeSelectionComplete || !matchingVariant
+    : false;
 
   // Fetch available coupons
   useEffect(() => {
@@ -101,8 +153,8 @@ export function RentalConfigurator({ product }: RentalConfiguratorProps) {
       return;
     }
 
-    if (quantity > product.quantityOnHand) {
-      toast.error(`Only ${product.quantityOnHand} units available`);
+    if (quantity > availableQty) {
+      toast.error(`Only ${availableQty} units available`);
       return;
     }
 
@@ -114,8 +166,28 @@ export function RentalConfigurator({ product }: RentalConfiguratorProps) {
 
     try {
       setIsAddingToCart(true);
+      if (activeVariants.length > 0 && !matchingVariant) {
+        toast.error('Please select product options');
+        return;
+      }
+
       // Pass pickupDate as endDate
-      await addItem(product, quantity, duration, deliveryDate, pickupDate || undefined);
+      await addItem(
+        product,
+        quantity,
+        duration,
+        deliveryDate,
+        pickupDate || undefined,
+        matchingVariant ? matchingVariant.id : undefined,
+        matchingVariant ? selectedAttributes : undefined,
+        matchingVariant ?
+          {
+            pricePerHour: matchingVariant.pricePerHour || 0,
+            pricePerDay: matchingVariant.pricePerDay || 0,
+            pricePerWeek: matchingVariant.pricePerWeek || 0,
+          }
+        : undefined,
+      );
       toast.success('Added to cart!', {
         description: `${product.name} x${quantity} - ${duration}`,
       });
@@ -146,10 +218,22 @@ export function RentalConfigurator({ product }: RentalConfiguratorProps) {
     }
   };
 
+  const effectivePricing = matchingVariant ?
+    {
+      pricePerHour: matchingVariant.pricePerHour || 0,
+      pricePerDay: matchingVariant.pricePerDay || 0,
+      pricePerWeek: matchingVariant.pricePerWeek || 0,
+    }
+  : {
+      pricePerHour: product.pricePerHour,
+      pricePerDay: product.pricePerDay,
+      pricePerWeek: product.pricePerWeek,
+    };
+
   const durationOptions = [
-    { value: 'hourly', label: 'Hourly', price: product.pricePerHour, icon: Clock },
-    { value: 'daily', label: 'Daily', price: product.pricePerDay, icon: CalendarIcon },
-    { value: 'weekly', label: 'Weekly', price: product.pricePerWeek, icon: CalendarIcon },
+    { value: 'hourly', label: 'Hourly', price: effectivePricing.pricePerHour, icon: Clock },
+    { value: 'daily', label: 'Daily', price: effectivePricing.pricePerDay, icon: CalendarIcon },
+    { value: 'weekly', label: 'Weekly', price: effectivePricing.pricePerWeek, icon: CalendarIcon },
   ].filter(option => option.price && option.price > 0); // Only show available pricing options
 
   return (
@@ -179,6 +263,48 @@ export function RentalConfigurator({ product }: RentalConfiguratorProps) {
           )} />
         </button>
       </div>
+
+      {/* Variant Options */}
+      {attributeSchema.length > 0 && (
+        <div className="space-y-4 rounded-xl border border-border bg-white p-4">
+          <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wider">
+            Choose Options
+          </h3>
+          {attributeSchema.map((attr) => (
+            <div key={attr.name} className="space-y-2">
+              <Label className="text-sm font-medium">{attr.name}</Label>
+              <div className="flex flex-wrap gap-2">
+                {attr.options.map((option) => (
+                  <Button
+                    key={option}
+                    type="button"
+                    variant={
+                      selectedAttributes[attr.name] === option ?
+                        "default"
+                      : "outline"
+                    }
+                    size="sm"
+                    className="rounded-full"
+                    onClick={() =>
+                      setSelectedAttributes((prev) => ({
+                        ...prev,
+                        [attr.name]: option,
+                      }))
+                    }
+                  >
+                    {option}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          ))}
+          {isAttributeSelectionComplete && !matchingVariant && (
+            <p className="text-sm text-destructive">
+              This combination is not available.
+            </p>
+          )}
+        </div>
+      )}
 
       {/* Rental Duration & Price */}
       <div className="space-y-3">
@@ -262,7 +388,7 @@ export function RentalConfigurator({ product }: RentalConfiguratorProps) {
         size="lg"
         className="w-full rounded-xl bg-blue-600 hover:bg-blue-700"
         onClick={handleAddToCart}
-        disabled={!deliveryDate || !pickupDate || quantity > product.quantityOnHand || isAddingToCart}
+        disabled={!deliveryDate || !pickupDate || quantity > availableQty || isAddingToCart || isVariantSelectionInvalid}
       >
         {isAddingToCart ? (
           <>

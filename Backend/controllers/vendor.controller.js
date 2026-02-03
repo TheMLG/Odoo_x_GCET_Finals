@@ -6,6 +6,99 @@ import ApiResponse from "../utils/ApiResponse.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 
+const parseJsonField = (value, fallback = null) => {
+  if (value === undefined || value === null || value === "") return fallback;
+  if (typeof value === "object") return value;
+  try {
+    return JSON.parse(value);
+  } catch (err) {
+    return fallback;
+  }
+};
+
+const normalizeAttributeSchema = (schema) => {
+  if (!Array.isArray(schema)) return [];
+  return schema
+    .map((item) => ({
+      name: typeof item?.name === "string" ? item.name.trim() : "",
+      options:
+        Array.isArray(item?.options) ?
+          item.options.map((o) => String(o).trim()).filter(Boolean)
+        : [],
+    }))
+    .filter((item) => item.name.length > 0 && item.options.length > 0);
+};
+
+const validateAttributeSchema = (schema) => {
+  const names = schema.map((s) => s.name);
+  const nameSet = new Set(names);
+  if (nameSet.size !== names.length) {
+    return "Attribute names must be unique";
+  }
+  return null;
+};
+
+const validateVariants = (variants, attributeSchema) => {
+  if (!Array.isArray(variants) || variants.length === 0) return null;
+
+  const schemaMap = new Map(
+    attributeSchema.map((s) => [s.name, new Set(s.options)]),
+  );
+
+  const seenCombos = new Set();
+  for (const v of variants) {
+    if (!v || typeof v !== "object") {
+      return "Invalid variant data";
+    }
+
+    const attrs = v.attributes || {};
+    const attrKeys = Object.keys(attrs);
+    if (attributeSchema.length > 0 && attrKeys.length === 0) {
+      return "Variant attributes are required";
+    }
+
+    for (const key of attrKeys) {
+      if (!schemaMap.has(key)) {
+        return `Variant attribute "${key}" is not in attribute schema`;
+      }
+      const value = String(attrs[key]);
+      const allowed = schemaMap.get(key);
+      if (!allowed.has(value)) {
+        return `Variant attribute "${key}" has invalid value "${value}"`;
+      }
+    }
+
+    // Ensure all schema attributes are provided for the variant
+    for (const schemaAttr of attributeSchema) {
+      if (schemaAttr.name && !(schemaAttr.name in attrs)) {
+        return `Variant missing attribute "${schemaAttr.name}"`;
+      }
+    }
+
+    const comboKey = JSON.stringify(
+      Object.keys(attrs)
+        .sort()
+        .reduce((acc, k) => {
+          acc[k] = String(attrs[k]);
+          return acc;
+        }, {}),
+    );
+    if (seenCombos.has(comboKey)) {
+      return "Duplicate variant attribute combinations are not allowed";
+    }
+    seenCombos.add(comboKey);
+
+    if (!v.pricePerDay || Number(v.pricePerDay) <= 0) {
+      return "Variant pricePerDay must be greater than 0";
+    }
+    if (v.totalQty === undefined || Number(v.totalQty) < 0) {
+      return "Variant totalQty must be 0 or greater";
+    }
+  }
+
+  return null;
+};
+
 // Get vendor profile
 export const getVendorProfile = asyncHandler(async (req, res) => {
   const vendor = await prisma.vendor.findUnique({
@@ -168,12 +261,35 @@ export const createProduct = asyncHandler(async (req, res) => {
     pricePerWeek,
     totalQty,
     isPublished,
+    attributeSchema: attributeSchemaRaw,
+    variants: variantsRaw,
   } = req.body;
 
-  if (!name || !pricePerDay || !totalQty) {
+  const hasAttributeSchemaPayload = attributeSchemaRaw !== undefined;
+  const attributeSchema = normalizeAttributeSchema(
+    parseJsonField(attributeSchemaRaw, []),
+  );
+  const variants = parseJsonField(variantsRaw, []);
+
+  const hasVariants = Array.isArray(variants) && variants.length > 0;
+
+  if (hasVariants) {
+    const schemaError = validateAttributeSchema(attributeSchema);
+    if (schemaError) {
+      throw new ApiError(400, schemaError);
+    }
+    const variantError = validateVariants(variants, attributeSchema);
+    if (variantError) {
+      throw new ApiError(400, variantError);
+    }
+  }
+
+  if (!name || (!hasVariants && (!pricePerDay || !totalQty))) {
     throw new ApiError(
       400,
-      "Name, daily price and total quantity are required",
+      hasVariants ?
+        "Name is required"
+      : "Name, daily price and total quantity are required",
     );
   }
 
@@ -208,48 +324,88 @@ export const createProduct = asyncHandler(async (req, res) => {
         category,
         product_image_url,
         isPublished: isPublished === "true" || isPublished === true,
+        attributeSchema: attributeSchema.length > 0 ? attributeSchema : null,
       },
     });
 
-    // 2. Create ProductInventory
-    await tx.productInventory.create({
-      data: {
+    if (hasVariants) {
+      const variantData = variants.map((v) => ({
         productId: newProduct.id,
-        totalQty: parseInt(totalQty),
-      },
-    });
+        name: v.name || null,
+        attributes: v.attributes || {},
+        pricePerHour:
+          v.pricePerHour !== undefined && v.pricePerHour !== "" ?
+            parseFloat(v.pricePerHour)
+          : null,
+        pricePerDay: parseFloat(v.pricePerDay),
+        pricePerWeek:
+          v.pricePerWeek !== undefined && v.pricePerWeek !== "" ?
+            parseFloat(v.pricePerWeek)
+          : null,
+        pricePerMonth:
+          v.pricePerMonth !== undefined && v.pricePerMonth !== "" ?
+            parseFloat(v.pricePerMonth)
+          : null,
+        totalQty: parseInt(v.totalQty),
+        isActive: v.isActive !== false,
+      }));
 
-    // 3. Create RentalPricing
-    const pricingData = [];
+      await tx.productVariant.createMany({
+        data: variantData,
+      });
 
-    // Day price (required)
-    pricingData.push({
-      productId: newProduct.id,
-      type: "DAY",
-      price: parseFloat(pricePerDay),
-    });
+      const totalVariantQty = variantData.reduce(
+        (sum, v) => sum + (v.totalQty || 0),
+        0,
+      );
 
-    // Hour price (optional)
-    if (pricePerHour) {
+      await tx.productInventory.create({
+        data: {
+          productId: newProduct.id,
+          totalQty: totalVariantQty,
+        },
+      });
+    } else {
+      // 2. Create ProductInventory
+      await tx.productInventory.create({
+        data: {
+          productId: newProduct.id,
+          totalQty: parseInt(totalQty),
+        },
+      });
+
+      // 3. Create RentalPricing
+      const pricingData = [];
+
+      // Day price (required)
       pricingData.push({
         productId: newProduct.id,
-        type: "HOUR",
-        price: parseFloat(pricePerHour),
+        type: "DAY",
+        price: parseFloat(pricePerDay),
+      });
+
+      // Hour price (optional)
+      if (pricePerHour) {
+        pricingData.push({
+          productId: newProduct.id,
+          type: "HOUR",
+          price: parseFloat(pricePerHour),
+        });
+      }
+
+      // Week price (optional)
+      if (pricePerWeek) {
+        pricingData.push({
+          productId: newProduct.id,
+          type: "WEEK",
+          price: parseFloat(pricePerWeek),
+        });
+      }
+
+      await tx.rentalPricing.createMany({
+        data: pricingData,
       });
     }
-
-    // Week price (optional)
-    if (pricePerWeek) {
-      pricingData.push({
-        productId: newProduct.id,
-        type: "WEEK",
-        price: parseFloat(pricePerWeek),
-      });
-    }
-
-    await tx.rentalPricing.createMany({
-      data: pricingData,
-    });
 
     return newProduct;
   });
@@ -259,6 +415,7 @@ export const createProduct = asyncHandler(async (req, res) => {
     include: {
       inventory: true,
       pricing: true,
+      variants: true,
     },
   });
 
@@ -282,6 +439,7 @@ export const getVendorProducts = asyncHandler(async (req, res) => {
     include: {
       inventory: true,
       pricing: true,
+      variants: true,
       attributes: {
         include: {
           attributeValue: {
@@ -917,6 +1075,7 @@ export const getVendorProduct = asyncHandler(async (req, res) => {
     include: {
       inventory: true,
       pricing: true,
+      variants: true,
     },
   });
 
@@ -941,6 +1100,9 @@ export const updateProduct = asyncHandler(async (req, res) => {
     pricePerWeek,
     totalQty,
     isPublished,
+    attributeSchema: attributeSchemaRaw,
+    variants: variantsRaw,
+    deletedVariantIds: deletedVariantIdsRaw,
   } = req.body;
 
   const vendor = await prisma.vendor.findUnique({
@@ -972,6 +1134,24 @@ export const updateProduct = asyncHandler(async (req, res) => {
     product_image_url = uploadResponse.url;
   }
 
+  const attributeSchema = normalizeAttributeSchema(
+    parseJsonField(attributeSchemaRaw, []),
+  );
+  const variants = parseJsonField(variantsRaw, []);
+  const deletedVariantIds = parseJsonField(deletedVariantIdsRaw, []);
+  const hasVariants = Array.isArray(variants) && variants.length > 0;
+
+  if (hasVariants) {
+    const schemaError = validateAttributeSchema(attributeSchema);
+    if (schemaError) {
+      throw new ApiError(400, schemaError);
+    }
+    const variantError = validateVariants(variants, attributeSchema);
+    if (variantError) {
+      throw new ApiError(400, variantError);
+    }
+  }
+
   // Transaction for atomic updates
   const updatedProduct = await prisma.$transaction(async (tx) => {
     // 1. Update Product
@@ -983,59 +1163,150 @@ export const updateProduct = asyncHandler(async (req, res) => {
         category,
         product_image_url,
         isPublished: isPublished === "true" || isPublished === true,
+        ...(hasAttributeSchemaPayload ?
+          {
+            attributeSchema:
+              attributeSchema.length > 0 ? attributeSchema : null,
+          }
+        : {}),
       },
     });
 
-    // 2. Update Inventory
-    if (totalQty) {
+    // Deactivate variants if requested
+    if (Array.isArray(deletedVariantIds) && deletedVariantIds.length > 0) {
+      await tx.productVariant.updateMany({
+        where: { id: { in: deletedVariantIds }, productId },
+        data: { isActive: false },
+      });
+    }
+
+    if (hasVariants) {
+      for (const v of variants) {
+        if (v.id) {
+          await tx.productVariant.update({
+            where: { id: v.id },
+            data: {
+              name: v.name || null,
+              attributes: v.attributes || {},
+              pricePerHour:
+                v.pricePerHour !== undefined && v.pricePerHour !== "" ?
+                  parseFloat(v.pricePerHour)
+                : null,
+              pricePerDay: parseFloat(v.pricePerDay),
+              pricePerWeek:
+                v.pricePerWeek !== undefined && v.pricePerWeek !== "" ?
+                  parseFloat(v.pricePerWeek)
+                : null,
+              pricePerMonth:
+                v.pricePerMonth !== undefined && v.pricePerMonth !== "" ?
+                  parseFloat(v.pricePerMonth)
+                : null,
+              totalQty: parseInt(v.totalQty),
+              isActive: v.isActive !== false,
+            },
+          });
+        } else {
+          await tx.productVariant.create({
+            data: {
+              productId,
+              name: v.name || null,
+              attributes: v.attributes || {},
+              pricePerHour:
+                v.pricePerHour !== undefined && v.pricePerHour !== "" ?
+                  parseFloat(v.pricePerHour)
+                : null,
+              pricePerDay: parseFloat(v.pricePerDay),
+              pricePerWeek:
+                v.pricePerWeek !== undefined && v.pricePerWeek !== "" ?
+                  parseFloat(v.pricePerWeek)
+                : null,
+              pricePerMonth:
+                v.pricePerMonth !== undefined && v.pricePerMonth !== "" ?
+                  parseFloat(v.pricePerMonth)
+                : null,
+              totalQty: parseInt(v.totalQty),
+              isActive: v.isActive !== false,
+            },
+          });
+        }
+      }
+    }
+
+    if (
+      hasVariants ||
+      (Array.isArray(deletedVariantIds) && deletedVariantIds.length > 0)
+    ) {
+      const activeVariants = await tx.productVariant.findMany({
+        where: { productId, isActive: true },
+        select: { totalQty: true },
+      });
+      const totalVariantQty = activeVariants.reduce(
+        (sum, v) => sum + (v.totalQty || 0),
+        0,
+      );
+
       await tx.productInventory.upsert({
         where: { productId },
         create: {
           productId,
-          totalQty: parseInt(totalQty),
+          totalQty: totalVariantQty,
         },
         update: {
-          totalQty: parseInt(totalQty),
+          totalQty: totalVariantQty,
         },
       });
-    }
-
-    // 3. Update Pricing (Delete all and recreate)
-    if (pricePerDay || pricePerHour || pricePerWeek) {
-      await tx.rentalPricing.deleteMany({
-        where: { productId },
-      });
-
-      const pricingData = [];
-
-      if (pricePerDay) {
-        pricingData.push({
-          productId,
-          type: "DAY",
-          price: parseFloat(pricePerDay),
+    } else {
+      // 2. Update Inventory
+      if (totalQty) {
+        await tx.productInventory.upsert({
+          where: { productId },
+          create: {
+            productId,
+            totalQty: parseInt(totalQty),
+          },
+          update: {
+            totalQty: parseInt(totalQty),
+          },
         });
       }
 
-      if (pricePerHour) {
-        pricingData.push({
-          productId,
-          type: "HOUR",
-          price: parseFloat(pricePerHour),
+      // 3. Update Pricing (Delete all and recreate)
+      if (pricePerDay || pricePerHour || pricePerWeek) {
+        await tx.rentalPricing.deleteMany({
+          where: { productId },
         });
-      }
 
-      if (pricePerWeek) {
-        pricingData.push({
-          productId,
-          type: "WEEK",
-          price: parseFloat(pricePerWeek),
-        });
-      }
+        const pricingData = [];
 
-      if (pricingData.length > 0) {
-        await tx.rentalPricing.createMany({
-          data: pricingData,
-        });
+        if (pricePerDay) {
+          pricingData.push({
+            productId,
+            type: "DAY",
+            price: parseFloat(pricePerDay),
+          });
+        }
+
+        if (pricePerHour) {
+          pricingData.push({
+            productId,
+            type: "HOUR",
+            price: parseFloat(pricePerHour),
+          });
+        }
+
+        if (pricePerWeek) {
+          pricingData.push({
+            productId,
+            type: "WEEK",
+            price: parseFloat(pricePerWeek),
+          });
+        }
+
+        if (pricingData.length > 0) {
+          await tx.rentalPricing.createMany({
+            data: pricingData,
+          });
+        }
       }
     }
 
@@ -1047,6 +1318,7 @@ export const updateProduct = asyncHandler(async (req, res) => {
     include: {
       inventory: true,
       pricing: true,
+      variants: true,
     },
   });
 
@@ -1087,6 +1359,7 @@ export const deleteProduct = asyncHandler(async (req, res) => {
       await tx.productInventory.deleteMany({ where: { productId } });
       await tx.rentalPricing.deleteMany({ where: { productId } });
       await tx.productAttribute.deleteMany({ where: { productId } });
+      await tx.productVariant.deleteMany({ where: { productId } });
 
       // Finally delete product
       await tx.product.delete({

@@ -45,6 +45,20 @@ export const getAllProducts = asyncHandler(async (req, res) => {
           price: true,
         },
       },
+      variants: {
+        where: { isActive: true },
+        select: {
+          id: true,
+          name: true,
+          attributes: true,
+          pricePerHour: true,
+          pricePerDay: true,
+          pricePerWeek: true,
+          pricePerMonth: true,
+          totalQty: true,
+          isActive: true,
+        },
+      },
       attributes: {
         include: {
           attributeValue: {
@@ -85,9 +99,37 @@ export const getAllProducts = asyncHandler(async (req, res) => {
       });
     }
 
+    // If variants exist and pricing is empty, use min variant pricing for display
+    if (
+      product.variants &&
+      product.variants.length > 0 &&
+      pricingObj.pricePerHour === 0 &&
+      pricingObj.pricePerDay === 0 &&
+      pricingObj.pricePerWeek === 0 &&
+      pricingObj.pricePerMonth === 0
+    ) {
+      const minPrice = (key) => {
+        const values = product.variants
+          .map((v) => (v[key] !== null ? Number(v[key]) : 0))
+          .filter((v) => v > 0);
+        return values.length > 0 ? Math.min(...values) : 0;
+      };
+      pricingObj.pricePerHour = minPrice("pricePerHour");
+      pricingObj.pricePerDay = minPrice("pricePerDay");
+      pricingObj.pricePerWeek = minPrice("pricePerWeek");
+      pricingObj.pricePerMonth = minPrice("pricePerMonth");
+    }
+
     // Transform inventory
+    const variantQty =
+      product.variants && product.variants.length > 0 ?
+        product.variants.reduce((sum, v) => sum + (v.totalQty || 0), 0)
+      : 0;
     const inventoryObj = {
-      quantityOnHand: product.inventory?.totalQty || 0,
+      quantityOnHand:
+        product.variants && product.variants.length > 0 ?
+          variantQty
+        : product.inventory?.totalQty || 0,
     };
 
     // Transform attributes to key-value object
@@ -112,10 +154,24 @@ export const getAllProducts = asyncHandler(async (req, res) => {
       category: product.category,
       product_image_url: product.product_image_url,
       isPublished: product.isPublished,
+      attributeSchema: product.attributeSchema || null,
       createdAt: product.createdAt,
       pricing: pricingObj,
       inventory: inventoryObj,
       attributes: attributesObj,
+      variants:
+        product.variants?.map((v) => ({
+          id: v.id,
+          name: v.name,
+          attributes: v.attributes,
+          pricePerHour: v.pricePerHour !== null ? Number(v.pricePerHour) : null,
+          pricePerDay: Number(v.pricePerDay),
+          pricePerWeek: v.pricePerWeek !== null ? Number(v.pricePerWeek) : null,
+          pricePerMonth:
+            v.pricePerMonth !== null ? Number(v.pricePerMonth) : null,
+          totalQty: v.totalQty,
+          isActive: v.isActive,
+        })) || [],
       vendor: product.vendor,
     };
   });
@@ -166,6 +222,20 @@ export const getProductById = asyncHandler(async (req, res) => {
           price: true,
         },
       },
+      variants: {
+        where: { isActive: true },
+        select: {
+          id: true,
+          name: true,
+          attributes: true,
+          pricePerHour: true,
+          pricePerDay: true,
+          pricePerWeek: true,
+          pricePerMonth: true,
+          totalQty: true,
+          isActive: true,
+        },
+      },
       attributes: {
         include: {
           attribute: {
@@ -205,9 +275,36 @@ export const getProductById = asyncHandler(async (req, res) => {
     });
   }
 
+  if (
+    product.variants &&
+    product.variants.length > 0 &&
+    pricingObj.pricePerHour === 0 &&
+    pricingObj.pricePerDay === 0 &&
+    pricingObj.pricePerWeek === 0 &&
+    pricingObj.pricePerMonth === 0
+  ) {
+    const minPrice = (key) => {
+      const values = product.variants
+        .map((v) => (v[key] !== null ? Number(v[key]) : 0))
+        .filter((v) => v > 0);
+      return values.length > 0 ? Math.min(...values) : 0;
+    };
+    pricingObj.pricePerHour = minPrice("pricePerHour");
+    pricingObj.pricePerDay = minPrice("pricePerDay");
+    pricingObj.pricePerWeek = minPrice("pricePerWeek");
+    pricingObj.pricePerMonth = minPrice("pricePerMonth");
+  }
+
   // Transform inventory
+  const variantQty =
+    product.variants && product.variants.length > 0 ?
+      product.variants.reduce((sum, v) => sum + (v.totalQty || 0), 0)
+    : 0;
   const inventoryObj = {
-    quantityOnHand: product.inventory?.totalQty || 0,
+    quantityOnHand:
+      product.variants && product.variants.length > 0 ?
+        variantQty
+      : product.inventory?.totalQty || 0,
   };
 
   // Transform attributes to key-value object
@@ -229,10 +326,23 @@ export const getProductById = asyncHandler(async (req, res) => {
     category: product.category,
     product_image_url: product.product_image_url,
     isPublished: product.isPublished,
+    attributeSchema: product.attributeSchema || null,
     createdAt: product.createdAt,
     pricing: pricingObj,
     inventory: inventoryObj,
     attributes: attributesObj,
+    variants:
+      product.variants?.map((v) => ({
+        id: v.id,
+        name: v.name,
+        attributes: v.attributes,
+        pricePerHour: v.pricePerHour !== null ? Number(v.pricePerHour) : null,
+        pricePerDay: Number(v.pricePerDay),
+        pricePerWeek: v.pricePerWeek !== null ? Number(v.pricePerWeek) : null,
+        pricePerMonth: v.pricePerMonth !== null ? Number(v.pricePerMonth) : null,
+        totalQty: v.totalQty,
+        isActive: v.isActive,
+      })) || [],
     vendor: product.vendor,
   };
 

@@ -28,6 +28,18 @@ export interface VendorProduct {
   product_image_url: string | null;
   isPublished: boolean;
   createdAt: string;
+  attributeSchema?: Array<{ name: string; options: string[] }>;
+  variants?: Array<{
+    id: string;
+    name?: string | null;
+    attributes: Record<string, string>;
+    pricePerHour?: string | null;
+    pricePerDay: string;
+    pricePerWeek?: string | null;
+    pricePerMonth?: string | null;
+    totalQty: number;
+    isActive: boolean;
+  }>;
   inventory: {
     id: string;
     productId: string;

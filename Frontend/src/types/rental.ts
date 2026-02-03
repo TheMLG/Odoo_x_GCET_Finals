@@ -18,15 +18,6 @@ export interface ProductAttribute {
   values: string[];
 }
 
-export interface ProductVariant {
-  id: string;
-  attributes: Record<string, string>;
-  pricePerHour: number;
-  pricePerDay: number;
-  pricePerWeek: number;
-  quantityAvailable: number;
-}
-
 export interface Product {
   id: string;
   name: string;
@@ -42,7 +33,18 @@ export interface Product {
   quantityOnHand: number;
   vendorId: string;
   attributes: Record<string, string>;
-  variants?: ProductVariant[];
+  attributeSchema?: { name: string; options: string[] }[];
+  variants?: {
+    id: string;
+    name?: string;
+    attributes: Record<string, string>;
+    pricePerHour?: number | null;
+    pricePerDay: number;
+    pricePerWeek?: number | null;
+    pricePerMonth?: number | null;
+    totalQty: number;
+    isActive: boolean;
+  }[];
   createdAt: string;
 }
 
@@ -51,6 +53,7 @@ export type RentalDuration = 'hourly' | 'daily' | 'weekly' | 'custom';
 export interface CartItem {
   id: string;
   productId: string;
+  variantId?: string | null;
   product: Product;
   quantity: number;
   rentalDuration: RentalDuration;
